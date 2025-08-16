@@ -161,12 +161,16 @@ const SeatsManagement: React.FC = () => {
     setDraggedBench(benchId);
     setDraggedPreset(null);
     e.dataTransfer.effectAllowed = 'move';
+    // Some browsers require data to be set for drag events to fire properly
+    e.dataTransfer.setData('text/plain', benchId);
   };
 
   const handlePresetDragStart = (e: React.DragEvent, preset: any) => {
     setDraggedPreset(preset);
     setDraggedBench(null);
     e.dataTransfer.effectAllowed = 'copy';
+    // Set dummy data to ensure drop event is triggered across browsers
+    e.dataTransfer.setData('text/plain', preset.id);
   };
 
   const handleBenchDragEnd = () => {
