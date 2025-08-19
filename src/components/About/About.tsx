@@ -7,8 +7,7 @@ import {
   Heart, 
   Target,
   CheckCircle,
-  Star,
-  Award
+  Star
 } from 'lucide-react';
 
 const About: React.FC = () => {

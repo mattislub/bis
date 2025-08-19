@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, User, Bench } from '../../types';
-import { 
-  Move, 
-  RotateCcw, 
-  User as UserIcon, 
-  X, 
-  Plus, 
-  Trash2, 
+import {
+  Move,
+  User as UserIcon,
+  X,
+  Plus,
+  Trash2,
   Edit2,
   Grid3X3,
   Settings,
@@ -19,6 +18,7 @@ import {
 const SeatsManagement: React.FC = () => {
   const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings } = useAppContext();
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [draggedPreset, setDraggedPreset] = useState<any | null>(null);
   const [selectedBench, setSelectedBench] = useState<string | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
@@ -148,10 +148,6 @@ const SeatsManagement: React.FC = () => {
     return users.find(user => user.id === userId);
   };
 
-  const getBenchById = (benchId: string): Bench | undefined => {
-    return benches.find(bench => bench.id === benchId);
-  };
-
   const snapToGrid = (value: number): number => {
     if (!gridSettings.snapToGrid) return value;
     return Math.round(value / gridSettings.gridSize) * gridSettings.gridSize;
@@ -165,6 +161,7 @@ const SeatsManagement: React.FC = () => {
     e.dataTransfer.setData('text/plain', benchId);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handlePresetDragStart = (e: React.DragEvent, preset: any) => {
     setDraggedPreset(preset);
     setDraggedBench(null);
@@ -216,6 +213,7 @@ const SeatsManagement: React.FC = () => {
         setSeats(prev => [...prev, ...newSeats]);
       } else {
         // יצירת אלמנט מיוחד
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const newSpecialElement: any = {
           id: `special-${Date.now()}`,
           name: draggedPreset.name,
@@ -1000,83 +998,85 @@ const SeatsManagement: React.FC = () => {
 
           {/* הוספת/עריכת ספסל */}
           {(isAddingBench || editingBench) && (
-            <div className="bg-white p-6 rounded-lg shadow-md border border-green-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {editingBench ? 'עריכת ספסל' : 'הוספת ספסל חדש'}
-                </h3>
-                <button
-                  onClick={() => {
-                    setIsAddingBench(false);
-                    setEditingBench(null);
-                    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
-                  }}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">שם הספסל</label>
-                  <input
-                    type="text"
-                    value={benchForm.name}
-                    onChange={(e) => setBenchForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="הכנס שם לספסל"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">מספר מקומות</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={benchForm.seatCount}
-                    onChange={(e) => setBenchForm(prev => ({ ...prev, seatCount: parseInt(e.target.value) || 1 }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">כיוון</label>
-                  <select
-                    value={benchForm.orientation}
-                    onChange={(e) => setBenchForm(prev => ({ ...prev, orientation: e.target.value as 'horizontal' | 'vertical' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-green-200 w-full max-w-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {editingBench ? 'עריכת ספסל' : 'הוספת ספסל חדש'}
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setIsAddingBench(false);
+                      setEditingBench(null);
+                      setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+                    }}
+                    className="p-1 text-gray-400 hover:text-gray-600"
                   >
-                    <option value="horizontal">אופקי</option>
-                    <option value="vertical">אנכי</option>
-                  </select>
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">צבע</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {colors.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => setBenchForm(prev => ({ ...prev, color }))}
-                        className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                          benchForm.color === color ? 'border-gray-800 scale-110' : 'border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">שם הספסל</label>
+                    <input
+                      type="text"
+                      value={benchForm.name}
+                      onChange={(e) => setBenchForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="הכנס שם לספסל"
+                    />
                   </div>
-                </div>
 
-                <button
-                  onClick={editingBench ? updateBench : addNewBench}
-                  disabled={!benchForm.name}
-                  className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Plus className="h-4 w-4 ml-2" />
-                  {editingBench ? 'עדכן ספסל' : 'הוסף ספסל'}
-                </button>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">מספר מקומות</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={benchForm.seatCount}
+                      onChange={(e) => setBenchForm(prev => ({ ...prev, seatCount: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">כיוון</label>
+                    <select
+                      value={benchForm.orientation}
+                      onChange={(e) => setBenchForm(prev => ({ ...prev, orientation: e.target.value as 'horizontal' | 'vertical' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="horizontal">אופקי</option>
+                      <option value="vertical">אנכי</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">צבע</label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {colors.map(color => (
+                        <button
+                          key={color}
+                          onClick={() => setBenchForm(prev => ({ ...prev, color }))}
+                          className={`w-8 h-8 rounded-lg border-2 transition-all ${
+                            benchForm.color === color ? 'border-gray-800 scale-110' : 'border-gray-300'
+                          }`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={editingBench ? updateBench : addNewBench}
+                    disabled={!benchForm.name}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="h-4 w-4 ml-2" />
+                    {editingBench ? 'עדכן ספסל' : 'הוסף ספסל'}
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1158,50 +1158,113 @@ const SeatsManagement: React.FC = () => {
 
           {/* פרטי מקום נבחר */}
           {selectedSeat && selectedSeatData && !selectedBench && (
-            <div className="bg-white p-6 rounded-lg shadow-md border border-blue-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">מקום {selectedSeat}</h3>
-                <button
-                  onClick={() => setSelectedSeat(null)}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    משויך למשתמש
-                  </label>
-                  <select
-                    value={selectedSeatData.userId || ''}
-                    onChange={(e) => assignUserToSeat(selectedSeat, e.target.value || null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-blue-200 w-full max-w-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">מקום {selectedSeat}</h3>
+                  <button
+                    onClick={() => setSelectedSeat(null)}
+                    className="p-1 text-gray-400 hover:text-gray-600"
                   >
-                    <option value="">אין משויך</option>
-                    {users.map(user => (
-                      <option key={user.id} value={user.id}>
-                        {user.name} - {user.department}
-                      </option>
-                    ))}
-                  </select>
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
 
-                {selectedSeatUser && (
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <div className="flex items-center space-x-3 space-x-reverse">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <UserIcon className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{selectedSeatUser.name}</div>
-                        <div className="text-sm text-gray-600">{selectedSeatUser.department}</div>
-                        <div className="text-sm text-gray-500">{selectedSeatUser.email}</div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      משויך למשתמש
+                    </label>
+                    <select
+                      value={selectedSeatData.userId || ''}
+                      onChange={(e) => assignUserToSeat(selectedSeat, e.target.value || null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">אין משויך</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} - {user.department}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedSeatUser && (
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <div className="flex items-center space-x-3 space-x-reverse">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <UserIcon className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{selectedSeatUser.name}</div>
+                          <div className="text-sm text-gray-600">{selectedSeatUser.department}</div>
+                          <div className="text-sm text-gray-500">{selectedSeatUser.email}</div>
+                        </div>
                       </div>
                     </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* יצירת סרגל ספסלים */}
+          {showRowDialog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">צור סרגל ספסלים</h3>
+                  <button
+                    onClick={() => setShowRowDialog(false)}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">מספר ספסלים</label>
+                    <input
+                      type="number"
+                      min="2"
+                      value={rowConfig.count}
+                      onChange={(e) => setRowConfig(prev => ({ ...prev, count: parseInt(e.target.value) || 2 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
                   </div>
-                )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">מרווח בין ספסלים (פיקסלים)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={rowConfig.spacing}
+                      onChange={(e) => setRowConfig(prev => ({ ...prev, spacing: parseInt(e.target.value) || 0 }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">כיוון</label>
+                    <select
+                      value={rowConfig.direction}
+                      onChange={(e) => setRowConfig(prev => ({ ...prev, direction: e.target.value as 'horizontal' | 'vertical' }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="horizontal">אופקי</option>
+                      <option value="vertical">אנכי</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={createBenchRow}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    <Grid3X3 className="h-4 w-4 ml-2" />
+                    צור סרגל
+                  </button>
+                </div>
               </div>
             </div>
           )}
