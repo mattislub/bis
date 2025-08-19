@@ -13,7 +13,10 @@ import {
   RotateCw,
   Copy,
   Lock,
-  Unlock
+  Unlock,
+  ArrowRight,
+  ArrowDown,
+  ArrowDownRight
 } from 'lucide-react';
 
 const specialElements = [
@@ -102,7 +105,7 @@ const SeatsManagement: React.FC = () => {
 
   const [resizingBench, setResizingBench] = useState<string | null>(null);
   const [resizeStart, setResizeStart] = useState<
-    { x: number; y: number; width: number; height: number } | null
+    { x: number; y: number; width: number; height: number; direction: 'right' | 'bottom' | 'corner' } | null
   >(null);
 
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
@@ -199,7 +202,11 @@ const SeatsManagement: React.FC = () => {
     }
   };
 
-  const handleResizeMouseDown = (e: React.MouseEvent, benchId: string) => {
+  const handleResizeMouseDown = (
+    e: React.MouseEvent,
+    benchId: string,
+    direction: 'right' | 'bottom' | 'corner'
+  ) => {
     e.stopPropagation();
     const bench = benches.find(b => b.id === benchId);
     if (!bench || bench.locked) return;
@@ -209,6 +216,7 @@ const SeatsManagement: React.FC = () => {
       y: e.clientY,
       width: bench.width || 0,
       height: bench.height || 0,
+      direction,
     });
   };
 
@@ -226,10 +234,16 @@ const SeatsManagement: React.FC = () => {
         const minHeight = 20;
         const maxWidth = containerWidth - b.position.x - mapBounds.right;
         const maxHeight = containerHeight - b.position.y - mapBounds.bottom;
-        let newWidth = snapToGrid((resizeStart.width || 0) + dx);
-        let newHeight = snapToGrid((resizeStart.height || 0) + dy);
-        newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-        newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+        let newWidth = b.width || 0;
+        let newHeight = b.height || 0;
+        if (resizeStart.direction === 'right' || resizeStart.direction === 'corner') {
+          newWidth = snapToGrid((resizeStart.width || 0) + dx);
+          newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+        }
+        if (resizeStart.direction === 'bottom' || resizeStart.direction === 'corner') {
+          newHeight = snapToGrid((resizeStart.height || 0) + dy);
+          newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+        }
         return { ...b, width: newWidth, height: newHeight };
       })
     );
@@ -757,10 +771,26 @@ const SeatsManagement: React.FC = () => {
                   </button>
 
                   {bench.type === 'special' && !bench.locked && (
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, bench.id)}
-                      className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 cursor-se-resize"
-                    />
+                    <>
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'right')}
+                        className="absolute top-1/2 -right-3 p-0.5 bg-blue-500 text-white cursor-e-resize transform -translate-y-1/2"
+                      >
+                        <ArrowRight className="h-3 w-3" />
+                      </div>
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'bottom')}
+                        className="absolute left-1/2 -bottom-3 p-0.5 bg-blue-500 text-white cursor-s-resize transform -translate-x-1/2"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </div>
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'corner')}
+                        className="absolute -bottom-3 -right-3 p-0.5 bg-blue-500 text-white cursor-se-resize"
+                      >
+                        <ArrowDownRight className="h-3 w-3" />
+                      </div>
+                    </>
                   )}
 
                   {/* מקומות ישיבה בתוך הספסל */}
