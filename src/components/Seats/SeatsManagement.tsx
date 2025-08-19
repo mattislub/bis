@@ -20,8 +20,10 @@ const SeatsManagement: React.FC = () => {
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [draggedPreset, setDraggedPreset] = useState<any | null>(null);
-  const [selectedBench, setSelectedBench] = useState<string | null>(null);
+  const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
+  const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [dragStartPositions, setDragStartPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
   const [isAddingPreset, setIsAddingPreset] = useState(false);
@@ -159,8 +161,24 @@ const SeatsManagement: React.FC = () => {
   };
 
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
+    let currentSelection = selectedBenchIds;
+    if (!currentSelection.includes(benchId)) {
+      currentSelection = [benchId];
+      setSelectedBenchIds(currentSelection);
+      setSelectedSeat(null);
+    }
     setDraggedBench(benchId);
     setDraggedPreset(null);
+    if (currentSelection.length > 1) {
+      const positions: Record<string, { x: number; y: number }> = {};
+      currentSelection.forEach(id => {
+        const b = benches.find(bench => bench.id === id);
+        if (b) positions[id] = { ...b.position };
+      });
+      setDragStartPositions(positions);
+    } else {
+      setDragStartPositions(null);
+    }
     e.dataTransfer.effectAllowed = 'move';
     // Some browsers require data to be set for drag events to fire properly
     e.dataTransfer.setData('text/plain', benchId);
@@ -178,6 +196,7 @@ const SeatsManagement: React.FC = () => {
   const handleBenchDragEnd = () => {
     setDraggedBench(null);
     setDraggedPreset(null);
+    setDragStartPositions(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -194,12 +213,31 @@ const SeatsManagement: React.FC = () => {
     const constrainedY = Math.max(0, Math.min(y, maxY));
 
     if (draggedBench) {
-      // העברת ספסל קיים
-      setBenches(prev => prev.map(bench => 
-        bench.id === draggedBench 
-          ? { ...bench, position: { x: constrainedX, y: constrainedY } }
-          : bench
-      ));
+      // העברת ספסל קיים או בחירה מרובה
+      if (dragStartPositions && selectedBenchIds.length > 1) {
+        const start = dragStartPositions[draggedBench];
+        const deltaX = constrainedX - start.x;
+        const deltaY = constrainedY - start.y;
+        setBenches(prev => prev.map(bench => {
+          if (selectedBenchIds.includes(bench.id)) {
+            const pos = dragStartPositions[bench.id];
+            return {
+              ...bench,
+              position: {
+                x: Math.max(0, Math.min(snapToGrid(pos.x + deltaX), maxX)),
+                y: Math.max(0, Math.min(snapToGrid(pos.y + deltaY), maxY)),
+              }
+            };
+          }
+          return bench;
+        }));
+      } else {
+        setBenches(prev => prev.map(bench =>
+          bench.id === draggedBench
+            ? { ...bench, position: { x: constrainedX, y: constrainedY } }
+            : bench
+        ));
+      }
     } else if (draggedPreset) {
       // יצירת ספסל חדש מאלמנט מוכן
       if (draggedPreset.type === 'bench') {
@@ -234,6 +272,18 @@ const SeatsManagement: React.FC = () => {
         setBenches(prev => [...prev, newSpecialElement]);
       }
     }
+  };
+
+  const handleBenchClick = (e: React.MouseEvent, benchId: string) => {
+    e.stopPropagation();
+    if (e.shiftKey) {
+      setSelectedBenchIds(prev => prev.includes(benchId)
+        ? prev.filter(id => id !== benchId)
+        : [...prev, benchId]);
+    } else {
+      setSelectedBenchIds([benchId]);
+    }
+    setSelectedSeat(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -384,7 +434,7 @@ const SeatsManagement: React.FC = () => {
     if (window.confirm('האם אתה בטוח שברצונך למחוק ספסל זה? כל המקומות שלו יימחקו גם כן.')) {
       setBenches(prev => prev.filter(bench => bench.id !== benchId));
       setSeats(prev => prev.filter(seat => seat.benchId !== benchId));
-      setSelectedBench(null);
+      setSelectedBenchIds(prev => prev.filter(id => id !== benchId));
     }
   };
 
@@ -483,58 +533,28 @@ const SeatsManagement: React.FC = () => {
   // טיפול בלחיצות מקלדת
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!selectedBench) return;
-      
+      if (selectedBenchIds.length === 0) return;
+
       const moveDistance = gridSettings.snapToGrid ? gridSettings.gridSize : 10;
-      let newX = 0;
-      let newY = 0;
-      
-      const currentBench = benches.find(b => b.id === selectedBench);
-      if (!currentBench) return;
-      
-      switch (e.key) {
-        case 'ArrowUp':
-          e.preventDefault();
-          newY = Math.max(0, currentBench.position.y - moveDistance);
-          setBenches(prev => prev.map(bench => 
-            bench.id === selectedBench 
-              ? { ...bench, position: { ...bench.position, y: newY } }
-              : bench
-          ));
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          newY = Math.min(720, currentBench.position.y + moveDistance);
-          setBenches(prev => prev.map(bench => 
-            bench.id === selectedBench 
-              ? { ...bench, position: { ...bench.position, y: newY } }
-              : bench
-          ));
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          newX = Math.max(0, currentBench.position.x - moveDistance);
-          setBenches(prev => prev.map(bench => 
-            bench.id === selectedBench 
-              ? { ...bench, position: { ...bench.position, x: newX } }
-              : bench
-          ));
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          newX = Math.min(1120, currentBench.position.x + moveDistance);
-          setBenches(prev => prev.map(bench => 
-            bench.id === selectedBench 
-              ? { ...bench, position: { ...bench.position, x: newX } }
-              : bench
-          ));
-          break;
+
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        setBenches(prev => prev.map(bench => {
+          if (!selectedBenchIds.includes(bench.id)) return bench;
+          let newX = bench.position.x;
+          let newY = bench.position.y;
+          if (e.key === 'ArrowUp') newY = Math.max(0, newY - moveDistance);
+          if (e.key === 'ArrowDown') newY = Math.min(720, newY + moveDistance);
+          if (e.key === 'ArrowLeft') newX = Math.max(0, newX - moveDistance);
+          if (e.key === 'ArrowRight') newX = Math.min(1120, newX + moveDistance);
+          return { ...bench, position: { x: newX, y: newY } };
+        }));
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedBench, benches, setBenches, gridSettings]);
+  }, [selectedBenchIds, benches, setBenches, gridSettings]);
 
   const createBenchRow = () => {
     if (!selectedBench) return;
@@ -634,7 +654,7 @@ const SeatsManagement: React.FC = () => {
                   <div className="w-4 h-4 bg-gray-300 rounded"></div>
                   <span>פנוי</span>
                 </div>
-                {selectedBench && (
+                {selectedBenchIds.length > 0 && (
                   <div className="flex items-center space-x-2 space-x-reverse text-blue-600">
                     <span>← → ↑ ↓</span>
                     <span>הזז עם חיצי המקלדת</span>
@@ -670,7 +690,7 @@ const SeatsManagement: React.FC = () => {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
-              onClick={() => setContextMenuPos(null)}
+              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); }}
             >
               {renderGrid()}
 
@@ -679,7 +699,7 @@ const SeatsManagement: React.FC = () => {
                 <div
                   key={bench.id}
                   className={`absolute rounded-lg shadow-lg border-2 cursor-move transition-all duration-200 hover:shadow-xl ${
-                    selectedBench === bench.id ? 'ring-4 ring-blue-300' : ''
+                    selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''
                   } ${draggedBench === bench.id ? 'opacity-50' : ''}`}
                   style={{
                     left: `${bench.position.x}px`,
@@ -694,7 +714,7 @@ const SeatsManagement: React.FC = () => {
                   draggable
                   onDragStart={(e) => handleBenchDragStart(e, bench.id)}
                   onDragEnd={handleBenchDragEnd}
-                  onClick={() => setSelectedBench(bench.id)}
+                  onClick={(e) => handleBenchClick(e, bench.id)}
                 >
                   <div 
                     className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
@@ -763,7 +783,7 @@ const SeatsManagement: React.FC = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedSeat(seat.id);
-                            setSelectedBench(null);
+                            setSelectedBenchIds([]);
                           }}
                           title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
                         >
@@ -1199,7 +1219,7 @@ const SeatsManagement: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">{selectedBenchData.name}</h3>
                 <button
-                  onClick={() => setSelectedBench(null)}
+                  onClick={() => setSelectedBenchIds([])}
                   className="p-1 text-gray-400 hover:text-gray-600"
                 >
                   <X className="h-4 w-4" />
