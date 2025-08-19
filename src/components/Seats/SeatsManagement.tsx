@@ -712,13 +712,13 @@ const SeatsManagement: React.FC = () => {
                       e.stopPropagation();
                       setOpenSettingsId(openSettingsId === bench.id ? null : bench.id);
                     }}
-                    className="absolute top-1 left-1 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
+                    className="absolute top-1 left-1 z-10 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
                     title="הגדרות"
                   >
                     <Settings className="h-3 w-3 text-gray-600" />
                   </button>
                   {openSettingsId === bench.id && (
-                    <div className="absolute top-1 left-7 flex space-x-1 space-x-reverse p-1 bg-white rounded shadow-md z-10">
+                    <div className="absolute top-1 left-7 z-20 flex space-x-1 space-x-reverse p-1 bg-white rounded shadow-md">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
