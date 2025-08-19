@@ -107,6 +107,7 @@ const SeatsManagement: React.FC = () => {
   const [resizeStart, setResizeStart] = useState<
     { x: number; y: number; width: number; height: number; direction: 'right' | 'bottom' | 'corner' } | null
   >(null);
+  const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
 
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
@@ -258,6 +259,7 @@ const SeatsManagement: React.FC = () => {
 
   const handleBenchClick = (e: React.MouseEvent, benchId: string) => {
     e.stopPropagation();
+    setOpenSettingsId(null);
     if (e.shiftKey) {
       setSelectedBenchIds(prev => prev.includes(benchId)
         ? prev.filter(id => id !== benchId)
@@ -668,7 +670,7 @@ const SeatsManagement: React.FC = () => {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
-              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); }}
+              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); setOpenSettingsId(null); }}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -712,17 +714,63 @@ const SeatsManagement: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      toggleBenchLock(bench.id);
+                      setOpenSettingsId(openSettingsId === bench.id ? null : bench.id);
                     }}
                     className="absolute top-1 left-1 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
-                    title={bench.locked ? 'שחרר קיבוע' : 'קבע ספסל'}
+                    title="הגדרות"
                   >
-                    {bench.locked ? (
-                      <Unlock className="h-3 w-3 text-gray-600" />
-                    ) : (
-                      <Lock className="h-3 w-3 text-gray-600" />
-                    )}
+                    <Settings className="h-3 w-3 text-gray-600" />
                   </button>
+                  {openSettingsId === bench.id && (
+                    <div className="absolute top-1 left-7 flex space-x-1 space-x-reverse p-1 bg-white rounded shadow-md z-10">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleBenchLock(bench.id);
+                        }}
+                        className="p-1 hover:bg-gray-50 rounded"
+                        title={bench.locked ? 'שחרר קיבוע' : 'קבע ספסל'}
+                      >
+                        {bench.locked ? (
+                          <Unlock className="h-3 w-3 text-gray-600" />
+                        ) : (
+                          <Lock className="h-3 w-3 text-gray-600" />
+                        )}
+                      </button>
+                      {bench.type !== 'special' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            rotateBench(bench.id);
+                          }}
+                          className="p-1 hover:bg-gray-50 rounded"
+                          title="סובב ספסל"
+                        >
+                          <RotateCw className="h-3 w-3 text-gray-600" />
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyBench(bench.id);
+                        }}
+                        className="p-1 hover:bg-gray-50 rounded"
+                        title={bench.type === 'special' ? 'העתק אלמנט' : 'העתק ספסל'}
+                      >
+                        <Copy className="h-3 w-3 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBench(bench.id);
+                        }}
+                        className="p-1 hover:bg-red-50 rounded"
+                        title={bench.type === 'special' ? 'מחק אלמנט' : 'מחק ספסל'}
+                      >
+                        <Trash2 className="h-3 w-3 text-red-600" />
+                      </button>
+                    </div>
+                  )}
                   <div
                     className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
                     style={{ backgroundColor: bench.color }}
@@ -733,42 +781,7 @@ const SeatsManagement: React.FC = () => {
                     {bench.name}
                   </div>
                   
-                  {bench.type !== 'special' && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          rotateBench(bench.id);
-                        }}
-                        className="absolute bottom-1 left-1 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
-                        title="סובב ספסל"
-                      >
-                        <RotateCw className="h-3 w-3 text-gray-600" />
-                      </button>
-                    </>
-                  )}
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyBench(bench.id);
-                    }}
-                    className={`absolute bottom-1 ${bench.type === 'special' ? 'left-1' : 'left-8'} p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors`}
-                    title={bench.type === 'special' ? 'העתק אלמנט' : 'העתק ספסל'}
-                  >
-                    <Copy className="h-3 w-3 text-gray-600" />
-                  </button>
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBench(bench.id);
-                    }}
-                    className={`absolute bottom-1 ${bench.type === 'special' ? 'left-8' : 'left-16'} p-1 bg-white rounded shadow-md hover:bg-red-50 transition-colors`}
-                    title={bench.type === 'special' ? 'מחק אלמנט' : 'מחק ספסל'}
-                  >
-                    <Trash2 className="h-3 w-3 text-red-600" />
-                  </button>
+
 
                   {bench.type === 'special' && !bench.locked && (
                     <>
