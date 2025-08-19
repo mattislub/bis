@@ -48,6 +48,11 @@ const SeatsManagement: React.FC = () => {
     color: '#3B82F6'
   });
 
+  const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
+  const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [showSpecialDialog, setShowSpecialDialog] = useState(false);
+  const [selectedSpecialId, setSelectedSpecialId] = useState('');
+
   // אלמנטים מוכנים
   const [presetElements, setPresetElements] = useState([
     {
@@ -236,6 +241,15 @@ const SeatsManagement: React.FC = () => {
     e.dataTransfer.dropEffect = 'move';
   };
 
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    setContextMenuPos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
   const generateSeatsForBench = (bench: Bench): Seat[] => {
     const newSeats: Seat[] = [];
     const maxSeatId = Math.max(...seats.map(s => s.id), 0);
@@ -255,22 +269,24 @@ const SeatsManagement: React.FC = () => {
 
   const addNewBench = () => {
     if (!benchForm.name) return;
+    const position = pendingPosition || { x: 50, y: 50 };
 
     const newBench: Bench = {
       id: `bench-${Date.now()}`,
       name: benchForm.name,
       seatCount: benchForm.seatCount,
-      position: { x: 50, y: 50 },
+      position,
       orientation: benchForm.orientation,
       color: benchForm.color,
     };
 
     setBenches(prev => [...prev, newBench]);
-    
+
     const newSeats = generateSeatsForBench(newBench);
     setSeats(prev => [...prev, ...newSeats]);
 
     setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+    setPendingPosition(null);
     setIsAddingBench(false);
   };
 
@@ -295,17 +311,38 @@ const SeatsManagement: React.FC = () => {
     };
 
     setPresetElements(prev => [...prev, newPreset]);
-    setPresetForm({ 
-      name: '', 
+    setPresetForm({
+      name: '',
       type: 'bench',
-      seatCount: 4, 
-      orientation: 'horizontal', 
+      seatCount: 4,
+      orientation: 'horizontal',
       color: '#3B82F6',
       width: 80,
       height: 80,
       icon: '📦'
     });
     setIsAddingPreset(false);
+  };
+
+  const addSpecialElement = () => {
+    if (!selectedSpecialId || !pendingPosition) return;
+    const preset = presetElements.find(p => p.id === selectedSpecialId);
+    if (!preset) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newSpecial: any = {
+      id: `special-${Date.now()}`,
+      name: preset.name,
+      type: 'special',
+      position: pendingPosition,
+      width: preset.width,
+      height: preset.height,
+      color: preset.color,
+      icon: preset.icon,
+    };
+    setBenches(prev => [...prev, newSpecial]);
+    setShowSpecialDialog(false);
+    setSelectedSpecialId('');
+    setPendingPosition(null);
   };
 
   const deletePreset = (presetId: string) => {
@@ -627,14 +664,16 @@ const SeatsManagement: React.FC = () => {
               </div>
             </div>
 
-            <div 
+            <div
               className="relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden"
               style={{ minHeight: '800px', width: '1200px', maxWidth: '100%' }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
+              onContextMenu={handleContextMenu}
+              onClick={() => setContextMenuPos(null)}
             >
               {renderGrid()}
-              
+
               {/* רינדור ספסלים */}
               {benches.map((bench) => (
                 <div
@@ -750,6 +789,34 @@ const SeatsManagement: React.FC = () => {
                   )}
                 </div>
               ))}
+
+              {contextMenuPos && (
+                <div
+                  className="absolute z-50 bg-white border rounded shadow-lg"
+                  style={{ top: contextMenuPos.y, left: contextMenuPos.x }}
+                >
+                  <button
+                    className="block w-full px-4 py-2 text-right hover:bg-gray-100"
+                    onClick={() => {
+                      setPendingPosition(contextMenuPos);
+                      setIsAddingBench(true);
+                      setContextMenuPos(null);
+                    }}
+                  >
+                    הוסף ספסל כאן
+                  </button>
+                  <button
+                    className="block w-full px-4 py-2 text-right hover:bg-gray-100"
+                    onClick={() => {
+                      setPendingPosition(contextMenuPos);
+                      setShowSpecialDialog(true);
+                      setContextMenuPos(null);
+                    }}
+                  >
+                    הוסף אלמנט קבוע כאן
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1075,6 +1142,51 @@ const SeatsManagement: React.FC = () => {
                   >
                     <Plus className="h-4 w-4 ml-2" />
                     {editingBench ? 'עדכן ספסל' : 'הוסף ספסל'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showSpecialDialog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-md border border-purple-200 w-full max-w-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">הוספת אלמנט קבוע</h3>
+                  <button
+                    onClick={() => {
+                      setShowSpecialDialog(false);
+                      setSelectedSpecialId('');
+                      setPendingPosition(null);
+                    }}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">בחר אלמנט</label>
+                    <select
+                      value={selectedSpecialId}
+                      onChange={(e) => setSelectedSpecialId(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="" disabled>בחר...</option>
+                      {presetElements.filter(p => p.type === 'special').map(p => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={addSpecialElement}
+                    disabled={!selectedSpecialId}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="h-4 w-4 ml-2" />
+                    הוסף אלמנט
                   </button>
                 </div>
               </div>
