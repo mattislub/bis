@@ -12,7 +12,9 @@ import {
   Settings,
   Armchair,
   RotateCw,
-  Copy
+  Copy,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
 const SeatsManagement: React.FC = () => {
@@ -161,6 +163,11 @@ const SeatsManagement: React.FC = () => {
   };
 
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
+    const bench = benches.find(b => b.id === benchId);
+    if (bench?.locked) {
+      e.preventDefault();
+      return;
+    }
     let currentSelection = selectedBenchIds;
     if (!currentSelection.includes(benchId)) {
       currentSelection = [benchId];
@@ -220,6 +227,7 @@ const SeatsManagement: React.FC = () => {
         const deltaY = constrainedY - start.y;
         setBenches(prev => prev.map(bench => {
           if (selectedBenchIds.includes(bench.id)) {
+            if (bench.locked) return bench;
             const pos = dragStartPositions[bench.id];
             return {
               ...bench,
@@ -233,7 +241,7 @@ const SeatsManagement: React.FC = () => {
         }));
       } else {
         setBenches(prev => prev.map(bench =>
-          bench.id === draggedBench
+          bench.id === draggedBench && !bench.locked
             ? { ...bench, position: { x: constrainedX, y: constrainedY } }
             : bench
         ));
@@ -248,6 +256,7 @@ const SeatsManagement: React.FC = () => {
           position: { x: constrainedX, y: constrainedY },
           orientation: draggedPreset.orientation,
           color: draggedPreset.color,
+          locked: false,
         };
 
         setBenches(prev => [...prev, newBench]);
@@ -266,6 +275,7 @@ const SeatsManagement: React.FC = () => {
           height: draggedPreset.height,
           color: draggedPreset.color,
           icon: draggedPreset.icon,
+          locked: false,
         };
 
         // נוסיף את האלמנטים המיוחדים לרשימה נפרדת
@@ -328,6 +338,7 @@ const SeatsManagement: React.FC = () => {
       position,
       orientation: benchForm.orientation,
       color: benchForm.color,
+      locked: false,
     };
 
     setBenches(prev => [...prev, newBench]);
@@ -388,6 +399,7 @@ const SeatsManagement: React.FC = () => {
       height: preset.height,
       color: preset.color,
       icon: preset.icon,
+      locked: false,
     };
     setBenches(prev => [...prev, newSpecial]);
     setShowSpecialDialog(false);
@@ -473,6 +485,12 @@ const SeatsManagement: React.FC = () => {
     setSeats(prev => [...prev, ...newSeats]);
   };
 
+  const toggleBenchLock = (benchId: string) => {
+    setBenches(prev => prev.map(bench =>
+      bench.id === benchId ? { ...bench, locked: !bench.locked } : bench
+    ));
+  };
+
   const assignUserToSeat = (seatId: number, userId: string | null) => {
     setSeats(prev => prev.map(seat => 
       seat.id === seatId 
@@ -540,7 +558,7 @@ const SeatsManagement: React.FC = () => {
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
         setBenches(prev => prev.map(bench => {
-          if (!selectedBenchIds.includes(bench.id)) return bench;
+          if (!selectedBenchIds.includes(bench.id) || bench.locked) return bench;
           let newX = bench.position.x;
           let newY = bench.position.y;
           if (e.key === 'ArrowUp') newY = Math.max(0, newY - moveDistance);
@@ -698,25 +716,41 @@ const SeatsManagement: React.FC = () => {
               {benches.map((bench) => (
                 <div
                   key={bench.id}
-                  className={`absolute rounded-lg shadow-lg border-2 cursor-move transition-all duration-200 hover:shadow-xl ${
-                    selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''
-                  } ${draggedBench === bench.id ? 'opacity-50' : ''}`}
+                  className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
+                    bench.locked ? 'cursor-not-allowed' : 'cursor-move'
+                  } ${selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''} ${
+                    draggedBench === bench.id ? 'opacity-50' : ''
+                  }`}
                   style={{
                     left: `${bench.position.x}px`,
                     top: `${bench.position.y}px`,
-                    width: bench.type === 'special' ? `${bench.width}px` : 
+                    width: bench.type === 'special' ? `${bench.width}px` :
                            bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
                     height: bench.type === 'special' ? `${bench.height}px` :
                             bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
                     backgroundColor: `${bench.color}20`,
                     borderColor: bench.color,
                   }}
-                  draggable
+                  draggable={!bench.locked}
                   onDragStart={(e) => handleBenchDragStart(e, bench.id)}
                   onDragEnd={handleBenchDragEnd}
                   onClick={(e) => handleBenchClick(e, bench.id)}
                 >
-                  <div 
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleBenchLock(bench.id);
+                    }}
+                    className="absolute top-1 left-1 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
+                    title={bench.locked ? 'שחרר קיבוע' : 'קבע ספסל'}
+                  >
+                    {bench.locked ? (
+                      <Unlock className="h-3 w-3 text-gray-600" />
+                    ) : (
+                      <Lock className="h-3 w-3 text-gray-600" />
+                    )}
+                  </button>
+                  <div
                     className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
                     style={{ backgroundColor: bench.color }}
                   >
