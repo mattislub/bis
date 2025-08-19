@@ -18,6 +18,7 @@ import {
   ArrowDown,
   ArrowDownRight
 } from 'lucide-react';
+import MapBoundsControls from './MapBoundsControls';
 
 const specialElements = [
   {
@@ -677,15 +678,7 @@ const SeatsManagement: React.FC = () => {
             >
               {renderGrid()}
 
-              <div
-                className="absolute border-2 border-gray-400 pointer-events-none"
-                style={{
-                  top: mapBounds.top,
-                  left: mapBounds.left,
-                  right: mapBounds.right,
-                  bottom: mapBounds.bottom,
-                }}
-              />
+              <MapBoundsControls />
 
               {/* רינדור ספסלים */}
               {benches.map((bench) => (
