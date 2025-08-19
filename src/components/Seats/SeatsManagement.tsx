@@ -10,7 +10,6 @@ import {
   Edit2,
   Grid3X3,
   Settings,
-  Armchair,
   RotateCw,
   Copy
 } from 'lucide-react';
@@ -18,28 +17,15 @@ import {
 const SeatsManagement: React.FC = () => {
   const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings } = useAppContext();
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [draggedPreset, setDraggedPreset] = useState<any | null>(null);
   const [selectedBench, setSelectedBench] = useState<string | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
-  const [isAddingPreset, setIsAddingPreset] = useState(false);
   const [showRowDialog, setShowRowDialog] = useState(false);
   const [rowConfig, setRowConfig] = useState({
     count: 3,
     spacing: 50,
     direction: 'horizontal' as 'horizontal' | 'vertical'
-  });
-  const [presetForm, setPresetForm] = useState({
-    name: '',
-    type: 'bench' as 'bench' | 'special',
-    seatCount: 4,
-    orientation: 'horizontal' as 'horizontal' | 'vertical',
-    color: '#3B82F6',
-    width: 80,
-    height: 80,
-    icon: '📦'
   });
   const [benchForm, setBenchForm] = useState({
     name: '',
@@ -54,7 +40,7 @@ const SeatsManagement: React.FC = () => {
   const [selectedSpecialId, setSelectedSpecialId] = useState('');
 
   // אלמנטים מוכנים
-  const [presetElements, setPresetElements] = useState([
+  const presetElements = [
     {
       id: 'preset-4-seats',
       name: 'ספסל 4 מקומות',
@@ -142,7 +128,7 @@ const SeatsManagement: React.FC = () => {
       color: '#DDA0DD',
       icon: '👥'
     }
-  ]);
+  ];
 
   const colors = [
     '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
@@ -160,29 +146,18 @@ const SeatsManagement: React.FC = () => {
 
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
     setDraggedBench(benchId);
-    setDraggedPreset(null);
     e.dataTransfer.effectAllowed = 'move';
     // Some browsers require data to be set for drag events to fire properly
     e.dataTransfer.setData('text/plain', benchId);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlePresetDragStart = (e: React.DragEvent, preset: any) => {
-    setDraggedPreset(preset);
-    setDraggedBench(null);
-    e.dataTransfer.effectAllowed = 'copy';
-    // Set dummy data to ensure drop event is triggered across browsers
-    e.dataTransfer.setData('text/plain', preset.id);
-  };
-
   const handleBenchDragEnd = () => {
     setDraggedBench(null);
-    setDraggedPreset(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!draggedBench && !draggedPreset) return;
+    if (!draggedBench) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = snapToGrid(e.clientX - rect.left - 40);
@@ -193,47 +168,12 @@ const SeatsManagement: React.FC = () => {
     const constrainedX = Math.max(0, Math.min(x, maxX));
     const constrainedY = Math.max(0, Math.min(y, maxY));
 
-    if (draggedBench) {
-      // העברת ספסל קיים
-      setBenches(prev => prev.map(bench => 
-        bench.id === draggedBench 
-          ? { ...bench, position: { x: constrainedX, y: constrainedY } }
-          : bench
-      ));
-    } else if (draggedPreset) {
-      // יצירת ספסל חדש מאלמנט מוכן
-      if (draggedPreset.type === 'bench') {
-        const newBench: Bench = {
-          id: `bench-${Date.now()}`,
-          name: draggedPreset.name,
-          seatCount: draggedPreset.seatCount,
-          position: { x: constrainedX, y: constrainedY },
-          orientation: draggedPreset.orientation,
-          color: draggedPreset.color,
-        };
-
-        setBenches(prev => [...prev, newBench]);
-        
-        const newSeats = generateSeatsForBench(newBench);
-        setSeats(prev => [...prev, ...newSeats]);
-      } else {
-        // יצירת אלמנט מיוחד
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newSpecialElement: any = {
-          id: `special-${Date.now()}`,
-          name: draggedPreset.name,
-          type: 'special',
-          position: { x: constrainedX, y: constrainedY },
-          width: draggedPreset.width,
-          height: draggedPreset.height,
-          color: draggedPreset.color,
-          icon: draggedPreset.icon,
-        };
-
-        // נוסיף את האלמנטים המיוחדים לרשימה נפרדת
-        setBenches(prev => [...prev, newSpecialElement]);
-      }
-    }
+    // העברת ספסל קיים
+    setBenches(prev => prev.map(bench =>
+      bench.id === draggedBench
+        ? { ...bench, position: { x: constrainedX, y: constrainedY } }
+        : bench
+    ));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -290,40 +230,6 @@ const SeatsManagement: React.FC = () => {
     setIsAddingBench(false);
   };
 
-  const addNewPreset = () => {
-    if (!presetForm.name) return;
-
-    const newPreset = presetForm.type === 'bench' ? {
-      id: `preset-${Date.now()}`,
-      name: presetForm.name,
-      type: 'bench',
-      seatCount: presetForm.seatCount,
-      orientation: presetForm.orientation,
-      color: presetForm.color,
-    } : {
-      id: `preset-${Date.now()}`,
-      name: presetForm.name,
-      type: 'special',
-      width: presetForm.width,
-      height: presetForm.height,
-      color: presetForm.color,
-      icon: presetForm.icon,
-    };
-
-    setPresetElements(prev => [...prev, newPreset]);
-    setPresetForm({
-      name: '',
-      type: 'bench',
-      seatCount: 4,
-      orientation: 'horizontal',
-      color: '#3B82F6',
-      width: 80,
-      height: 80,
-      icon: '📦'
-    });
-    setIsAddingPreset(false);
-  };
-
   const addSpecialElement = () => {
     if (!selectedSpecialId || !pendingPosition) return;
     const preset = presetElements.find(p => p.id === selectedSpecialId);
@@ -343,12 +249,6 @@ const SeatsManagement: React.FC = () => {
     setShowSpecialDialog(false);
     setSelectedSpecialId('');
     setPendingPosition(null);
-  };
-
-  const deletePreset = (presetId: string) => {
-    if (window.confirm('האם אתה בטוח שברצונך למחוק אלמנט זה?')) {
-      setPresetElements(prev => prev.filter(preset => preset.id !== presetId));
-    }
   };
 
   const updateBench = () => {
@@ -598,13 +498,6 @@ const SeatsManagement: React.FC = () => {
             <Plus className="h-4 w-4 ml-2" />
             הוסף ספסל
           </button>
-          <button
-            onClick={() => setIsAddingPreset(true)}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <Plus className="h-4 w-4 ml-2" />
-            הוסף אלמנט מוכן
-          </button>
           {selectedBench && (
             <button
               onClick={() => setShowRowDialog(true)}
@@ -617,8 +510,8 @@ const SeatsManagement: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-4">
+      <div className="grid grid-cols-1 gap-6">
+        <div>
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center space-x-4 space-x-reverse text-sm text-gray-600">
@@ -820,251 +713,10 @@ const SeatsManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {/* אלמנטים מוכנים */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">אלמנטים מוכנים</h3>
-              <button
-                onClick={() => setIsAddingPreset(true)}
-                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
-                title="הוסף אלמנט מוכן"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {presetElements.map((preset) => (
-                <div
-                  key={preset.id}
-                  className="relative p-3 border-2 border-dashed border-gray-300 rounded-lg cursor-move hover:border-gray-400 hover:bg-gray-50 transition-all group"
-                  draggable
-                  onDragStart={(e) => handlePresetDragStart(e, preset)}
-                  onDragEnd={handleBenchDragEnd}
-                  style={{
-                    borderColor: `${preset.color}50`,
-                    backgroundColor: `${preset.color}10`,
-                  }}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center mb-1">
-                        {preset.type === 'special' && preset.icon && (
-                          <span className="text-lg ml-2">{preset.icon}</span>
-                        )}
-                      <div className="font-medium text-gray-900 text-sm">{preset.name}</div>
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {preset.type === 'bench' 
-                          ? `${preset.seatCount} מקומות • ${preset.orientation === 'horizontal' ? 'אופקי' : 'אנכי'}`
-                          : `${preset.width}×${preset.height} פיקסלים`
-                        }
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <div 
-                        className="w-4 h-4 rounded-full border border-gray-300"
-                        style={{ backgroundColor: preset.color }}
-                      ></div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePreset(preset.id);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 text-red-600 hover:bg-red-50 rounded transition-all"
-                        title="מחק אלמנט"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  {/* תצוגה מקדימה קטנה */}
-                  <div className="mt-2 flex justify-center">
-                    {preset.type === 'bench' ? (
-                      <div 
-                        className="flex border rounded"
-                        style={{
-                          flexDirection: preset.orientation === 'horizontal' ? 'row' : 'column',
-                        }}
-                      >
-                        {Array.from({ length: preset.seatCount }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="w-3 h-3 border border-white"
-                            style={{ backgroundColor: preset.color }}
-                          ></div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div 
-                        className="border rounded flex items-center justify-center text-xs"
-                        style={{ 
-                          backgroundColor: preset.color,
-                          width: Math.min(preset.width / 4, 40),
-                          height: Math.min(preset.height / 4, 30)
-                        }}
-                      >
-                        {preset.icon}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {presetElements.length === 0 && (
-                <div className="text-center py-6 text-gray-500">
-                  <Armchair className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">אין אלמנטים מוכנים</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-700">
-                💡 גרור אלמנט למפה כדי ליצור ספסל חדש
-              </p>
-            </div>
-          </div>
-
-          {/* הוספת אלמנט מוכן */}
-          {isAddingPreset && (
-            <div className="bg-white p-6 rounded-lg shadow-md border border-purple-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">הוספת אלמנט מוכן</h3>
-                <button
-                  onClick={() => {
-                    setIsAddingPreset(false);
-                    setPresetForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
-                  }}
-                  className="p-1 text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">שם האלמנט</label>
-                  <input
-                    type="text"
-                    value={presetForm.name}
-                    onChange={(e) => setPresetForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="הכנס שם לאלמנט"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">סוג אלמנט</label>
-                  <select
-                    value={presetForm.type}
-                    onChange={(e) => setPresetForm(prev => ({ ...prev, type: e.target.value as 'bench' | 'special' }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                  >
-                    <option value="bench">ספסל ישיבה</option>
-                    <option value="special">אלמנט מיוחד</option>
-                  </select>
-                </div>
-                {presetForm.type === 'bench' ? (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">מספר מקומות</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={presetForm.seatCount}
-                        onChange={(e) => setPresetForm(prev => ({ ...prev, seatCount: parseInt(e.target.value) || 1 }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">כיוון</label>
-                      <select
-                        value={presetForm.orientation}
-                        onChange={(e) => setPresetForm(prev => ({ ...prev, orientation: e.target.value as 'horizontal' | 'vertical' }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                      >
-                        <option value="horizontal">אופקי</option>
-                        <option value="vertical">אנכי</option>
-                      </select>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">רוחב (פיקסלים)</label>
-                        <input
-                          type="number"
-                          min="20"
-                          max="300"
-                          value={presetForm.width}
-                          onChange={(e) => setPresetForm(prev => ({ ...prev, width: parseInt(e.target.value) || 80 }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">גובה (פיקסלים)</label>
-                        <input
-                          type="number"
-                          min="20"
-                          max="300"
-                          value={presetForm.height}
-                          onChange={(e) => setPresetForm(prev => ({ ...prev, height: parseInt(e.target.value) || 80 }))}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">אייקון</label>
-                      <input
-                        type="text"
-                        value={presetForm.icon}
-                        onChange={(e) => setPresetForm(prev => ({ ...prev, icon: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        placeholder="🏛️"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">השתמש באמוג'י או סמל</p>
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">צבע</label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {colors.map(color => (
-                      <button
-                        key={color}
-                        onClick={() => setPresetForm(prev => ({ ...prev, color }))}
-                        className={`w-8 h-8 rounded-lg border-2 transition-all ${
-                          presetForm.color === color ? 'border-gray-800 scale-110' : 'border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  onClick={addNewPreset}
-                  disabled={!presetForm.name}
-                  className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Plus className="h-4 w-4 ml-2" />
-                  הוסף אלמנט מוכן
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* הוספת/עריכת ספסל */}
-          {(isAddingBench || editingBench) && (
+      {/* הוספת/עריכת ספסל */}
+      {(isAddingBench || editingBench) && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white p-6 rounded-lg shadow-md border border-green-200 w-full max-w-md">
                 <div className="flex items-center justify-between mb-4">
@@ -1407,8 +1059,6 @@ const SeatsManagement: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
     </div>
   );
 };
