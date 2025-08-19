@@ -47,3 +47,10 @@ export interface GridSettings {
   snapToGrid: boolean;
   gridSize: number;
 }
+
+export interface MapBounds {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}

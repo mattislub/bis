@@ -4,7 +4,7 @@ import { Seat, User } from '../../types';
 import { Users as UsersIcon, MapPin, User as UserIcon, Grid3X3, Armchair } from 'lucide-react';
 
 const SeatsView: React.FC = () => {
-  const { seats, users, benches, gridSettings } = useAppContext();
+  const { seats, users, benches, gridSettings, mapBounds } = useAppContext();
 
   const getUserById = (userId: string): User | undefined => {
     return users.find(user => user.id === userId);
@@ -155,7 +155,17 @@ const SeatsView: React.FC = () => {
           }}
         >
           {renderGrid()}
-          
+
+          <div
+            className="absolute border-2 border-gray-400 pointer-events-none"
+            style={{
+              top: mapBounds.top,
+              left: mapBounds.left,
+              right: mapBounds.right,
+              bottom: mapBounds.bottom,
+            }}
+          />
+
           {/* רינדור ספסלים */}
           {benches.map((bench) => (
             <div

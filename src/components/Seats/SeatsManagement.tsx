@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { Seat, User, Bench } from '../../types';
+import { Seat, User, Bench, MapBounds } from '../../types';
 import {
   Move,
   User as UserIcon,
@@ -74,7 +74,7 @@ const specialElements = [
 ];
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings } = useAppContext();
+  const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds } = useAppContext();
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
   const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
   const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
@@ -99,6 +99,10 @@ const SeatsManagement: React.FC = () => {
   const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
   const [showSpecialDialog, setShowSpecialDialog] = useState(false);
   const [selectedSpecialId, setSelectedSpecialId] = useState('');
+
+  const handleBoundChange = (side: keyof MapBounds, value: number) => {
+    setMapBounds(prev => ({ ...prev, [side]: value }));
+  };
 
   const colors = [
     '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
@@ -155,10 +159,12 @@ const SeatsManagement: React.FC = () => {
     const x = snapToGrid(e.clientX - rect.left - 40);
     const y = snapToGrid(e.clientY - rect.top - 40);
 
-    const maxX = rect.width - 200;
-    const maxY = rect.height - 200;
-    const constrainedX = Math.max(0, Math.min(x, maxX));
-    const constrainedY = Math.max(0, Math.min(y, maxY));
+    const minX = mapBounds.left;
+    const minY = mapBounds.top;
+    const maxX = rect.width - 200 - mapBounds.right;
+    const maxY = rect.height - 200 - mapBounds.bottom;
+    const constrainedX = Math.max(minX, Math.min(x, maxX));
+    const constrainedY = Math.max(minY, Math.min(y, maxY));
 
     // העברת ספסל קיים או בחירה מרובה
     if (dragStartPositions && selectedBenchIds.length > 1) {
@@ -172,8 +178,8 @@ const SeatsManagement: React.FC = () => {
           return {
             ...bench,
             position: {
-              x: Math.max(0, Math.min(snapToGrid(pos.x + deltaX), maxX)),
-              y: Math.max(0, Math.min(snapToGrid(pos.y + deltaY), maxY)),
+              x: Math.max(minX, Math.min(snapToGrid(pos.x + deltaX), maxX)),
+              y: Math.max(minY, Math.min(snapToGrid(pos.y + deltaY), maxY)),
             }
           };
         }
@@ -425,10 +431,14 @@ const SeatsManagement: React.FC = () => {
           if (!selectedBenchIds.includes(bench.id) || bench.locked) return bench;
           let newX = bench.position.x;
           let newY = bench.position.y;
-          if (e.key === 'ArrowUp') newY = Math.max(0, newY - moveDistance);
-          if (e.key === 'ArrowDown') newY = Math.min(720, newY + moveDistance);
-          if (e.key === 'ArrowLeft') newX = Math.max(0, newX - moveDistance);
-          if (e.key === 'ArrowRight') newX = Math.min(1120, newX + moveDistance);
+          const minX = mapBounds.left;
+          const minY = mapBounds.top;
+          const maxY = 720 - mapBounds.bottom;
+          const maxX = 1120 - mapBounds.right;
+          if (e.key === 'ArrowUp') newY = Math.max(minY, newY - moveDistance);
+          if (e.key === 'ArrowDown') newY = Math.min(maxY, newY + moveDistance);
+          if (e.key === 'ArrowLeft') newX = Math.max(minX, newX - moveDistance);
+          if (e.key === 'ArrowRight') newX = Math.min(maxX, newX + moveDistance);
           return { ...bench, position: { x: newX, y: newY } };
         }));
       }
@@ -436,7 +446,7 @@ const SeatsManagement: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedBenchIds, benches, setBenches, gridSettings]);
+  }, [selectedBenchIds, benches, setBenches, gridSettings, mapBounds]);
 
   const createBenchRow = () => {
     if (!selectedBench) return;
@@ -559,6 +569,37 @@ const SeatsManagement: React.FC = () => {
               </div>
             </div>
 
+            <div className="flex items-center space-x-2 space-x-reverse mb-4 text-sm">
+              <label className="text-gray-600">עליון:</label>
+              <input
+                type="number"
+                className="w-16 px-2 py-1 border rounded"
+                value={mapBounds.top}
+                onChange={(e) => handleBoundChange('top', Number(e.target.value))}
+              />
+              <label className="text-gray-600">ימין:</label>
+              <input
+                type="number"
+                className="w-16 px-2 py-1 border rounded"
+                value={mapBounds.right}
+                onChange={(e) => handleBoundChange('right', Number(e.target.value))}
+              />
+              <label className="text-gray-600">תחתון:</label>
+              <input
+                type="number"
+                className="w-16 px-2 py-1 border rounded"
+                value={mapBounds.bottom}
+                onChange={(e) => handleBoundChange('bottom', Number(e.target.value))}
+              />
+              <label className="text-gray-600">שמאל:</label>
+              <input
+                type="number"
+                className="w-16 px-2 py-1 border rounded"
+                value={mapBounds.left}
+                onChange={(e) => handleBoundChange('left', Number(e.target.value))}
+              />
+            </div>
+
             <div
               className="relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden"
               style={{ minHeight: '800px', width: '1200px', maxWidth: '100%' }}
@@ -568,6 +609,16 @@ const SeatsManagement: React.FC = () => {
               onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); }}
             >
               {renderGrid()}
+
+              <div
+                className="absolute border-2 border-gray-400 pointer-events-none"
+                style={{
+                  top: mapBounds.top,
+                  left: mapBounds.left,
+                  right: mapBounds.right,
+                  bottom: mapBounds.bottom,
+                }}
+              />
 
               {/* רינדור ספסלים */}
               {benches.map((bench) => (
