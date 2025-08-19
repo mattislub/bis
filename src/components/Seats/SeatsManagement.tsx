@@ -488,6 +488,9 @@ const SeatsManagement: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (selectedBenchIds.length === 0) return;
 
+      const target = e.target as HTMLElement;
+      if (target && target.closest('input, textarea, select, [contenteditable="true"]')) return;
+
       const moveDistance = gridSettings.snapToGrid ? gridSettings.gridSize : 10;
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
