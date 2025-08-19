@@ -129,6 +129,10 @@ const SeatsManagement: React.FC = () => {
   };
 
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
+    if (resizingBench) {
+      e.preventDefault();
+      return;
+    }
     const bench = benches.find(b => b.id === benchId);
     if (bench?.locked) {
       e.preventDefault();
@@ -210,6 +214,7 @@ const SeatsManagement: React.FC = () => {
     direction: 'right' | 'bottom' | 'corner'
   ) => {
     e.stopPropagation();
+    e.preventDefault();
     const bench = benches.find(b => b.id === benchId);
     if (!bench || bench.locked) return;
     setResizingBench(benchId);
@@ -702,7 +707,7 @@ const SeatsManagement: React.FC = () => {
                     backgroundColor: `${bench.color}20`,
                     borderColor: bench.color,
                   }}
-                  draggable={!bench.locked}
+                  draggable={!bench.locked && resizingBench !== bench.id}
                   onDragStart={(e) => handleBenchDragStart(e, bench.id)}
                   onDragEnd={handleBenchDragEnd}
                   onClick={(e) => handleBenchClick(e, bench.id)}
