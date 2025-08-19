@@ -100,6 +100,11 @@ const SeatsManagement: React.FC = () => {
   const [showSpecialDialog, setShowSpecialDialog] = useState(false);
   const [selectedSpecialId, setSelectedSpecialId] = useState('');
 
+  const [resizingBench, setResizingBench] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState<
+    { x: number; y: number; width: number; height: number } | null
+  >(null);
+
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
   };
@@ -191,6 +196,49 @@ const SeatsManagement: React.FC = () => {
           ? { ...bench, position: { x: constrainedX, y: constrainedY } }
           : bench
       ));
+    }
+  };
+
+  const handleResizeMouseDown = (e: React.MouseEvent, benchId: string) => {
+    e.stopPropagation();
+    const bench = benches.find(b => b.id === benchId);
+    if (!bench || bench.locked) return;
+    setResizingBench(benchId);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: bench.width || 0,
+      height: bench.height || 0,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!resizingBench || !resizeStart) return;
+    const dx = e.clientX - resizeStart.x;
+    const dy = e.clientY - resizeStart.y;
+
+    setBenches(prev =>
+      prev.map(b => {
+        if (b.id !== resizingBench) return b;
+        const containerWidth = 1200;
+        const containerHeight = 800;
+        const minWidth = 20;
+        const minHeight = 20;
+        const maxWidth = containerWidth - b.position.x - mapBounds.right;
+        const maxHeight = containerHeight - b.position.y - mapBounds.bottom;
+        let newWidth = snapToGrid((resizeStart.width || 0) + dx);
+        let newHeight = snapToGrid((resizeStart.height || 0) + dy);
+        newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+        newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+        return { ...b, width: newWidth, height: newHeight };
+      })
+    );
+  };
+
+  const handleMouseUp = () => {
+    if (resizingBench) {
+      setResizingBench(null);
+      setResizeStart(null);
     }
   };
 
@@ -607,6 +655,9 @@ const SeatsManagement: React.FC = () => {
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
               onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); }}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
             >
               {renderGrid()}
 
@@ -704,7 +755,14 @@ const SeatsManagement: React.FC = () => {
                   >
                     <Trash2 className="h-3 w-3 text-red-600" />
                   </button>
-                  
+
+                  {bench.type === 'special' && !bench.locked && (
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, bench.id)}
+                      className="absolute bottom-0 right-0 w-3 h-3 bg-blue-500 cursor-se-resize"
+                    />
+                  )}
+
                   {/* מקומות ישיבה בתוך הספסל */}
                   {bench.type !== 'special' && seats
                     .filter(seat => seat.benchId === bench.id)
