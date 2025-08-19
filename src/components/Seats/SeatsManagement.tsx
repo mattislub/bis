@@ -636,120 +636,142 @@ const SeatsManagement: React.FC = () => {
               {renderGrid()}
               
               {/* רינדור ספסלים */}
-              {benches.map((bench) => (
-                <div
-                  key={bench.id}
-                  className={`absolute rounded-lg shadow-lg border-2 cursor-move transition-all duration-200 hover:shadow-xl ${
-                    selectedBench === bench.id ? 'ring-4 ring-blue-300' : ''
-                  } ${draggedBench === bench.id ? 'opacity-50' : ''}`}
-                  style={{
-                    left: `${bench.position.x}px`,
-                    top: `${bench.position.y}px`,
-                    width: bench.type === 'special' ? `${bench.width}px` : 
-                           bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
-                    height: bench.type === 'special' ? `${bench.height}px` :
-                            bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
-                    backgroundColor: `${bench.color}20`,
-                    borderColor: bench.color,
-                  }}
-                  draggable
-                  onDragStart={(e) => handleBenchDragStart(e, bench.id)}
-                  onDragEnd={handleBenchDragEnd}
-                  onClick={() => setSelectedBench(bench.id)}
-                >
-                  <div 
-                    className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
-                    style={{ backgroundColor: bench.color }}
+              {benches.map((bench) => {
+                const width =
+                  bench.type === 'special'
+                    ? bench.width
+                    : bench.orientation === 'horizontal'
+                      ? bench.seatCount * 60 + 20
+                      : 80;
+                const height =
+                  bench.type === 'special'
+                    ? bench.height
+                    : bench.orientation === 'horizontal'
+                      ? 80
+                      : bench.seatCount * 60 + 20;
+
+                return (
+                  <div
+                    key={bench.id}
+                    className="absolute"
+                    style={{
+                      left: `${bench.position.x}px`,
+                      top: `${bench.position.y}px`,
+                      width: `${width}px`,
+                      height: `${height}px`,
+                    }}
+                    draggable
+                    onDragStart={(e) => handleBenchDragStart(e, bench.id)}
+                    onDragEnd={handleBenchDragEnd}
+                    onClick={() => setSelectedBench(bench.id)}
                   >
-                    {bench.type === 'special' && bench.icon && (
-                      <span className="ml-1">{bench.icon}</span>
-                    )}
-                    {bench.name}
-                  </div>
-                  
-                  {bench.type !== 'special' && (
-                    <>
+                    <div
+                      className={`relative w-full h-full rounded-lg shadow-lg border-2 cursor-move transition-all duration-200 hover:shadow-xl ${
+                        selectedBench === bench.id ? 'ring-4 ring-blue-300' : ''
+                      } ${draggedBench === bench.id ? 'opacity-50' : ''}`}
+                      style={{
+                        backgroundColor: `${bench.color}20`,
+                        borderColor: bench.color,
+                      }}
+                    >
+                      <div
+                        className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
+                        style={{ backgroundColor: bench.color }}
+                      >
+                        {bench.type === 'special' && bench.icon && (
+                          <span className="ml-1">{bench.icon}</span>
+                        )}
+                        {bench.name}
+                      </div>
+
+                      {/* מקומות ישיבה בתוך הספסל */}
+                      {bench.type !== 'special' && seats
+                        .filter(seat => seat.benchId === bench.id)
+                        .map((seat, index) => {
+                          const status = getSeatStatus(seat);
+
+                          return (
+                            <div
+                              key={seat.id}
+                              className={`absolute w-12 h-12 ${status.color} ${status.hoverColor} rounded-lg shadow-md transition-all duration-200 cursor-pointer transform hover:scale-110 flex items-center justify-center group border-2 border-white ${
+                                selectedSeat === seat.id ? 'ring-4 ring-blue-300' : ''
+                              }`}
+                              style={{
+                                left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
+                                top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
+                                zIndex: 10,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSeat(seat.id);
+                                setSelectedBench(null);
+                              }}
+                              title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
+                            >
+                              <div className="text-white font-bold text-xs">{seat.id}</div>
+
+                              {status.user && (
+                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                  <UserIcon className="h-2 w-2 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                      {/* תוכן אלמנט מיוחד */}
+                      {bench.type === 'special' && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-2xl mb-1">{bench.icon}</div>
+                            <div className="text-xs font-semibold text-gray-700">{bench.name}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div
+                      className="absolute -bottom-8 left-1 flex space-x-2"
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      {bench.type !== 'special' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            rotateBench(bench.id);
+                          }}
+                          className="p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
+                          title="סובב ספסל"
+                        >
+                          <RotateCw className="h-3 w-3 text-gray-600" />
+                        </button>
+                      )}
+
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          rotateBench(bench.id);
+                          copyBench(bench.id);
                         }}
-                        className="absolute bottom-1 left-1 p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
-                        title="סובב ספסל"
+                        className="p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
+                        title={bench.type === 'special' ? 'העתק אלמנט' : 'העתק ספסל'}
                       >
-                        <RotateCw className="h-3 w-3 text-gray-600" />
+                        <Copy className="h-3 w-3 text-gray-600" />
                       </button>
-                    </>
-                  )}
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      copyBench(bench.id);
-                    }}
-                    className={`absolute bottom-1 ${bench.type === 'special' ? 'left-1' : 'left-8'} p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors`}
-                    title={bench.type === 'special' ? 'העתק אלמנט' : 'העתק ספסל'}
-                  >
-                    <Copy className="h-3 w-3 text-gray-600" />
-                  </button>
-                  
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteBench(bench.id);
-                    }}
-                    className={`absolute bottom-1 ${bench.type === 'special' ? 'left-8' : 'left-16'} p-1 bg-white rounded shadow-md hover:bg-red-50 transition-colors`}
-                    title={bench.type === 'special' ? 'מחק אלמנט' : 'מחק ספסל'}
-                  >
-                    <Trash2 className="h-3 w-3 text-red-600" />
-                  </button>
-                  
-                  {/* מקומות ישיבה בתוך הספסל */}
-                  {bench.type !== 'special' && seats
-                    .filter(seat => seat.benchId === bench.id)
-                    .map((seat, index) => {
-                      const status = getSeatStatus(seat);
-                      
-                      return (
-                        <div
-                          key={seat.id}
-                          className={`absolute w-12 h-12 ${status.color} ${status.hoverColor} rounded-lg shadow-md transition-all duration-200 cursor-pointer transform hover:scale-110 flex items-center justify-center group border-2 border-white ${
-                            selectedSeat === seat.id ? 'ring-4 ring-blue-300' : ''
-                          }`}
-                          style={{
-                            left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
-                            top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
-                            zIndex: 10,
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedSeat(seat.id);
-                            setSelectedBench(null);
-                          }}
-                          title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
-                        >
-                          <div className="text-white font-bold text-xs">{seat.id}</div>
-                          
-                          {status.user && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
-                              <UserIcon className="h-2 w-2 text-white" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  
-                  {/* תוכן אלמנט מיוחד */}
-                  {bench.type === 'special' && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="text-2xl mb-1">{bench.icon}</div>
-                        <div className="text-xs font-semibold text-gray-700">{bench.name}</div>
-                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteBench(bench.id);
+                        }}
+                        className="p-1 bg-white rounded shadow-md hover:bg-red-50 transition-colors"
+                        title={bench.type === 'special' ? 'מחק אלמנט' : 'מחק ספסל'}
+                      >
+                        <Trash2 className="h-3 w-3 text-red-600" />
+                      </button>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
