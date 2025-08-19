@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, User } from '../../types';
 import { Users as UsersIcon, MapPin, User as UserIcon, Grid3X3, Armchair } from 'lucide-react';
 import MapBoundsControls from './MapBoundsControls';
+import MapZoomControls from './MapZoomControls';
 
 const SeatsView: React.FC = () => {
   const { seats, users, benches, gridSettings } = useAppContext();
+  const [zoom, setZoom] = useState(1);
 
   const getUserById = (userId: string): User | undefined => {
     return users.find(user => user.id === userId);
@@ -147,20 +149,28 @@ const SeatsView: React.FC = () => {
           )}
         </div>
 
-        <div 
+        <div
           className="relative border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50"
-          style={{ 
+          style={{
             minHeight: '800px',
             width: '1200px',
             maxWidth: '100%',
           }}
         >
-          {renderGrid()}
+          <div
+            style={{
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left',
+              width: '1200px',
+              height: '800px',
+            }}
+          >
+            {renderGrid()}
 
-          <MapBoundsControls />
+            <MapBoundsControls />
 
-          {/* רינדור ספסלים */}
-          {benches.map((bench) => (
+            {/* רינדור ספסלים */}
+            {benches.map((bench) => (
             <div
               key={bench.id}
               className="absolute rounded-lg shadow-lg border-2 border-white"
@@ -225,7 +235,9 @@ const SeatsView: React.FC = () => {
                   );
                 })}
             </div>
-          ))}
+            ))}
+          </div>
+          <MapZoomControls setZoom={setZoom} />
         </div>
       </div>
 
