@@ -28,6 +28,11 @@ export interface Bench {
   };
   orientation: 'horizontal' | 'vertical';
   color: string;
+  type?: 'bench' | 'special';
+  width?: number;
+  height?: number;
+  icon?: string;
+  locked?: boolean;
 }
 
 export interface ContactForm {

@@ -41,6 +41,7 @@ const generateInitialBenches = (): Bench[] => {
       },
       orientation: 'horizontal',
       color: colors[i],
+      locked: false,
     });
   }
   return benches;
