@@ -247,39 +247,39 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   ]);
   const initialBenches = generateInitialBenches();
   const initialSeats = generateSeatsFromBenches(initialBenches);
+  const defaultMap: MapData = {
+    id: 'default-map',
+    name: 'מפת ברירת מחדל',
+    benches: initialBenches,
+    seats: initialSeats,
+    mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
+    mapOffset: { x: 0, y: 0 },
+  };
   const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches);
   const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats);
 
-  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', []);
-  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', '');
+  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', [defaultMap]);
+  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', defaultMap.id);
 
   const defaultTemplate: MapTemplate = {
     id: 'default',
     name: 'תבנית ברירת מחדל',
     benches: initialBenches.map(b => ({ ...b })),
     seats: initialSeats.map(s => ({ ...s })),
-    mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
-    mapOffset: { x: 0, y: 0 },
+    mapBounds: defaultMap.mapBounds,
+    mapOffset: defaultMap.mapOffset,
   };
   const [mapTemplates, setMapTemplates] = useLocalStorage<MapTemplate[]>('mapTemplates', [defaultTemplate]);
-  
+
   const [gridSettings, setGridSettings] = useLocalStorage<GridSettings>('gridSettings', {
     showGrid: true,
     snapToGrid: true,
     gridSize: 20,
   });
 
-  const [mapBounds, setMapBounds] = useLocalStorage<MapBounds>('mapBounds', {
-    top: 20,
-    right: 20,
-    bottom: 20,
-    left: 20,
-  });
+  const [mapBounds, setMapBounds] = useLocalStorage<MapBounds>('mapBounds', defaultMap.mapBounds);
 
-  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', {
-    x: 0,
-    y: 0,
-  });
+  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset);
 
   const saveCurrentMap = (name: string) => {
     const id = Date.now().toString();
