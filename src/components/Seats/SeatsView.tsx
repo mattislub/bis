@@ -170,72 +170,75 @@ const SeatsView: React.FC = () => {
             <MapBoundsControls />
 
             {/* רינדור ספסלים */}
-            {benches.map((bench) => (
-            <div
-              key={bench.id}
-              className="absolute rounded-lg shadow-lg border-2 border-white"
-              style={{
-                left: `${bench.position.x}px`,
-                top: `${bench.position.y}px`,
-                width: bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
-                height: bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
-                backgroundColor: `${bench.color}20`,
-                borderColor: bench.color,
-              }}
-            >
-              <div 
-                className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
-                style={{ backgroundColor: bench.color }}
-              >
-                {bench.name}
-              </div>
-              
-              {/* מקומות ישיבה בתוך הספסל */}
-              {seats
-                .filter(seat => seat.benchId === bench.id)
-                .map((seat, index) => {
-                  const status = getSeatStatus(seat);
-                  
-                  return (
-                    <div
-                      key={seat.id}
-                      className={`absolute w-12 h-12 ${status.color} ${status.hoverColor} rounded-lg shadow-md transition-all duration-200 cursor-pointer transform hover:scale-110 flex items-center justify-center group border-2 border-white`}
-                      style={{
-                        left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
-                        top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
-                        zIndex: 10,
-                      }}
-                      title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
-                    >
-                      <div className="text-white font-bold text-xs">{seat.id}</div>
-                      
-                      {status.user && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
-                          <UserIcon className="h-2 w-2 text-white" />
-                        </div>
-                      )}
-                      
-                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-20 max-w-xs">
-                        {status.user ? (
-                          <>
-                            <div className="font-semibold">{status.user.name}</div>
-                            <div className="text-gray-300">{status.user.department}</div>
-                            <div className="text-gray-300">{status.user.email}</div>
-                            <div className="text-gray-400 text-xs mt-1">{bench.name}</div>
-                          </>
-                        ) : (
-                          <>
-                            <div>מקום {seat.id} - פנוי</div>
-                            <div className="text-gray-400">{bench.name}</div>
-                          </>
-                        )}
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-            ))}
+              {benches.map((bench) => (
+                <div
+                  key={bench.id}
+                  className="absolute"
+                  style={{ left: `${bench.position.x}px`, top: `${bench.position.y}px` }}
+                >
+                  <div
+                    className="absolute -top-6 left-1/2 -translate-x-1/2 transform px-2 py-1 rounded text-xs font-semibold text-white"
+                    style={{ backgroundColor: bench.color }}
+                  >
+                    {bench.type === 'special' && bench.icon && (<span className="ml-1">{bench.icon}</span>)}
+                    {bench.name}
+                  </div>
+                  <div
+                    className="rounded-lg shadow-lg border-2 border-white"
+                    style={{
+                      width: bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
+                      height: bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
+                      backgroundColor: `${bench.color}20`,
+                      borderColor: bench.color,
+                    }}
+                  >
+                    {/* מקומות ישיבה בתוך הספסל */}
+                    {seats
+                      .filter(seat => seat.benchId === bench.id)
+                      .map((seat, index) => {
+                        const status = getSeatStatus(seat);
+
+                        return (
+                          <div
+                            key={seat.id}
+                            className={`absolute w-12 h-12 ${status.color} ${status.hoverColor} rounded-lg shadow-md transition-all duration-200 cursor-pointer transform hover:scale-110 flex items-center justify-center group border-2 border-white`}
+                            style={{
+                              left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
+                              top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
+                              zIndex: 10,
+                            }}
+                            title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
+                          >
+                            <div className="text-white font-bold text-xs">{seat.id}</div>
+
+                            {status.user && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
+                                <UserIcon className="h-2 w-2 text-white" />
+                              </div>
+                            )}
+
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-20 max-w-xs">
+                              {status.user ? (
+                                <>
+                                  <div className="font-semibold">{status.user.name}</div>
+                                  <div className="text-gray-300">{status.user.department}</div>
+                                  <div className="text-gray-300">{status.user.email}</div>
+                                  <div className="text-gray-400 text-xs mt-1">{bench.name}</div>
+                                </>
+                              ) : (
+                                <>
+                                  <div>מקום {seat.id} - פנוי</div>
+                                  <div className="text-gray-400">{bench.name}</div>
+                                </>
+                              )}
+                              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
           </div>
           <MapZoomControls setZoom={setZoom} />
         </div>
