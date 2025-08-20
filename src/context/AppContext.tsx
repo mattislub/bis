@@ -10,6 +10,7 @@ import {
   MapTemplate,
 } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useAuth } from './AuthContext';
 
 interface AppContextType {
   worshipers: Worshiper[];
@@ -188,6 +189,8 @@ const generateSeatsFromBenches = (benches: Bench[]): Seat[] => {
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const userKey = user?.username ?? 'guest';
   const [worshipers, setWorshipers] = useLocalStorage<Worshiper[]>('worshipers', [
     {
       id: '1',
@@ -244,7 +247,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       email: 'avi@example.com',
       seatCount: 1,
     },
-  ]);
+  ], userKey);
   const initialBenches = generateInitialBenches();
   const initialSeats = generateSeatsFromBenches(initialBenches);
   const defaultMap: MapData = {
@@ -255,11 +258,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
     mapOffset: { x: 0, y: 0 },
   };
-  const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches);
-  const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats);
+  const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches, userKey);
+  const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats, userKey);
 
-  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', [defaultMap]);
-  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', defaultMap.id);
+  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', [defaultMap], userKey);
+  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', defaultMap.id, userKey);
 
   const defaultTemplate: MapTemplate = {
     id: 'default',
@@ -269,17 +272,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     mapBounds: defaultMap.mapBounds,
     mapOffset: defaultMap.mapOffset,
   };
-  const [mapTemplates, setMapTemplates] = useLocalStorage<MapTemplate[]>('mapTemplates', [defaultTemplate]);
+  const [mapTemplates, setMapTemplates] = useLocalStorage<MapTemplate[]>('mapTemplates', [defaultTemplate], userKey);
 
   const [gridSettings, setGridSettings] = useLocalStorage<GridSettings>('gridSettings', {
     showGrid: true,
     snapToGrid: true,
     gridSize: 20,
-  });
+  }, userKey);
 
-  const [mapBounds, setMapBounds] = useLocalStorage<MapBounds>('mapBounds', defaultMap.mapBounds);
+  const [mapBounds, setMapBounds] = useLocalStorage<MapBounds>('mapBounds', defaultMap.mapBounds, userKey);
 
-  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset);
+  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
 
   const saveCurrentMap = (name: string) => {
     const id = Date.now().toString();

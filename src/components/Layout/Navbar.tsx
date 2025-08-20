@@ -1,16 +1,19 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  MapPin, 
-  Settings, 
-  Mail, 
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import {
+  Users,
+  MapPin,
+  Settings,
+  Mail,
   Info,
   Armchair
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navItems = [
     { path: '/', label: 'ניהול מתפללים', icon: Users },
@@ -29,7 +32,7 @@ const Navbar: React.FC = () => {
             <h1 className="text-xl font-bold text-gray-800">מערכת ניהול מקומות ישיבה</h1>
           </div>
           
-          <div className="flex space-x-1 space-x-reverse">
+          <div className="flex space-x-1 space-x-reverse items-center">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -49,6 +52,15 @@ const Navbar: React.FC = () => {
                 </Link>
               );
             })}
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              className="flex items-center px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              יציאה
+            </button>
           </div>
         </div>
       </div>
