@@ -20,7 +20,6 @@ import {
   Hand,
   BoxSelect
 } from 'lucide-react';
-import MapBoundsControls from './MapBoundsControls';
 import MapZoomControls from './MapZoomControls';
 
 const specialElements = [
@@ -862,8 +861,6 @@ const SeatsManagement: React.FC = () => {
                 style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
               >
                 {renderGrid()}
-
-                <MapBoundsControls />
 
                 {/* רינדור ספסלים */}
                 {benches.map((bench) => (

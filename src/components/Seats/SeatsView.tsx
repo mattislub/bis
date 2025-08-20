@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, User } from '../../types';
 import { Users as UsersIcon, MapPin, User as UserIcon, Grid3X3, Armchair } from 'lucide-react';
-import MapBoundsControls from './MapBoundsControls';
 import MapZoomControls from './MapZoomControls';
 
 const SeatsView: React.FC = () => {
@@ -166,8 +165,6 @@ const SeatsView: React.FC = () => {
             }}
           >
             {renderGrid()}
-
-            <MapBoundsControls />
 
             {/* רינדור ספסלים */}
               {benches.map((bench) => (
