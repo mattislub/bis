@@ -56,7 +56,8 @@ const generateSeatsFromBenches = (benches: Bench[]): Seat[] => {
   let seatId = 1;
 
   benches.forEach(bench => {
-    for (let i = 0; i < bench.seatCount; i++) {
+    const totalSeats = bench.seatCount * (bench.doubleSided ? 2 : 1);
+    for (let i = 0; i < totalSeats; i++) {
 
       seats.push({
         id: seatId++,

@@ -33,6 +33,7 @@ export interface Bench {
   height?: number;
   icon?: string;
   locked?: boolean;
+  doubleSided?: boolean;
 }
 
 export interface ContactForm {

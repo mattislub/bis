@@ -98,7 +98,8 @@ const SeatsManagement: React.FC = () => {
     name: '',
     seatCount: 4,
     orientation: 'horizontal' as 'horizontal' | 'vertical',
-    color: '#3B82F6'
+    color: '#3B82F6',
+    doubleSided: false
   });
 
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
@@ -145,9 +146,15 @@ const SeatsManagement: React.FC = () => {
       return { width: bench.width || 0, height: bench.height || 0 };
     }
     if (bench.orientation === 'horizontal') {
-      return { width: bench.seatCount * 60 + 20, height: 80 };
+      return {
+        width: bench.seatCount * 60 + 20,
+        height: bench.doubleSided ? 160 : 80,
+      };
     }
-    return { width: 80, height: bench.seatCount * 60 + 20 };
+    return {
+      width: bench.doubleSided ? 160 : 80,
+      height: bench.seatCount * 60 + 20,
+    };
   };
 
   const expandBoundsIfNeeded = useCallback(
@@ -355,24 +362,17 @@ const SeatsManagement: React.FC = () => {
     }
 
     if (isSelecting && selectionRect) {
-      const selected = benches.filter(b => {
-        const benchWidth = b.type === 'special'
-          ? (b.width || 0)
-          : b.orientation === 'horizontal'
-            ? b.seatCount * 60 + 20
-            : 80;
-        const benchHeight = b.type === 'special'
-          ? (b.height || 0)
-          : b.orientation === 'horizontal'
-            ? 80
-            : b.seatCount * 60 + 20;
-        return (
-          b.position.x + benchWidth > selectionRect.x &&
-          b.position.x < selectionRect.x + selectionRect.width &&
-          b.position.y + benchHeight > selectionRect.y &&
-          b.position.y < selectionRect.y + selectionRect.height
-        );
-      }).map(b => b.id);
+      const selected = benches
+        .filter(b => {
+          const { width: benchWidth, height: benchHeight } = getBenchDimensions(b);
+          return (
+            b.position.x + benchWidth > selectionRect.x &&
+            b.position.x < selectionRect.x + selectionRect.width &&
+            b.position.y + benchHeight > selectionRect.y &&
+            b.position.y < selectionRect.y + selectionRect.height
+          );
+        })
+        .map(b => b.id);
       setSelectedBenchIds(selected);
     }
 
@@ -419,7 +419,8 @@ const SeatsManagement: React.FC = () => {
     const newSeats: Seat[] = [];
     const maxSeatId = Math.max(...seats.map(s => s.id), 0);
     
-    for (let i = 0; i < bench.seatCount; i++) {
+    const totalSeats = bench.seatCount * (bench.doubleSided ? 2 : 1);
+    for (let i = 0; i < totalSeats; i++) {
 
       newSeats.push({
         id: maxSeatId + i + 1,
@@ -444,6 +445,7 @@ const SeatsManagement: React.FC = () => {
       orientation: benchForm.orientation,
       color: benchForm.color,
       locked: false,
+      doubleSided: benchForm.doubleSided,
     };
 
     const updated = [...benches, newBench];
@@ -454,7 +456,7 @@ const SeatsManagement: React.FC = () => {
 
     expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
 
-    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', doubleSided: false });
     setPendingPosition(null);
     setIsAddingBench(false);
   };
@@ -487,12 +489,15 @@ const SeatsManagement: React.FC = () => {
     if (!editingBench || !benchForm.name) return;
     let updatedBenches = benches.map(bench =>
       bench.id === editingBench
-        ? { ...bench, name: benchForm.name, color: benchForm.color, orientation: benchForm.orientation }
+        ? { ...bench, name: benchForm.name, color: benchForm.color, orientation: benchForm.orientation, doubleSided: benchForm.doubleSided }
         : bench
     );
 
     const currentBench = benches.find(b => b.id === editingBench);
-    if (currentBench && currentBench.seatCount !== benchForm.seatCount) {
+    if (
+      currentBench &&
+      (currentBench.seatCount !== benchForm.seatCount || currentBench.doubleSided !== benchForm.doubleSided)
+    ) {
       setSeats(prev => prev.filter(seat => seat.benchId !== editingBench));
       const updatedBench = {
         ...currentBench,
@@ -500,6 +505,7 @@ const SeatsManagement: React.FC = () => {
         color: benchForm.color,
         orientation: benchForm.orientation,
         seatCount: benchForm.seatCount,
+        doubleSided: benchForm.doubleSided,
       };
       updatedBenches = updatedBenches.map(bench =>
         bench.id === editingBench ? updatedBench : bench
@@ -511,7 +517,7 @@ const SeatsManagement: React.FC = () => {
     setBenches(updatedBenches);
     expandBoundsIfNeeded(updatedBenches, { width: 1200, height: 800 });
 
-    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', doubleSided: false });
     setEditingBench(null);
   };
 
@@ -543,12 +549,13 @@ const SeatsManagement: React.FC = () => {
     if (!originalBench) return;
 
     // יצירת ספסל חדש באותה שורה עם רווח של 0.5 ס"מ (19 פיקסלים)
+    const { width } = getBenchDimensions(originalBench);
     const newBench: Bench = {
       ...originalBench,
       id: `bench-${Date.now()}`,
       name: `${originalBench.name} (עותק)`,
       position: {
-        x: originalBench.position.x + (originalBench.orientation === 'horizontal' ? originalBench.seatCount * 60 + 20 + 19 : 80 + 19),
+        x: originalBench.position.x + width + 19,
         y: originalBench.position.y,
       },
     };
@@ -673,25 +680,21 @@ const SeatsManagement: React.FC = () => {
     
     const newBenches: Bench[] = [];
     const newSeats: Seat[] = [];
-    
+
+    const { width: sourceWidth, height: sourceHeight } = getBenchDimensions(sourceBench);
+
     for (let i = 1; i < rowConfig.count; i++) {
       let newX = sourceBench.position.x;
       let newY = sourceBench.position.y;
-      
+
       if (rowConfig.direction === 'horizontal') {
         // סרגל אופקי - ספסלים זה ליד זה
-        const benchWidth = sourceBench.orientation === 'horizontal' 
-          ? sourceBench.seatCount * 60 + 20 
-          : 80;
-        newX = sourceBench.position.x + (benchWidth + rowConfig.spacing) * i;
+        newX = sourceBench.position.x + (sourceWidth + rowConfig.spacing) * i;
       } else {
         // סרגל אנכי - ספסלים זה מתחת לזה
-        const benchHeight = sourceBench.orientation === 'vertical' 
-          ? sourceBench.seatCount * 60 + 20 
-          : 80;
-        newY = sourceBench.position.y + (benchHeight + rowConfig.spacing) * i;
+        newY = sourceBench.position.y + (sourceHeight + rowConfig.spacing) * i;
       }
-      
+
       const newBench: Bench = {
         ...sourceBench,
         id: `bench-${Date.now()}-${i}`,
@@ -863,29 +866,29 @@ const SeatsManagement: React.FC = () => {
                 {renderGrid()}
 
                 {/* רינדור ספסלים */}
-                {benches.map((bench) => (
-                <div
-                  key={bench.id}
-                  className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
-                    bench.locked ? 'cursor-not-allowed' : 'cursor-move'
-                  } ${selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''} ${
-                    draggedBench === bench.id ? 'opacity-50' : ''
-                  }`}
-                  style={{
-                    left: `${bench.position.x}px`,
-                    top: `${bench.position.y}px`,
-                    width: bench.type === 'special' ? `${bench.width}px` :
-                           bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
-                    height: bench.type === 'special' ? `${bench.height}px` :
-                            bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
-                    backgroundColor: `${bench.color}20`,
-                    borderColor: bench.color,
-                  }}
-                  draggable={!bench.locked && resizingBench !== bench.id}
-                  onDragStart={(e) => handleBenchDragStart(e, bench.id)}
-                  onDragEnd={handleBenchDragEnd}
-                  onClick={(e) => handleBenchClick(e, bench.id)}
-                >
+                {benches.map((bench) => {
+                  const { width: benchWidth, height: benchHeight } = getBenchDimensions(bench);
+                  return (
+                    <div
+                      key={bench.id}
+                      className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
+                        bench.locked ? 'cursor-not-allowed' : 'cursor-move'
+                      } ${selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''} ${
+                        draggedBench === bench.id ? 'opacity-50' : ''
+                      }`}
+                      style={{
+                        left: `${bench.position.x}px`,
+                        top: `${bench.position.y}px`,
+                        width: bench.type === 'special' ? `${bench.width}px` : `${benchWidth}px`,
+                        height: bench.type === 'special' ? `${bench.height}px` : `${benchHeight}px`,
+                        backgroundColor: `${bench.color}20`,
+                        borderColor: bench.color,
+                      }}
+                      draggable={!bench.locked && resizingBench !== bench.id}
+                      onDragStart={(e) => handleBenchDragStart(e, bench.id)}
+                      onDragEnd={handleBenchDragEnd}
+                      onClick={(e) => handleBenchClick(e, bench.id)}
+                    >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -986,7 +989,21 @@ const SeatsManagement: React.FC = () => {
                     .filter(seat => seat.benchId === bench.id)
                     .map((seat, index) => {
                       const status = getSeatStatus(seat);
-                      
+                      const seatsPerRow = bench.seatCount;
+                      let left = 10;
+                      let top = 10;
+                      if (bench.orientation === 'horizontal') {
+                        const row = bench.doubleSided ? Math.floor(index / seatsPerRow) : 0;
+                        const col = bench.doubleSided ? index % seatsPerRow : index;
+                        left = col * 60 + 10;
+                        top = bench.doubleSided ? (row === 0 ? 10 : 90) : 10;
+                      } else {
+                        const col = bench.doubleSided ? Math.floor(index / seatsPerRow) : 0;
+                        const row = bench.doubleSided ? index % seatsPerRow : index;
+                        left = bench.doubleSided ? (col === 0 ? 10 : 90) : 10;
+                        top = row * 60 + 10;
+                      }
+
                       return (
                         <div
                           key={seat.id}
@@ -994,8 +1011,8 @@ const SeatsManagement: React.FC = () => {
                             selectedSeat === seat.id ? 'ring-4 ring-blue-300' : ''
                           }`}
                           style={{
-                            left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
-                            top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
+                            left: `${left}px`,
+                            top: `${top}px`,
                             zIndex: 10,
                           }}
                           onClick={(e) => {
@@ -1026,7 +1043,8 @@ const SeatsManagement: React.FC = () => {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+            })}
 
               {selectionRect && (
                 <div
@@ -1086,7 +1104,7 @@ const SeatsManagement: React.FC = () => {
                     onClick={() => {
                       setIsAddingBench(false);
                       setEditingBench(null);
-                      setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+                      setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', doubleSided: false });
                     }}
                     className="p-1 text-gray-400 hover:text-gray-600"
                   >
@@ -1128,6 +1146,19 @@ const SeatsManagement: React.FC = () => {
                       <option value="horizontal">אופקי</option>
                       <option value="vertical">אנכי</option>
                     </select>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      id="doubleSided"
+                      type="checkbox"
+                      checked={benchForm.doubleSided}
+                      onChange={(e) => setBenchForm(prev => ({ ...prev, doubleSided: e.target.checked }))}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label htmlFor="doubleSided" className="ml-2 block text-sm text-gray-700">
+                      ספסל דו צדדי
+                    </label>
                   </div>
 
                   <div>
@@ -1220,11 +1251,15 @@ const SeatsManagement: React.FC = () => {
               <div className="space-y-3 mb-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">מקומות:</span>
-                  <span className="font-semibold">{selectedBenchData.seatCount}</span>
+                  <span className="font-semibold">{selectedBenchData.seatCount * (selectedBenchData.doubleSided ? 2 : 1)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">כיוון:</span>
                   <span className="font-semibold">{selectedBenchData.orientation === 'horizontal' ? 'אופקי' : 'אנכי'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">דו צדדי:</span>
+                  <span className="font-semibold">{selectedBenchData.doubleSided ? 'כן' : 'לא'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">צבע:</span>
@@ -1243,7 +1278,8 @@ const SeatsManagement: React.FC = () => {
                         name: selectedBenchData.name,
                         seatCount: selectedBenchData.seatCount,
                         orientation: selectedBenchData.orientation,
-                        color: selectedBenchData.color
+                        color: selectedBenchData.color,
+                        doubleSided: selectedBenchData.doubleSided || false
                       });
                       setEditingBench(selectedBench);
                     }}
