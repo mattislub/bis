@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { User, Seat, Bench, GridSettings, MapBounds } from '../types';
+import { User, Seat, Bench, GridSettings, MapBounds, MapOffset } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface AppContextType {
@@ -13,6 +13,8 @@ interface AppContextType {
   setGridSettings: (settings: GridSettings | ((prev: GridSettings) => GridSettings)) => void;
   mapBounds: MapBounds;
   setMapBounds: (bounds: MapBounds | ((prev: MapBounds) => MapBounds)) => void;
+  mapOffset: MapOffset;
+  setMapOffset: (offset: MapOffset | ((prev: MapOffset) => MapOffset)) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -123,6 +125,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     left: 20,
   });
 
+  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', {
+    x: 0,
+    y: 0,
+  });
+
   return (
     <AppContext.Provider value={{ 
       users, 
@@ -134,7 +141,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       gridSettings,
       setGridSettings,
       mapBounds,
-      setMapBounds
+      setMapBounds,
+      mapOffset,
+      setMapOffset
     }}>
       {children}
     </AppContext.Provider>

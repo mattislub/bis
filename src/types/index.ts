@@ -54,3 +54,8 @@ export interface MapBounds {
   bottom: number;
   left: number;
 }
+
+export interface MapOffset {
+  x: number;
+  y: number;
+}

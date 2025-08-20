@@ -16,7 +16,8 @@ import {
   Unlock,
   ArrowRight,
   ArrowDown,
-  ArrowDownRight
+  ArrowDownRight,
+  Hand
 } from 'lucide-react';
 import MapBoundsControls from './MapBoundsControls';
 
@@ -78,7 +79,7 @@ const specialElements = [
 ];
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds } = useAppContext();
+  const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset } = useAppContext();
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
   const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
   const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
@@ -109,6 +110,14 @@ const SeatsManagement: React.FC = () => {
     { x: number; y: number; width: number; height: number; direction: 'right' | 'bottom' | 'corner' } | null
   >(null);
   const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
+
+  const [isPanMode, setIsPanMode] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
+  const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
@@ -170,8 +179,8 @@ const SeatsManagement: React.FC = () => {
     if (!draggedBench) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = snapToGrid(e.clientX - rect.left - 40);
-    const y = snapToGrid(e.clientY - rect.top - 40);
+    const x = snapToGrid(e.clientX - rect.left - mapOffset.x - 40);
+    const y = snapToGrid(e.clientY - rect.top - mapOffset.y - 40);
 
     const minX = mapBounds.left;
     const minY = mapBounds.top;
@@ -227,7 +236,53 @@ const SeatsManagement: React.FC = () => {
     });
   };
 
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - mapOffset.x;
+    const y = e.clientY - rect.top - mapOffset.y;
+
+    if (isPanMode) {
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      setContextMenuPos(null);
+      setSelectedBenchIds([]);
+      return;
+    }
+
+    if (e.target === e.currentTarget) {
+      setIsSelecting(true);
+      setSelectionStart({ x, y });
+      setSelectionRect({ x, y, width: 0, height: 0 });
+      setContextMenuPos(null);
+      setSelectedBenchIds([]);
+      setSelectedSeat(null);
+      setOpenSettingsId(null);
+    }
+  };
+
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isPanning && panStart) {
+      const dx = e.clientX - panStart.x;
+      const dy = e.clientY - panStart.y;
+      setMapOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+      setPanStart({ x: e.clientX, y: e.clientY });
+      return;
+    }
+
+    if (isSelecting && selectionStart) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left - mapOffset.x;
+      const y = e.clientY - rect.top - mapOffset.y;
+      setSelectionRect({
+        x: Math.min(x, selectionStart.x),
+        y: Math.min(y, selectionStart.y),
+        width: Math.abs(x - selectionStart.x),
+        height: Math.abs(y - selectionStart.y),
+      });
+      return;
+    }
+
     if (!resizingBench || !resizeStart) return;
     const dx = e.clientX - resizeStart.x;
     const dy = e.clientY - resizeStart.y;
@@ -257,6 +312,37 @@ const SeatsManagement: React.FC = () => {
   };
 
   const handleMouseUp = () => {
+    if (isPanning) {
+      setIsPanning(false);
+      setPanStart(null);
+    }
+
+    if (isSelecting && selectionRect) {
+      const selected = benches.filter(b => {
+        const benchWidth = b.type === 'special'
+          ? (b.width || 0)
+          : b.orientation === 'horizontal'
+            ? b.seatCount * 60 + 20
+            : 80;
+        const benchHeight = b.type === 'special'
+          ? (b.height || 0)
+          : b.orientation === 'horizontal'
+            ? 80
+            : b.seatCount * 60 + 20;
+        return (
+          b.position.x + benchWidth > selectionRect.x &&
+          b.position.x < selectionRect.x + selectionRect.width &&
+          b.position.y + benchHeight > selectionRect.y &&
+          b.position.y < selectionRect.y + selectionRect.height
+        );
+      }).map(b => b.id);
+      setSelectedBenchIds(selected);
+    }
+
+    setIsSelecting(false);
+    setSelectionStart(null);
+    setSelectionRect(null);
+
     if (resizingBench) {
       setResizingBench(null);
       setResizeStart(null);
@@ -285,8 +371,8 @@ const SeatsManagement: React.FC = () => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     setContextMenuPos({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: e.clientX - rect.left - mapOffset.x,
+      y: e.clientY - rect.top - mapOffset.y,
     });
   };
 
@@ -429,6 +515,16 @@ const SeatsManagement: React.FC = () => {
     setBenches(prev => prev.map(bench =>
       bench.id === benchId ? { ...bench, locked: !bench.locked } : bench
     ));
+  };
+
+  const clearMap = () => {
+    if (window.confirm('האם אתה בטוח שברצונך לנקות את המפה?')) {
+      setBenches([]);
+      setSeats([]);
+      setSelectedBenchIds([]);
+      setSelectedSeat(null);
+      setMapOffset({ x: 0, y: 0 });
+    }
   };
 
   const assignUserToSeat = (seatId: number, userId: string | null) => {
@@ -639,6 +735,22 @@ const SeatsManagement: React.FC = () => {
                 >
                   <Settings className="h-4 w-4" />
                 </button>
+                <button
+                  onClick={() => setIsPanMode(prev => !prev)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isPanMode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                  }`}
+                  title="הזז מפה"
+                >
+                  <Hand className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={clearMap}
+                  className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                  title="נקה מפה"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
 
@@ -674,7 +786,7 @@ const SeatsManagement: React.FC = () => {
             </div>
 
             <div
-              className="relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden"
+              className={`relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden ${isPanMode ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
               style={{ minHeight: '800px', width: '1200px', maxWidth: '100%' }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
@@ -683,13 +795,18 @@ const SeatsManagement: React.FC = () => {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
+              onMouseDown={handleMouseDown}
             >
-              {renderGrid()}
+              <div
+                className="absolute inset-0"
+                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)` }}
+              >
+                {renderGrid()}
 
-              <MapBoundsControls />
+                <MapBoundsControls />
 
-              {/* רינדור ספסלים */}
-              {benches.map((bench) => (
+                {/* רינדור ספסלים */}
+                {benches.map((bench) => (
                 <div
                   key={bench.id}
                   className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
@@ -854,6 +971,18 @@ const SeatsManagement: React.FC = () => {
                 </div>
               ))}
 
+              {selectionRect && (
+                <div
+                  className="absolute border-2 border-blue-400 bg-blue-200 bg-opacity-25 pointer-events-none"
+                  style={{
+                    left: selectionRect.x,
+                    top: selectionRect.y,
+                    width: selectionRect.width,
+                    height: selectionRect.height,
+                  }}
+                />
+              )}
+
               {contextMenuPos && (
                 <div
                   className="absolute z-50 bg-white border rounded shadow-lg"
@@ -881,6 +1010,7 @@ const SeatsManagement: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
