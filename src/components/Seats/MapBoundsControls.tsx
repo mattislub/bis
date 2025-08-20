@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronUp, ChevronRight, ChevronDown, ChevronLeft } from 'lucide-react';
+import { ChevronUp, ChevronRight, ChevronDown, ChevronLeft, Maximize2 } from 'lucide-react';
 import { useAppContext } from '../../context/AppContext';
 
 const MapBoundsControls: React.FC = () => {
@@ -12,6 +12,10 @@ const MapBoundsControls: React.FC = () => {
     }));
   };
 
+  const expandAll = () => {
+    setMapBounds({ top: 0, right: 0, bottom: 0, left: 0 });
+  };
+
   return (
     <div
       className="absolute border-2 border-gray-400 pointer-events-none"
@@ -22,6 +26,13 @@ const MapBoundsControls: React.FC = () => {
         bottom: mapBounds.bottom,
       }}
     >
+      <button
+        onClick={expandAll}
+        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full shadow p-1 pointer-events-auto"
+        aria-label="הרחב הכל"
+      >
+        <Maximize2 className="h-4 w-4" />
+      </button>
       <button
         onClick={() => expand('top')}
         className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full bg-white rounded-full shadow p-1 pointer-events-auto"
