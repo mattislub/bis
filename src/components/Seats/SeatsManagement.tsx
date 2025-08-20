@@ -892,7 +892,7 @@ const SeatsManagement: React.FC = () => {
                     </div>
                   )}
                   <div
-                    className="absolute top-1 right-1 px-2 py-1 rounded text-xs font-semibold text-white"
+                    className="absolute -top-6 left-1/2 -translate-x-1/2 transform px-2 py-1 rounded text-xs font-semibold text-white"
                     style={{ backgroundColor: bench.color }}
                   >
                     {bench.type === 'special' && bench.icon && (
