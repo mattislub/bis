@@ -153,8 +153,16 @@ const SeatsView: React.FC = () => {
                   <div
                     className="rounded-lg shadow-lg border-2 border-white"
                     style={{
-                      width: bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
-                      height: bench.orientation === 'horizontal' ? '80px' : `${bench.seatCount * 60 + 20}px`,
+                      width: bench.type === 'special'
+                        ? `${bench.width}px`
+                        : bench.orientation === 'horizontal'
+                          ? `${bench.seatCount * 60 + 20}px`
+                          : '80px',
+                      height: bench.type === 'special'
+                        ? `${bench.height}px`
+                        : bench.orientation === 'horizontal'
+                          ? '80px'
+                          : `${bench.seatCount * 60 + 20}px`,
                       backgroundColor: `${bench.color}20`,
                       borderColor: bench.color,
                     }}
