@@ -161,7 +161,7 @@ const ensureBenchSpacing = (
 };
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset } = useAppContext();
+  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset, maps } = useAppContext();
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
       if (typeof updater === 'function') {
@@ -1541,6 +1541,20 @@ const SeatsManagement: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* רשימת מפות בזכרון */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">מפות בזכרון</h3>
+            {maps.length === 0 ? (
+              <p className="text-gray-600">אין מפות בזכרון</p>
+            ) : (
+              <ul className="space-y-2">
+                {maps.map(m => (
+                  <li key={m.id} className="p-2 bg-gray-100 rounded">{m.name}</li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {/* סטטיסטיקות */}
           <div className="bg-white p-6 rounded-lg shadow-md">
