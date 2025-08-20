@@ -862,15 +862,18 @@ const SeatsManagement: React.FC = () => {
               >
                 {renderGrid()}
 
+                {/* סימון מרכז המפה */}
+                <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50" />
+
                 {/* רינדור ספסלים */}
                 {benches.map((bench) => (
-                <div
-                  key={bench.id}
-                  className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
-                    bench.locked ? 'cursor-not-allowed' : 'cursor-move'
-                  } ${selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''} ${
-                    draggedBench === bench.id ? 'opacity-50' : ''
-                  }`}
+                  <div
+                    key={bench.id}
+                    className={`absolute rounded-lg shadow-lg border-2 transition-all duration-200 hover:shadow-xl ${
+                      bench.locked ? 'cursor-not-allowed' : 'cursor-move'
+                    } ${selectedBenchIds.includes(bench.id) ? 'ring-4 ring-blue-300' : ''} ${
+                      draggedBench === bench.id ? 'opacity-50' : ''
+                    }`}
                   style={{
                     left: `${bench.position.x}px`,
                     top: `${bench.position.y}px`,
