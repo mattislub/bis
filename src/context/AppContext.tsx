@@ -31,7 +31,7 @@ interface AppContextType {
   setCurrentMapId: (id: string) => void;
   mapTemplates: MapTemplate[];
   addTemplate: (template: MapTemplate) => void;
-  saveCurrentMap: (name: string) => void;
+  saveCurrentMap: (name?: string) => void;
   loadMap: (id: string) => void;
   deleteMap: (id: string) => void;
   createMapFromTemplate: (templateId: string, name: string) => void;
@@ -284,18 +284,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
 
-  const saveCurrentMap = (name: string) => {
-    const id = Date.now().toString();
-    const map: MapData = {
-      id,
-      name,
-      benches,
-      seats,
-      mapBounds,
-      mapOffset,
-    };
-    setMaps(prev => [...prev, map]);
-    setCurrentMapId(id);
+  const saveCurrentMap = (name?: string) => {
+    if (currentMapId) {
+      setMaps(prev =>
+        prev.map(m =>
+          m.id === currentMapId
+            ? { ...m, benches, seats, mapBounds, mapOffset }
+            : m
+        )
+      );
+    } else if (name) {
+      const id = Date.now().toString();
+      const map: MapData = {
+        id,
+        name,
+        benches,
+        seats,
+        mapBounds,
+        mapOffset,
+      };
+      setMaps(prev => [...prev, map]);
+      setCurrentMapId(id);
+    }
   };
 
   const loadMap = (id: string) => {

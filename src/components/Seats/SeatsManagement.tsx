@@ -231,9 +231,13 @@ const SeatsManagement: React.FC = () => {
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
 
   const handleSaveMap = () => {
-    const name = prompt('הכנס שם למפה החדשה:');
-    if (name) {
-      saveCurrentMap(name);
+    if (currentMapId) {
+      saveCurrentMap();
+    } else {
+      const name = prompt('הכנס שם למפה החדשה:');
+      if (name) {
+        saveCurrentMap(name);
+      }
     }
   };
 
@@ -956,7 +960,7 @@ const SeatsManagement: React.FC = () => {
                   <button
                     onClick={handleSaveMap}
                     className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
-                    title="שמור מפה"
+                    title="שמור שינויים"
                   >
                     <Save className="h-4 w-4" />
                   </button>
