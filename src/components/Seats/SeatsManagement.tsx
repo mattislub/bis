@@ -20,6 +20,7 @@ import {
   Hand
 } from 'lucide-react';
 import MapBoundsControls from './MapBoundsControls';
+import MapZoomControls from './MapZoomControls';
 
 const specialElements = [
   {
@@ -114,6 +115,7 @@ const SeatsManagement: React.FC = () => {
   const [isPanMode, setIsPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
 
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
@@ -179,8 +181,8 @@ const SeatsManagement: React.FC = () => {
     if (!draggedBench) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = snapToGrid(e.clientX - rect.left - mapOffset.x - 40);
-    const y = snapToGrid(e.clientY - rect.top - mapOffset.y - 40);
+    const x = snapToGrid((e.clientX - rect.left - mapOffset.x - 40) / zoom);
+    const y = snapToGrid((e.clientY - rect.top - mapOffset.y - 40) / zoom);
 
     const minX = mapBounds.left;
     const minY = mapBounds.top;
@@ -238,8 +240,8 @@ const SeatsManagement: React.FC = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - mapOffset.x;
-    const y = e.clientY - rect.top - mapOffset.y;
+    const x = (e.clientX - rect.left - mapOffset.x) / zoom;
+    const y = (e.clientY - rect.top - mapOffset.y) / zoom;
 
     if (isPanMode) {
       e.preventDefault();
@@ -272,8 +274,8 @@ const SeatsManagement: React.FC = () => {
 
     if (isSelecting && selectionStart) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left - mapOffset.x;
-      const y = e.clientY - rect.top - mapOffset.y;
+      const x = (e.clientX - rect.left - mapOffset.x) / zoom;
+      const y = (e.clientY - rect.top - mapOffset.y) / zoom;
       setSelectionRect({
         x: Math.min(x, selectionStart.x),
         y: Math.min(y, selectionStart.y),
@@ -284,8 +286,8 @@ const SeatsManagement: React.FC = () => {
     }
 
     if (!resizingBench || !resizeStart) return;
-    const dx = e.clientX - resizeStart.x;
-    const dy = e.clientY - resizeStart.y;
+    const dx = (e.clientX - resizeStart.x) / zoom;
+    const dy = (e.clientY - resizeStart.y) / zoom;
 
     setBenches(prev =>
       prev.map(b => {
@@ -371,8 +373,8 @@ const SeatsManagement: React.FC = () => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     setContextMenuPos({
-      x: e.clientX - rect.left - mapOffset.x,
-      y: e.clientY - rect.top - mapOffset.y,
+      x: (e.clientX - rect.left - mapOffset.x) / zoom,
+      y: (e.clientY - rect.top - mapOffset.y) / zoom,
     });
   };
 
@@ -799,7 +801,7 @@ const SeatsManagement: React.FC = () => {
             >
               <div
                 className="absolute inset-0"
-                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)` }}
+                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
               >
                 {renderGrid()}
 
@@ -1011,6 +1013,7 @@ const SeatsManagement: React.FC = () => {
                 </div>
               )}
             </div>
+            <MapZoomControls setZoom={setZoom} />
             </div>
           </div>
         </div>
