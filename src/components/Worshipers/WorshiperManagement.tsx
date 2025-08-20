@@ -29,12 +29,13 @@ const WorshiperManagement: React.FC = () => {
     reader.onload = () => {
       const text = reader.result as string;
       const rows = text.trim().split(/\r?\n/);
-      const headers = rows.shift()?.split(',') ?? [];
+      const headers =
+        rows.shift()?.split(',').map(h => h.trim().replace(/^\ufeff/, '')) ?? [];
       const imported = rows.map((row, index) => {
         const values = row.split(',');
         const obj: Record<string, string> = {};
         headers.forEach((h, i) => {
-          obj[h.trim()] = values[i]?.trim() || '';
+          obj[h] = values[i]?.trim() || '';
         });
         return {
           id: Date.now().toString() + index,
@@ -51,14 +52,14 @@ const WorshiperManagement: React.FC = () => {
       });
       setWorshipers(prev => [...prev, ...imported]);
     };
-    reader.readAsText(file);
+    reader.readAsText(file, 'UTF-8');
     e.target.value = '';
   };
 
   const downloadSampleCsv = () => {
     const headers = ['תואר', 'שם פרטי', 'שם משפחה', 'כתובת', 'עיר', 'טלפון', 'טלפון נוסף', 'אימייל', 'כמות מקומות'];
     const sample = ['מר', 'דוד', 'כהן', 'רחוב הדוגמה 1', 'תל אביב', '050-0000000', '', 'david@example.com', '1'];
-    const csvContent = [headers.join(','), sample.join(',')].join('\n');
+    const csvContent = '\ufeff' + [headers.join(','), sample.join(',')].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
