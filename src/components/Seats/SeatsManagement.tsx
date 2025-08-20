@@ -17,7 +17,8 @@ import {
   ArrowRight,
   ArrowDown,
   ArrowDownRight,
-  Hand
+  Hand,
+  BoxSelect
 } from 'lucide-react';
 import MapBoundsControls from './MapBoundsControls';
 import MapZoomControls from './MapZoomControls';
@@ -117,6 +118,7 @@ const SeatsManagement: React.FC = () => {
   const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
   const [zoom, setZoom] = useState(1);
 
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
@@ -283,13 +285,19 @@ const SeatsManagement: React.FC = () => {
     }
 
     if (e.target === e.currentTarget) {
-      setIsSelecting(true);
-      setSelectionStart({ x, y });
-      setSelectionRect({ x, y, width: 0, height: 0 });
       setContextMenuPos(null);
-      setSelectedBenchIds([]);
-      setSelectedSeat(null);
-      setOpenSettingsId(null);
+      if (isMultiSelectMode) {
+        setIsSelecting(true);
+        setSelectionStart({ x, y });
+        setSelectionRect({ x, y, width: 0, height: 0 });
+        setSelectedBenchIds([]);
+        setSelectedSeat(null);
+        setOpenSettingsId(null);
+      } else {
+        setSelectedBenchIds([]);
+        setSelectedSeat(null);
+        setOpenSettingsId(null);
+      }
     }
   };
 
@@ -382,10 +390,12 @@ const SeatsManagement: React.FC = () => {
   const handleBenchClick = (e: React.MouseEvent, benchId: string) => {
     e.stopPropagation();
     setOpenSettingsId(null);
-    if (e.shiftKey) {
-      setSelectedBenchIds(prev => prev.includes(benchId)
-        ? prev.filter(id => id !== benchId)
-        : [...prev, benchId]);
+    if (isMultiSelectMode || e.shiftKey) {
+      setSelectedBenchIds(prev =>
+        prev.includes(benchId)
+          ? prev.filter(id => id !== benchId)
+          : [...prev, benchId]
+      );
     } else {
       setSelectedBenchIds([benchId]);
     }
@@ -775,6 +785,15 @@ const SeatsManagement: React.FC = () => {
                   title="הצמד לרשת"
                 >
                   <Settings className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setIsMultiSelectMode(prev => !prev)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isMultiSelectMode ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                  }`}
+                  title="בחירה מרובה"
+                >
+                  <BoxSelect className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setIsPanMode(prev => !prev)}
