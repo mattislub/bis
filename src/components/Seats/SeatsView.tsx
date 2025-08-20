@@ -36,51 +36,17 @@ const SeatsView: React.FC = () => {
 
   const renderGrid = () => {
     if (!gridSettings.showGrid) return null;
-    
-    const gridLines = [];
-    const containerWidth = 1200;
-    const containerHeight = 800;
-    
-    // קווים אנכיים
-    for (let x = 0; x <= containerWidth; x += gridSettings.gridSize) {
-      gridLines.push(
-        <line
-          key={`v-${x}`}
-          x1={x}
-          y1={0}
-          x2={x}
-          y2={containerHeight}
-          stroke="#e5e7eb"
-          strokeWidth="1"
-          opacity="0.5"
-        />
-      );
-    }
-    
-    // קווים אופקיים
-    for (let y = 0; y <= containerHeight; y += gridSettings.gridSize) {
-      gridLines.push(
-        <line
-          key={`h-${y}`}
-          x1={0}
-          y1={y}
-          x2={containerWidth}
-          y2={y}
-          stroke="#e5e7eb"
-          strokeWidth="1"
-          opacity="0.5"
-        />
-      );
-    }
-    
+
     return (
-      <svg
+      <div
         className="absolute inset-0 pointer-events-none"
-        width={containerWidth}
-        height={containerHeight}
-      >
-        {gridLines}
-      </svg>
+        style={{
+          backgroundSize: `${gridSettings.gridSize}px ${gridSettings.gridSize}px`,
+          backgroundImage:
+            'linear-gradient(to right, #e5e7eb 1px, transparent 1px),' +
+            'linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)',
+        }}
+      />
     );
   };
 
