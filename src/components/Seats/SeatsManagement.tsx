@@ -161,7 +161,23 @@ const ensureBenchSpacing = (
 };
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset, maps, saveCurrentMap } = useAppContext();
+  const {
+    seats,
+    setSeats,
+    worshipers,
+    benches,
+    setBenches,
+    gridSettings,
+    setGridSettings,
+    mapBounds,
+    setMapBounds,
+    mapOffset,
+    setMapOffset,
+    maps,
+    saveCurrentMap,
+    loadMap,
+    currentMapId,
+  } = useAppContext();
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
       if (typeof updater === 'function') {
@@ -1564,7 +1580,14 @@ const SeatsManagement: React.FC = () => {
             ) : (
               <ul className="space-y-2">
                 {maps.map(m => (
-                  <li key={m.id} className="p-2 bg-gray-100 rounded">{m.name}</li>
+                  <li key={m.id}>
+                    <button
+                      onClick={() => loadMap(m.id)}
+                      className={`w-full text-right p-2 rounded ${m.id === currentMapId ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    >
+                      {m.name}
+                    </button>
+                  </li>
                 ))}
               </ul>
             )}
