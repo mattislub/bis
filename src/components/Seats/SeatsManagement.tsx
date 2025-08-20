@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, User, Bench, MapBounds } from '../../types';
 import {
@@ -139,6 +139,38 @@ const SeatsManagement: React.FC = () => {
     return Math.round(value / gridSettings.gridSize) * gridSettings.gridSize;
   };
 
+  const getBenchDimensions = (bench: Bench) => {
+    if (bench.type === 'special') {
+      return { width: bench.width || 0, height: bench.height || 0 };
+    }
+    if (bench.orientation === 'horizontal') {
+      return { width: bench.seatCount * 60 + 20, height: 80 };
+    }
+    return { width: 80, height: bench.seatCount * 60 + 20 };
+  };
+
+  const expandBoundsIfNeeded = useCallback(
+    (benchesToCheck: Bench[], rect: DOMRect | { width: number; height: number }) => {
+      setMapBounds(prev => {
+      let left = prev.left;
+      let top = prev.top;
+      let right = prev.right;
+      let bottom = prev.bottom;
+
+      benchesToCheck.forEach(b => {
+        const { width, height } = getBenchDimensions(b);
+        left = Math.min(left, b.position.x);
+        top = Math.min(top, b.position.y);
+        right = Math.min(right, rect.width - (b.position.x + width));
+        bottom = Math.min(bottom, rect.height - (b.position.y + height));
+      });
+
+      return { left, top, right, bottom };
+      });
+    },
+    [setMapBounds]
+  );
+
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
     if (resizingBench) {
       e.preventDefault();
@@ -176,7 +208,7 @@ const SeatsManagement: React.FC = () => {
     setDragStartPositions(null);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (!draggedBench) return;
 
@@ -184,39 +216,37 @@ const SeatsManagement: React.FC = () => {
     const x = snapToGrid((e.clientX - rect.left - mapOffset.x - 40) / zoom);
     const y = snapToGrid((e.clientY - rect.top - mapOffset.y - 40) / zoom);
 
-    const minX = mapBounds.left;
-    const minY = mapBounds.top;
-    const maxX = rect.width - 200 - mapBounds.right;
-    const maxY = rect.height - 200 - mapBounds.bottom;
-    const constrainedX = Math.max(minX, Math.min(x, maxX));
-    const constrainedY = Math.max(minY, Math.min(y, maxY));
+    let updated: Bench[] = [];
 
     // העברת ספסל קיים או בחירה מרובה
     if (dragStartPositions && selectedBenchIds.length > 1) {
       const start = dragStartPositions[draggedBench];
-      const deltaX = constrainedX - start.x;
-      const deltaY = constrainedY - start.y;
-      setBenches(prev => prev.map(bench => {
+      const deltaX = x - start.x;
+      const deltaY = y - start.y;
+      updated = benches.map(bench => {
         if (selectedBenchIds.includes(bench.id)) {
           if (bench.locked) return bench;
           const pos = dragStartPositions[bench.id];
           return {
             ...bench,
             position: {
-              x: Math.max(minX, Math.min(snapToGrid(pos.x + deltaX), maxX)),
-              y: Math.max(minY, Math.min(snapToGrid(pos.y + deltaY), maxY)),
+              x: snapToGrid(pos.x + deltaX),
+              y: snapToGrid(pos.y + deltaY),
             }
           };
         }
         return bench;
-      }));
+      });
     } else {
-      setBenches(prev => prev.map(bench =>
+      updated = benches.map(bench =>
         bench.id === draggedBench && !bench.locked
-          ? { ...bench, position: { x: constrainedX, y: constrainedY } }
+          ? { ...bench, position: { x, y } }
           : bench
-      ));
+      );
     }
+
+    setBenches(updated);
+    expandBoundsIfNeeded(updated, rect);
   };
 
   const handleResizeMouseDown = (
@@ -289,28 +319,26 @@ const SeatsManagement: React.FC = () => {
     const dx = (e.clientX - resizeStart.x) / zoom;
     const dy = (e.clientY - resizeStart.y) / zoom;
 
-    setBenches(prev =>
-      prev.map(b => {
-        if (b.id !== resizingBench) return b;
-        const containerWidth = 1200;
-        const containerHeight = 800;
-        const minWidth = 20;
-        const minHeight = 20;
-        const maxWidth = containerWidth - b.position.x - mapBounds.right;
-        const maxHeight = containerHeight - b.position.y - mapBounds.bottom;
-        let newWidth = b.width || 0;
-        let newHeight = b.height || 0;
-        if (resizeStart.direction === 'right' || resizeStart.direction === 'corner') {
-          newWidth = snapToGrid((resizeStart.width || 0) + dx);
-          newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-        }
-        if (resizeStart.direction === 'bottom' || resizeStart.direction === 'corner') {
-          newHeight = snapToGrid((resizeStart.height || 0) + dy);
-          newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
-        }
-        return { ...b, width: newWidth, height: newHeight };
-      })
-    );
+    const minWidth = 20;
+    const minHeight = 20;
+    const containerWidth = 1200;
+    const containerHeight = 800;
+
+    const updated = benches.map(b => {
+      if (b.id !== resizingBench) return b;
+      let newWidth = b.width || 0;
+      let newHeight = b.height || 0;
+      if (resizeStart.direction === 'right' || resizeStart.direction === 'corner') {
+        newWidth = Math.max(minWidth, snapToGrid((resizeStart.width || 0) + dx));
+      }
+      if (resizeStart.direction === 'bottom' || resizeStart.direction === 'corner') {
+        newHeight = Math.max(minHeight, snapToGrid((resizeStart.height || 0) + dy));
+      }
+      return { ...b, width: newWidth, height: newHeight };
+    });
+
+    setBenches(updated);
+    expandBoundsIfNeeded(updated, { width: containerWidth, height: containerHeight });
   };
 
   const handleMouseUp = () => {
@@ -409,10 +437,13 @@ const SeatsManagement: React.FC = () => {
       locked: false,
     };
 
-    setBenches(prev => [...prev, newBench]);
+    const updated = [...benches, newBench];
+    setBenches(updated);
 
     const newSeats = generateSeatsForBench(newBench);
     setSeats(prev => [...prev, ...newSeats]);
+
+    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
 
     setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
     setPendingPosition(null);
@@ -435,7 +466,9 @@ const SeatsManagement: React.FC = () => {
       icon: preset.icon,
       locked: false,
     };
-    setBenches(prev => [...prev, newSpecial]);
+    const updated = [...benches, newSpecial];
+    setBenches(updated);
+    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
     setShowSpecialDialog(false);
     setSelectedSpecialId('');
     setPendingPosition(null);
@@ -443,28 +476,31 @@ const SeatsManagement: React.FC = () => {
 
   const updateBench = () => {
     if (!editingBench || !benchForm.name) return;
-
-    setBenches(prev => prev.map(bench => 
-      bench.id === editingBench 
+    let updatedBenches = benches.map(bench =>
+      bench.id === editingBench
         ? { ...bench, name: benchForm.name, color: benchForm.color, orientation: benchForm.orientation }
         : bench
-    ));
+    );
 
-    // אם השתנה מספר המקומות, נעדכן את המקומות
     const currentBench = benches.find(b => b.id === editingBench);
     if (currentBench && currentBench.seatCount !== benchForm.seatCount) {
-      // מחיקת מקומות ישנים
       setSeats(prev => prev.filter(seat => seat.benchId !== editingBench));
-      
-      // יצירת מקומות חדשים
-      const updatedBench = { ...currentBench, seatCount: benchForm.seatCount, orientation: benchForm.orientation };
-      setBenches(prev => prev.map(bench => 
+      const updatedBench = {
+        ...currentBench,
+        name: benchForm.name,
+        color: benchForm.color,
+        orientation: benchForm.orientation,
+        seatCount: benchForm.seatCount,
+      };
+      updatedBenches = updatedBenches.map(bench =>
         bench.id === editingBench ? updatedBench : bench
-      ));
-      
+      );
       const newSeats = generateSeatsForBench(updatedBench);
       setSeats(prev => [...prev, ...newSeats]);
     }
+
+    setBenches(updatedBenches);
+    expandBoundsIfNeeded(updatedBenches, { width: 1200, height: 800 });
 
     setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
     setEditingBench(null);
@@ -484,9 +520,11 @@ const SeatsManagement: React.FC = () => {
 
     const newOrientation = bench.orientation === 'horizontal' ? 'vertical' : 'horizontal';
     
-    setBenches(prev => prev.map(b => 
+    const updated = benches.map(b =>
       b.id === benchId ? { ...b, orientation: newOrientation } : b
-    ));
+    );
+    setBenches(updated);
+    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
 
     // המקומות עכשיו מוכלים בספסל ולא צריכים עדכון מיקום נפרד
   };
@@ -506,9 +544,10 @@ const SeatsManagement: React.FC = () => {
       },
     };
 
-    setBenches(prev => [...prev, newBench]);
-    
-    // יצירת מקומות חדשים לספסל המועתק
+    const updated = [...benches, newBench];
+    setBenches(updated);
+    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+
     const newSeats = generateSeatsForBench(newBench);
     setSeats(prev => [...prev, ...newSeats]);
   };
@@ -598,26 +637,24 @@ const SeatsManagement: React.FC = () => {
 
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
-        setBenches(prev => prev.map(bench => {
+        const updated = benches.map(bench => {
           if (!selectedBenchIds.includes(bench.id) || bench.locked) return bench;
           let newX = bench.position.x;
           let newY = bench.position.y;
-          const minX = mapBounds.left;
-          const minY = mapBounds.top;
-          const maxY = 720 - mapBounds.bottom;
-          const maxX = 1120 - mapBounds.right;
-          if (e.key === 'ArrowUp') newY = Math.max(minY, newY - moveDistance);
-          if (e.key === 'ArrowDown') newY = Math.min(maxY, newY + moveDistance);
-          if (e.key === 'ArrowLeft') newX = Math.max(minX, newX - moveDistance);
-          if (e.key === 'ArrowRight') newX = Math.min(maxX, newX + moveDistance);
+          if (e.key === 'ArrowUp') newY -= moveDistance;
+          if (e.key === 'ArrowDown') newY += moveDistance;
+          if (e.key === 'ArrowLeft') newX -= moveDistance;
+          if (e.key === 'ArrowRight') newX += moveDistance;
           return { ...bench, position: { x: newX, y: newY } };
-        }));
+        });
+        setBenches(updated);
+        expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedBenchIds, benches, setBenches, gridSettings, mapBounds]);
+  }, [selectedBenchIds, benches, setBenches, gridSettings, expandBoundsIfNeeded]);
 
   const createBenchRow = () => {
     if (!selectedBench) return;
@@ -660,8 +697,10 @@ const SeatsManagement: React.FC = () => {
       newSeats.push(...benchSeats);
     }
     
-    setBenches(prev => [...prev, ...newBenches]);
+    const updated = [...benches, ...newBenches];
+    setBenches(updated);
     setSeats(prev => [...prev, ...newSeats]);
+    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
     setShowRowDialog(false);
   };
 
