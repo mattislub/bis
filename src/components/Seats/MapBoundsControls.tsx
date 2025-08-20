@@ -8,7 +8,8 @@ const MapBoundsControls: React.FC = () => {
   const expand = (side: 'top' | 'right' | 'bottom' | 'left') => {
     setMapBounds(prev => ({
       ...prev,
-      [side]: Math.max(0, prev[side] - 20),
+      // allow negative values so the map can grow beyond its initial bounds
+      [side]: prev[side] - 20,
     }));
   };
 
