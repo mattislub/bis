@@ -161,7 +161,7 @@ const ensureBenchSpacing = (
 };
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset, maps } = useAppContext();
+  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset, maps, saveCurrentMap } = useAppContext();
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
       if (typeof updater === 'function') {
@@ -212,6 +212,13 @@ const SeatsManagement: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+
+  const handleSaveMap = () => {
+    const name = prompt('הכנס שם למפה החדשה:');
+    if (name) {
+      saveCurrentMap(name);
+    }
+  };
 
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
@@ -1545,6 +1552,13 @@ const SeatsManagement: React.FC = () => {
           {/* רשימת מפות בזכרון */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">מפות בזכרון</h3>
+            <button
+              onClick={handleSaveMap}
+              className="w-full flex items-center justify-center px-4 py-2 mb-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="h-4 w-4 ml-2" />
+              הוסף מפה חדשה
+            </button>
             {maps.length === 0 ? (
               <p className="text-gray-600">אין מפות בזכרון</p>
             ) : (
