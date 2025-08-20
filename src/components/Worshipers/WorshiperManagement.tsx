@@ -242,56 +242,68 @@ const WorshiperManagement: React.FC = () => {
         </div>
       )}
 
-      <div className="grid gap-4">
-        {worshipers.map((w) => (
-          <div key={w.id} className="bg-white p-4 rounded-lg shadow-md border hover:shadow-lg transition-shadow">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4 space-x-reverse">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <UserIcon className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{w.title} {w.firstName} {w.lastName}</h3>
-                  <p className="text-gray-600">{w.email}</p>
-                  <p className="text-sm text-gray-500">
-                    {w.phone}{w.secondaryPhone ? ` • ${w.secondaryPhone}` : ''}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {w.address}, {w.city} • {w.seatCount} מקומות
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex space-x-2 space-x-reverse">
-                <button
-                  onClick={() => handleEditWorshiper(w)}
-                  disabled={isAdding || editingWorshiper}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="עריכה"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteWorshiper(w.id)}
-                  disabled={isAdding || editingWorshiper}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="מחיקה"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {worshipers.length === 0 && (
-          <div className="text-center py-12">
-            <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">אין מתפללים רשומים במערכת</p>
-            <p className="text-gray-400">לחץ על "הוסף מתפלל חדש" כדי להתחיל</p>
-          </div>
-        )}
-      </div>
+      {worshipers.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white rounded-lg shadow-md">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">שם מלא</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">אימייל</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">טלפון</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">טלפון נוסף</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">כתובת</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">עיר</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">כמות מקומות</th>
+                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">פעולות</th>
+              </tr>
+            </thead>
+            <tbody>
+              {worshipers.map((w) => (
+                <tr key={w.id} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-2">
+                    <div className="flex items-center space-x-2 space-x-reverse">
+                      <UserIcon className="h-5 w-5 text-blue-600" />
+                      <span>{w.title} {w.firstName} {w.lastName}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">{w.email}</td>
+                  <td className="px-4 py-2">{w.phone}</td>
+                  <td className="px-4 py-2">{w.secondaryPhone}</td>
+                  <td className="px-4 py-2">{w.address}</td>
+                  <td className="px-4 py-2">{w.city}</td>
+                  <td className="px-4 py-2 text-center">{w.seatCount}</td>
+                  <td className="px-4 py-2">
+                    <div className="flex space-x-2 space-x-reverse">
+                      <button
+                        onClick={() => handleEditWorshiper(w)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="עריכה"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteWorshiper(w.id)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="מחיקה"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500 text-lg">אין מתפללים רשומים במערכת</p>
+          <p className="text-gray-400">לחץ על "הוסף מתפלל חדש" כדי להתחיל</p>
+        </div>
+      )}
     </div>
   );
 };
