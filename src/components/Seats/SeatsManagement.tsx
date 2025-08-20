@@ -137,6 +137,49 @@ const SeatsManagement: React.FC = () => {
     return Math.round(value / gridSettings.gridSize) * gridSettings.gridSize;
   };
 
+  const getBenchDimensions = (bench: Bench) => {
+    if (bench.type === 'special') {
+      return {
+        width: bench.width || 0,
+        height: bench.height || 0,
+      };
+    }
+    if (bench.orientation === 'horizontal') {
+      return {
+        width: bench.seatCount * 60 + 20,
+        height: 80,
+      };
+    }
+    return {
+      width: 80,
+      height: bench.seatCount * 60 + 20,
+    };
+  };
+
+  const expandMapIfNeeded = (bench: Bench, containerWidth: number, containerHeight: number) => {
+    const { width, height } = getBenchDimensions(bench);
+    setMapBounds(prev => {
+      const maxX = containerWidth - 200 - prev.right;
+      const maxY = containerHeight - 200 - prev.bottom;
+      const updated = { ...prev };
+      if (bench.position.x < prev.left) {
+        updated.left = Math.max(0, bench.position.x);
+      }
+      if (bench.position.y < prev.top) {
+        updated.top = Math.max(0, bench.position.y);
+      }
+      const benchRight = bench.position.x + width;
+      if (benchRight > maxX) {
+        updated.right = Math.max(0, prev.right - (benchRight - maxX));
+      }
+      const benchBottom = bench.position.y + height;
+      if (benchBottom > maxY) {
+        updated.bottom = Math.max(0, prev.bottom - (benchBottom - maxY));
+      }
+      return updated;
+    });
+  };
+
   const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
     if (resizingBench) {
       e.preventDefault();
@@ -182,38 +225,36 @@ const SeatsManagement: React.FC = () => {
     const x = snapToGrid(e.clientX - rect.left - mapOffset.x - 40);
     const y = snapToGrid(e.clientY - rect.top - mapOffset.y - 40);
 
-    const minX = mapBounds.left;
-    const minY = mapBounds.top;
-    const maxX = rect.width - 200 - mapBounds.right;
-    const maxY = rect.height - 200 - mapBounds.bottom;
-    const constrainedX = Math.max(minX, Math.min(x, maxX));
-    const constrainedY = Math.max(minY, Math.min(y, maxY));
+    const newX = x;
+    const newY = y;
 
-    // העברת ספסל קיים או בחירה מרובה
     if (dragStartPositions && selectedBenchIds.length > 1) {
       const start = dragStartPositions[draggedBench];
-      const deltaX = constrainedX - start.x;
-      const deltaY = constrainedY - start.y;
-      setBenches(prev => prev.map(bench => {
+      const deltaX = newX - start.x;
+      const deltaY = newY - start.y;
+      const updated: Bench[] = benches.map(bench => {
         if (selectedBenchIds.includes(bench.id)) {
           if (bench.locked) return bench;
           const pos = dragStartPositions[bench.id];
-          return {
+          const moved = {
             ...bench,
             position: {
-              x: Math.max(minX, Math.min(snapToGrid(pos.x + deltaX), maxX)),
-              y: Math.max(minY, Math.min(snapToGrid(pos.y + deltaY), maxY)),
-            }
+              x: snapToGrid(pos.x + deltaX),
+              y: snapToGrid(pos.y + deltaY),
+            },
           };
+          expandMapIfNeeded(moved, rect.width, rect.height);
+          return moved;
         }
         return bench;
-      }));
+      });
+      setBenches(updated);
     } else {
-      setBenches(prev => prev.map(bench =>
-        bench.id === draggedBench && !bench.locked
-          ? { ...bench, position: { x: constrainedX, y: constrainedY } }
-          : bench
-      ));
+      const bench = benches.find(b => b.id === draggedBench && !b.locked);
+      if (!bench) return;
+      const updated = { ...bench, position: { x: newX, y: newY } };
+      expandMapIfNeeded(updated, rect.width, rect.height);
+      setBenches(prev => prev.map(b => (b.id === draggedBench ? updated : b)));
     }
   };
 
@@ -286,29 +327,29 @@ const SeatsManagement: React.FC = () => {
     if (!resizingBench || !resizeStart) return;
     const dx = e.clientX - resizeStart.x;
     const dy = e.clientY - resizeStart.y;
-
+    let updatedBench: Bench | null = null;
     setBenches(prev =>
       prev.map(b => {
         if (b.id !== resizingBench) return b;
-        const containerWidth = 1200;
-        const containerHeight = 800;
         const minWidth = 20;
         const minHeight = 20;
-        const maxWidth = containerWidth - b.position.x - mapBounds.right;
-        const maxHeight = containerHeight - b.position.y - mapBounds.bottom;
         let newWidth = b.width || 0;
         let newHeight = b.height || 0;
         if (resizeStart.direction === 'right' || resizeStart.direction === 'corner') {
           newWidth = snapToGrid((resizeStart.width || 0) + dx);
-          newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+          newWidth = Math.max(minWidth, newWidth);
         }
         if (resizeStart.direction === 'bottom' || resizeStart.direction === 'corner') {
           newHeight = snapToGrid((resizeStart.height || 0) + dy);
-          newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+          newHeight = Math.max(minHeight, newHeight);
         }
-        return { ...b, width: newWidth, height: newHeight };
+        updatedBench = { ...b, width: newWidth, height: newHeight };
+        return updatedBench;
       })
     );
+    if (updatedBench) {
+      expandMapIfNeeded(updatedBench, 1200, 800);
+    }
   };
 
   const handleMouseUp = () => {
