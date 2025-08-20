@@ -19,7 +19,8 @@ import {
   ArrowDownRight,
   Hand,
   BoxSelect,
-  ListOrdered
+  ListOrdered,
+  Save
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 
@@ -945,19 +946,26 @@ const SeatsManagement: React.FC = () => {
                 >
                   <Hand className="h-4 w-4" />
                 </button>
-                <button
-                  onClick={reorderSeatNumbers}
-                  className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
-                  title="סדר מחדש מספרי מקומות"
-                >
-                  <ListOrdered className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={clearMap}
-                  className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
-                  title="נקה מפה"
-                >
-                  <Trash2 className="h-4 w-4" />
+                  <button
+                    onClick={reorderSeatNumbers}
+                    className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
+                    title="סדר מחדש מספרי מקומות"
+                  >
+                    <ListOrdered className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={handleSaveMap}
+                    className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                    title="שמור מפה"
+                  >
+                    <Save className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={clearMap}
+                    className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
+                    title="נקה מפה"
+                  >
+                    <Trash2 className="h-4 w-4" />
                 </button>
               </div>
             </div>
