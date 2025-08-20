@@ -29,25 +29,123 @@ export const useAppContext = () => {
 
 const generateInitialBenches = (): Bench[] => {
   const benches: Bench[] = [];
-  const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'];
-  
-  // יצירת 6 ספסלים ראשוניים
-  for (let i = 0; i < 6; i++) {
-    const row = Math.floor(i / 3);
-    const col = i % 3;
+  const colors = [
+    '#3B82F6',
+    '#10B981',
+    '#F59E0B',
+    '#EF4444',
+    '#8B5CF6',
+    '#06B6D4',
+    '#1F2937',
+    '#6366F1',
+    '#14B8A6',
+    '#D946EF',
+    '#F97316',
+    '#84CC16',
+    '#E879F9',
+    '#22D3EE',
+    '#F43F5E',
+    '#A855F7',
+  ];
+
+  let colorIndex = 0;
+  const getColor = () => colors[colorIndex++ % colors.length];
+
+  // שלושת הספסלים העליונים (4 מקומות כל אחד)
+  for (let i = 0; i < 3; i++) {
     benches.push({
-      id: `bench-${i + 1}`,
-      name: `ספסל ${i + 1}`,
+      id: `bench-top-${i + 1}`,
+      name: `ספסל עליון ${i + 1}`,
       seatCount: 4,
-      position: {
-        x: col * 300 + 50,
-        y: row * 200 + 50,
-      },
+      position: { x: 100 + i * 370, y: 150 },
       orientation: 'horizontal',
-      color: colors[i],
+      color: getColor(),
       locked: false,
     });
   }
+
+  // שורה של חמישה ספסלים בצד שמאל
+  for (let i = 0; i < 5; i++) {
+    benches.push({
+      id: `bench-left-${i + 1}`,
+      name: `ספסל שמאל ${i + 1}`,
+      seatCount: 4,
+      position: { x: 50, y: 200 + i * 100 },
+      orientation: 'horizontal',
+      color: getColor(),
+      locked: false,
+    });
+  }
+
+  // שורה של חמישה ספסלים בצד ימין
+  for (let i = 0; i < 5; i++) {
+    benches.push({
+      id: `bench-right-${i + 1}`,
+      name: `ספסל ימין ${i + 1}`,
+      seatCount: 4,
+      position: { x: 890, y: 200 + i * 100 },
+      orientation: 'horizontal',
+      color: getColor(),
+      locked: false,
+    });
+  }
+
+  // שלושה ספסלים מתחת לבימה
+  for (let i = 0; i < 3; i++) {
+    benches.push({
+      id: `bench-bottom-${i + 1}`,
+      name: `ספסל תחתון ${i + 1}`,
+      seatCount: 4,
+      position: { x: 100 + i * 370, y: 650 },
+      orientation: 'horizontal',
+      color: getColor(),
+      locked: false,
+    });
+  }
+
+  // אלמנטים מיוחדים: ארון קודש, עמוד תפילה ובימה
+  benches.push({
+    id: 'aron-kodesh',
+    name: 'ארון קודש',
+    seatCount: 0,
+    position: { x: 540, y: 20 },
+    orientation: 'horizontal',
+    color: '#8B4513',
+    type: 'special',
+    width: 120,
+    height: 80,
+    icon: '🕍',
+    locked: false,
+  });
+
+  benches.push({
+    id: 'amud-tfila',
+    name: 'עמוד תפילה',
+    seatCount: 0,
+    position: { x: 700, y: 40 },
+    orientation: 'horizontal',
+    color: '#2F4F4F',
+    type: 'special',
+    width: 40,
+    height: 60,
+    icon: '🕯️',
+    locked: false,
+  });
+
+  benches.push({
+    id: 'bimah',
+    name: 'בימה',
+    seatCount: 0,
+    position: { x: 550, y: 300 },
+    orientation: 'horizontal',
+    color: '#654321',
+    type: 'special',
+    width: 100,
+    height: 100,
+    icon: '📖',
+    locked: false,
+  });
+
   return benches;
 };
 
