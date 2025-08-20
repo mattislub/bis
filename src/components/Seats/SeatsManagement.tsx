@@ -18,7 +18,8 @@ import {
   ArrowDown,
   ArrowDownRight,
   Hand,
-  BoxSelect
+  BoxSelect,
+  ListOrdered
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 
@@ -577,6 +578,23 @@ const SeatsManagement: React.FC = () => {
     }
   };
 
+  const reorderSeatNumbers = () => {
+    const orderedBenches = [...benches].sort((a, b) =>
+      a.position.y - b.position.y || a.position.x - b.position.x
+    );
+    let nextId = 1;
+    const updatedSeats: Seat[] = [];
+    orderedBenches.forEach(bench => {
+      const benchSeats = seats
+        .filter(seat => seat.benchId === bench.id)
+        .sort((a, b) => a.id - b.id);
+      benchSeats.forEach(seat => {
+        updatedSeats.push({ ...seat, id: nextId++ });
+      });
+    });
+    setSeats(updatedSeats);
+  };
+
   const assignUserToSeat = (seatId: number, userId: string | null) => {
     setSeats(prev => prev.map(seat => 
       seat.id === seatId 
@@ -802,6 +820,13 @@ const SeatsManagement: React.FC = () => {
                   title="הזז מפה"
                 >
                   <Hand className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={reorderSeatNumbers}
+                  className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
+                  title="סדר מחדש מספרי מקומות"
+                >
+                  <ListOrdered className="h-4 w-4" />
                 </button>
                 <button
                   onClick={clearMap}
