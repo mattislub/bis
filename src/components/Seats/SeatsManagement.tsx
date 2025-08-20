@@ -629,18 +629,29 @@ const SeatsManagement: React.FC = () => {
     // המקומות עכשיו מוכלים בספסל ולא צריכים עדכון מיקום נפרד
   };
 
-  const copyBench = (benchId: string) => {
+  const copyBench = (benchId: string, direction: 'horizontal' | 'vertical') => {
     const originalBench = benches.find(b => b.id === benchId);
     if (!originalBench) return;
 
-    // יצירת ספסל חדש באותה שורה עם רווח של 0.5 ס"מ (19 פיקסלים)
+    const offsetX = direction === 'horizontal'
+      ? (originalBench.orientation === 'horizontal'
+          ? originalBench.seatCount * 60 + 20 + 19
+          : 80 + 19)
+      : 0;
+
+    const offsetY = direction === 'vertical'
+      ? (originalBench.orientation === 'vertical'
+          ? originalBench.seatCount * 60 + 20 + 19
+          : 80 + 19)
+      : 0;
+
     const newBench: Bench = {
       ...originalBench,
       id: `bench-${Date.now()}`,
       name: `${originalBench.name} (עותק)`,
       position: {
-        x: originalBench.position.x + (originalBench.orientation === 'horizontal' ? originalBench.seatCount * 60 + 20 + 19 : 80 + 19),
-        y: originalBench.position.y,
+        x: originalBench.position.x + offsetX,
+        y: originalBench.position.y + offsetY,
       },
     };
 
@@ -1045,12 +1056,24 @@ const SeatsManagement: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          copyBench(bench.id);
+                          copyBench(bench.id, 'horizontal');
                         }}
-                        className="p-1 hover:bg-gray-50 rounded"
-                        title={bench.type === 'special' ? 'העתק אלמנט' : 'העתק ספסל'}
+                        className="p-1 hover:bg-gray-50 rounded flex items-center gap-0.5"
+                        title={bench.type === 'special' ? 'העתק אלמנט אופקי' : 'העתק ספסל אופקי'}
                       >
                         <Copy className="h-3 w-3 text-gray-600" />
+                        <ArrowRight className="h-3 w-3 text-gray-600" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyBench(bench.id, 'vertical');
+                        }}
+                        className="p-1 hover:bg-gray-50 rounded flex items-center gap-0.5"
+                        title={bench.type === 'special' ? 'העתק אלמנט אנכי' : 'העתק ספסל אנכי'}
+                      >
+                        <Copy className="h-3 w-3 text-gray-600" />
+                        <ArrowDown className="h-3 w-3 text-gray-600" />
                       </button>
                       <button
                         onClick={(e) => {
@@ -1371,11 +1394,20 @@ const SeatsManagement: React.FC = () => {
                     ערוך
                   </button>
                   <button
-                    onClick={() => copyBench(selectedBench)}
+                    onClick={() => copyBench(selectedBench, 'horizontal')}
                     className="flex items-center justify-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     <Copy className="h-4 w-4 ml-2" />
-                    העתק
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                    העתק אופקי
+                  </button>
+                  <button
+                    onClick={() => copyBench(selectedBench, 'vertical')}
+                    className="flex items-center justify-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Copy className="h-4 w-4 ml-2" />
+                    <ArrowDown className="h-4 w-4 ml-1" />
+                    העתק אנכי
                   </button>
                   <button
                     onClick={() => deleteBench(selectedBench)}
