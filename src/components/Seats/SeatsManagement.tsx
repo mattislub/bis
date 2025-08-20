@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { Seat, User, Bench, MapBounds } from '../../types';
+import { Seat, Worshiper, Bench, MapBounds } from '../../types';
 import {
   Move,
   User as UserIcon,
@@ -161,7 +161,7 @@ const ensureBenchSpacing = (
 };
 
 const SeatsManagement: React.FC = () => {
-  const { seats, setSeats, users, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset } = useAppContext();
+  const { seats, setSeats, worshipers, benches, setBenches, gridSettings, setGridSettings, mapBounds, setMapBounds, mapOffset, setMapOffset } = useAppContext();
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
       if (typeof updater === 'function') {
@@ -222,8 +222,8 @@ const SeatsManagement: React.FC = () => {
     '#8B5CF6', '#06B6D4', '#F97316', '#84CC16'
   ];
 
-  const getUserById = (userId: string): User | undefined => {
-    return users.find(user => user.id === userId);
+  const getWorshiperById = (id: string): Worshiper | undefined => {
+    return worshipers.find(w => w.id === id);
   };
 
   const snapToGrid = (value: number): number => {
@@ -685,10 +685,10 @@ const SeatsManagement: React.FC = () => {
     setSeats(updatedSeats);
   };
 
-  const assignUserToSeat = (seatId: number, userId: string | null) => {
-    setSeats(prev => prev.map(seat => 
-      seat.id === seatId 
-        ? { ...seat, userId: userId || undefined, isOccupied: !!userId }
+  const assignWorshiperToSeat = (seatId: number, worshiperId: string | null) => {
+    setSeats(prev => prev.map(seat =>
+      seat.id === seatId
+        ? { ...seat, userId: worshiperId || undefined, isOccupied: !!worshiperId }
         : seat
     ));
     setSelectedSeat(null);
@@ -696,17 +696,17 @@ const SeatsManagement: React.FC = () => {
 
   const getSeatStatus = (seat: Seat) => {
     if (seat.userId) {
-      const user = getUserById(seat.userId);
+      const worshiper = getWorshiperById(seat.userId);
       return {
         isOccupied: true,
-        user,
+        worshiper,
         color: 'bg-blue-500',
         hoverColor: 'hover:bg-blue-600'
       };
     }
     return {
       isOccupied: false,
-      user: null,
+      worshiper: null,
       color: 'bg-gray-300',
       hoverColor: 'hover:bg-gray-400'
     };
@@ -740,7 +740,7 @@ const SeatsManagement: React.FC = () => {
 
   const selectedBenchData = selectedBench ? benches.find(b => b.id === selectedBench) : null;
   const selectedSeatData = selectedSeat ? seats.find(s => s.id === selectedSeat) : null;
-  const selectedSeatUser = selectedSeatData?.userId ? getUserById(selectedSeatData.userId) : null;
+  const selectedSeatWorshiper = selectedSeatData?.userId ? getWorshiperById(selectedSeatData.userId) : null;
 
   // טיפול בלחיצות מקלדת
   React.useEffect(() => {
@@ -1121,11 +1121,11 @@ const SeatsManagement: React.FC = () => {
                             setSelectedSeat(seat.id);
                             setSelectedBenchIds([]);
                           }}
-                          title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
+                          title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : `מקום ${seat.id} - פנוי`}
                         >
                           <div className="text-white font-bold text-xs">{seat.id}</div>
                           
-                          {status.user && (
+                          {status.worshiper && (
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
                               <UserIcon className="h-2 w-2 text-white" />
                             </div>
@@ -1414,32 +1414,32 @@ const SeatsManagement: React.FC = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      משויך למשתמש
+                      משויך למתפלל
                     </label>
                     <select
                       value={selectedSeatData.userId || ''}
-                      onChange={(e) => assignUserToSeat(selectedSeat, e.target.value || null)}
+                      onChange={(e) => assignWorshiperToSeat(selectedSeat, e.target.value || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">אין משויך</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.name} - {user.department}
+                      {worshipers.map(w => (
+                        <option key={w.id} value={w.id}>
+                          {`${w.title} ${w.firstName} ${w.lastName}`}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  {selectedSeatUser && (
+                  {selectedSeatWorshiper && (
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center space-x-3 space-x-reverse">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                           <UserIcon className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-gray-900">{selectedSeatUser.name}</div>
-                          <div className="text-sm text-gray-600">{selectedSeatUser.department}</div>
-                          <div className="text-sm text-gray-500">{selectedSeatUser.email}</div>
+                          <div className="font-medium text-gray-900">{selectedSeatWorshiper.title} {selectedSeatWorshiper.firstName} {selectedSeatWorshiper.lastName}</div>
+                          <div className="text-sm text-gray-600">{selectedSeatWorshiper.city}</div>
+                          <div className="text-sm text-gray-500">{selectedSeatWorshiper.email}</div>
                         </div>
                       </div>
                     </div>

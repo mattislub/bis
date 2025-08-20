@@ -1,9 +1,15 @@
-export interface User {
+
+export interface Worshiper {
   id: string;
-  name: string;
-  email: string;
+  title: string;
+  firstName: string;
+  lastName: string;
+  address: string;
+  city: string;
   phone: string;
-  department: string;
+  secondaryPhone?: string;
+  email: string;
+  seatCount: number;
   avatar?: string;
 }
 

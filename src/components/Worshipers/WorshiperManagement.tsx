@@ -1,0 +1,299 @@
+import React, { useState } from 'react';
+import { Worshiper } from '../../types';
+import { useAppContext } from '../../context/AppContext';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon } from 'lucide-react';
+
+const WorshiperManagement: React.FC = () => {
+  const { worshipers, setWorshipers } = useAppContext();
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Partial<Worshiper>>({
+    title: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    phone: '',
+    secondaryPhone: '',
+    email: '',
+    seatCount: 1,
+  });
+
+  const handleSaveWorshiper = () => {
+    if (!formData.firstName || !formData.lastName) return;
+
+    if (editingWorshiper) {
+      setWorshipers(prev => prev.map(w =>
+        w.id === editingWorshiper ? { ...w, ...formData } as Worshiper : w
+      ));
+      setEditingWorshiper(null);
+    } else {
+      const newWorshiper: Worshiper = {
+        id: Date.now().toString(),
+        title: formData.title || '',
+        firstName: formData.firstName || '',
+        lastName: formData.lastName || '',
+        address: formData.address || '',
+        city: formData.city || '',
+        phone: formData.phone || '',
+        secondaryPhone: formData.secondaryPhone || '',
+        email: formData.email || '',
+        seatCount: formData.seatCount || 1,
+      };
+      setWorshipers(prev => [...prev, newWorshiper]);
+      setIsAdding(false);
+    }
+
+    setFormData({
+      title: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      city: '',
+      phone: '',
+      secondaryPhone: '',
+      email: '',
+      seatCount: 1,
+    });
+  };
+
+  const handleEditWorshiper = (worshiper: Worshiper) => {
+    setEditingWorshiper(worshiper.id);
+    setFormData(worshiper);
+    setIsAdding(false);
+  };
+
+  const handleDeleteWorshiper = (worshiperId: string) => {
+    if (window.confirm('האם אתה בטוח שברצונך למחוק מתפלל זה?')) {
+      setWorshipers(prev => prev.filter(w => w.id !== worshiperId));
+    }
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingWorshiper(null);
+    setFormData({
+      title: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      city: '',
+      phone: '',
+      secondaryPhone: '',
+      email: '',
+      seatCount: 1,
+    });
+  };
+
+  const handleAddNew = () => {
+    setIsAdding(true);
+    setEditingWorshiper(null);
+    setFormData({
+      title: '',
+      firstName: '',
+      lastName: '',
+      address: '',
+      city: '',
+      phone: '',
+      secondaryPhone: '',
+      email: '',
+      seatCount: 1,
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">ניהול מתפללים</h1>
+        <button
+          onClick={handleAddNew}
+          disabled={isAdding || editingWorshiper}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Plus className="h-4 w-4 ml-2" />
+          הוסף מתפלל חדש
+        </button>
+      </div>
+
+      {(isAdding || editingWorshiper) && (
+        <div className="bg-white p-6 rounded-lg shadow-md border border-blue-200">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900">
+            {editingWorshiper ? 'עריכת מתפלל' : 'הוספת מתפלל חדש'}
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">תואר</label>
+              <input
+                type="text"
+                value={formData.title || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="מר/מרת/רב"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">שם פרטי *</label>
+              <input
+                type="text"
+                value={formData.firstName || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="הכנס שם פרטי"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">שם משפחה *</label>
+              <input
+                type="text"
+                value={formData.lastName || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="הכנס שם משפחה"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">כתובת</label>
+              <input
+                type="text"
+                value={formData.address || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="רחוב ומספר"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">עיר</label>
+              <input
+                type="text"
+                value={formData.city || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="שם העיר"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">טלפון</label>
+              <input
+                type="tel"
+                value={formData.phone || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="050-1234567"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">טלפון נוסף</label>
+              <input
+                type="tel"
+                value={formData.secondaryPhone || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, secondaryPhone: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="מספר נוסף"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">אימייל</label>
+              <input
+                type="email"
+                value={formData.email || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="example@domain.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">כמות מקומות</label>
+              <input
+                type="number"
+                min="1"
+                value={formData.seatCount || 1}
+                onChange={(e) => setFormData(prev => ({ ...prev, seatCount: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex space-x-3 space-x-reverse">
+            <button
+              onClick={handleSaveWorshiper}
+              disabled={!formData.firstName || !formData.lastName}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="h-4 w-4 ml-2" />
+              שמור
+            </button>
+            <button
+              onClick={handleCancel}
+              className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <X className="h-4 w-4 ml-2" />
+              ביטול
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-4">
+        {worshipers.map((w) => (
+          <div key={w.id} className="bg-white p-4 rounded-lg shadow-md border hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4 space-x-reverse">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <UserIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{w.title} {w.firstName} {w.lastName}</h3>
+                  <p className="text-gray-600">{w.email}</p>
+                  <p className="text-sm text-gray-500">
+                    {w.phone}{w.secondaryPhone ? ` • ${w.secondaryPhone}` : ''}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {w.address}, {w.city} • {w.seatCount} מקומות
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex space-x-2 space-x-reverse">
+                <button
+                  onClick={() => handleEditWorshiper(w)}
+                  disabled={isAdding || editingWorshiper}
+                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="עריכה"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleDeleteWorshiper(w.id)}
+                  disabled={isAdding || editingWorshiper}
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="מחיקה"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {worshipers.length === 0 && (
+          <div className="text-center py-12">
+            <UserIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 text-lg">אין מתפללים רשומים במערכת</p>
+            <p className="text-gray-400">לחץ על "הוסף מתפלל חדש" כדי להתחיל</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default WorshiperManagement;

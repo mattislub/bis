@@ -1,10 +1,10 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { User, Seat, Bench, GridSettings, MapBounds, MapOffset } from '../types';
+import { Worshiper, Seat, Bench, GridSettings, MapBounds, MapOffset } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface AppContextType {
-  users: User[];
-  setUsers: (users: User[] | ((prev: User[]) => User[])) => void;
+  worshipers: Worshiper[];
+  setWorshipers: (worshipers: Worshiper[] | ((prev: Worshiper[]) => Worshiper[])) => void;
   seats: Seat[];
   setSeats: (seats: Seat[] | ((prev: Seat[]) => Seat[])) => void;
   benches: Bench[];
@@ -169,41 +169,61 @@ const generateSeatsFromBenches = (benches: Bench[]): Seat[] => {
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useLocalStorage<User[]>('users', [
+  const [worshipers, setWorshipers] = useLocalStorage<Worshiper[]>('worshipers', [
     {
       id: '1',
-      name: 'יוסי כהן',
-      email: 'yossi@example.com',
+      title: 'מר',
+      firstName: 'יוסי',
+      lastName: 'כהן',
+      address: 'רחוב האלף 1',
+      city: 'תל אביב',
       phone: '050-1234567',
-      department: 'פיתוח',
+      email: 'yossi@example.com',
+      seatCount: 1,
     },
     {
       id: '2',
-      name: 'דנה לוי',
-      email: 'dana@example.com',
+      title: 'מרת',
+      firstName: 'דנה',
+      lastName: 'לוי',
+      address: 'רחוב הבת 2',
+      city: 'ירושלים',
       phone: '052-9876543',
-      department: 'עיצוב',
+      email: 'dana@example.com',
+      seatCount: 2,
     },
     {
       id: '3',
-      name: 'מיכאל גרין',
-      email: 'michael@example.com',
+      title: 'רב',
+      firstName: 'מיכאל',
+      lastName: 'גרין',
+      address: 'רחוב הגימל 3',
+      city: 'חיפה',
       phone: '054-5555555',
-      department: 'שיווק',
+      email: 'michael@example.com',
+      seatCount: 1,
     },
     {
       id: '4',
-      name: 'שרה אברהם',
-      email: 'sarah@example.com',
+      title: 'מרת',
+      firstName: 'שרה',
+      lastName: 'אברהם',
+      address: 'רחוב הדלת 4',
+      city: 'באר שבע',
       phone: '053-1111111',
-      department: 'משאבי אנוש',
+      email: 'sarah@example.com',
+      seatCount: 3,
     },
     {
       id: '5',
-      name: 'אבי רוזן',
-      email: 'avi@example.com',
+      title: 'מר',
+      firstName: 'אבי',
+      lastName: 'רוזן',
+      address: 'רחוב ההא 5',
+      city: 'נתניה',
       phone: '052-2222222',
-      department: 'מכירות',
+      email: 'avi@example.com',
+      seatCount: 1,
     },
   ]);
 
@@ -229,11 +249,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   });
 
   return (
-    <AppContext.Provider value={{ 
-      users, 
-      setUsers, 
-      seats, 
-      setSeats, 
+    <AppContext.Provider value={{
+      worshipers,
+      setWorshipers,
+      seats,
+      setSeats,
       benches,
       setBenches,
       gridSettings,
