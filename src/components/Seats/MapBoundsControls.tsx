@@ -19,7 +19,7 @@ const MapBoundsControls: React.FC = () => {
 
   return (
     <div
-      className="absolute border-2 border-gray-400 pointer-events-none"
+      className="absolute pointer-events-none"
       style={{
         top: mapBounds.top,
         left: mapBounds.left,
