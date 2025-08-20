@@ -1,5 +1,14 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { Worshiper, Seat, Bench, GridSettings, MapBounds, MapOffset } from '../types';
+import {
+  Worshiper,
+  Seat,
+  Bench,
+  GridSettings,
+  MapBounds,
+  MapOffset,
+  MapData,
+  MapTemplate,
+} from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface AppContextType {
@@ -15,6 +24,16 @@ interface AppContextType {
   setMapBounds: (bounds: MapBounds | ((prev: MapBounds) => MapBounds)) => void;
   mapOffset: MapOffset;
   setMapOffset: (offset: MapOffset | ((prev: MapOffset) => MapOffset)) => void;
+  maps: MapData[];
+  setMaps: (maps: MapData[] | ((prev: MapData[]) => MapData[])) => void;
+  currentMapId: string;
+  setCurrentMapId: (id: string) => void;
+  mapTemplates: MapTemplate[];
+  addTemplate: (template: MapTemplate) => void;
+  saveCurrentMap: (name: string) => void;
+  loadMap: (id: string) => void;
+  deleteMap: (id: string) => void;
+  createMapFromTemplate: (templateId: string, name: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -226,9 +245,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       seatCount: 1,
     },
   ]);
+  const initialBenches = generateInitialBenches();
+  const initialSeats = generateSeatsFromBenches(initialBenches);
+  const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches);
+  const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats);
 
-  const [benches, setBenches] = useLocalStorage<Bench[]>('benches', generateInitialBenches());
-  const [seats, setSeats] = useLocalStorage<Seat[]>('seats', () => generateSeatsFromBenches(generateInitialBenches()));
+  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', []);
+  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', '');
+
+  const defaultTemplate: MapTemplate = {
+    id: 'default',
+    name: 'תבנית ברירת מחדל',
+    benches: initialBenches.map(b => ({ ...b })),
+    seats: initialSeats.map(s => ({ ...s })),
+    mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
+    mapOffset: { x: 0, y: 0 },
+  };
+  const [mapTemplates, setMapTemplates] = useLocalStorage<MapTemplate[]>('mapTemplates', [defaultTemplate]);
   
   const [gridSettings, setGridSettings] = useLocalStorage<GridSettings>('gridSettings', {
     showGrid: true,
@@ -248,6 +281,56 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     y: 0,
   });
 
+  const saveCurrentMap = (name: string) => {
+    const id = Date.now().toString();
+    const map: MapData = {
+      id,
+      name,
+      benches,
+      seats,
+      mapBounds,
+      mapOffset,
+    };
+    setMaps(prev => [...prev, map]);
+    setCurrentMapId(id);
+  };
+
+  const loadMap = (id: string) => {
+    const map = maps.find(m => m.id === id);
+    if (map) {
+      setBenches(map.benches);
+      setSeats(map.seats);
+      setMapBounds(map.mapBounds);
+      setMapOffset(map.mapOffset);
+      setCurrentMapId(id);
+    }
+  };
+
+  const deleteMap = (id: string) => {
+    setMaps(prev => prev.filter(m => m.id !== id));
+    if (currentMapId === id) {
+      setCurrentMapId('');
+    }
+  };
+
+  const addTemplate = (template: MapTemplate) => {
+    setMapTemplates(prev => [...prev, template]);
+  };
+
+  const createMapFromTemplate = (templateId: string, name: string) => {
+    const template = mapTemplates.find(t => t.id === templateId);
+    if (template) {
+      const id = Date.now().toString();
+      const newMap: MapData = { ...template, id, name };
+      setMaps(prev => [...prev, newMap]);
+      setBenches(template.benches);
+      setSeats(template.seats);
+      setMapBounds(template.mapBounds);
+      setMapOffset(template.mapOffset);
+      setCurrentMapId(id);
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       worshipers,
@@ -261,7 +344,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       mapBounds,
       setMapBounds,
       mapOffset,
-      setMapOffset
+      setMapOffset,
+      maps,
+      setMaps,
+      currentMapId,
+      setCurrentMapId,
+      mapTemplates,
+      addTemplate,
+      saveCurrentMap,
+      loadMap,
+      deleteMap,
+      createMapFromTemplate
     }}>
       {children}
     </AppContext.Provider>
