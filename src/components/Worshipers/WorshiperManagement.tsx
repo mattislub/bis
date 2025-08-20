@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download } from 'lucide-react';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers } = useAppContext();
@@ -18,6 +18,55 @@ const WorshiperManagement: React.FC = () => {
     email: '',
     seatCount: 1,
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const rows = text.trim().split(/\r?\n/);
+      const headers = rows.shift()?.split(',') ?? [];
+      const imported = rows.map((row, index) => {
+        const values = row.split(',');
+        const obj: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          obj[h.trim()] = values[i]?.trim() || '';
+        });
+        return {
+          id: Date.now().toString() + index,
+          title: obj['תואר'] || '',
+          firstName: obj['שם פרטי'] || '',
+          lastName: obj['שם משפחה'] || '',
+          address: obj['כתובת'] || '',
+          city: obj['עיר'] || '',
+          phone: obj['טלפון'] || '',
+          secondaryPhone: obj['טלפון נוסף'] || '',
+          email: obj['אימייל'] || '',
+          seatCount: Number(obj['כמות מקומות'] || 1),
+        } as Worshiper;
+      });
+      setWorshipers(prev => [...prev, ...imported]);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const downloadSampleCsv = () => {
+    const headers = ['תואר', 'שם פרטי', 'שם משפחה', 'כתובת', 'עיר', 'טלפון', 'טלפון נוסף', 'אימייל', 'כמות מקומות'];
+    const sample = ['מר', 'דוד', 'כהן', 'רחוב הדוגמה 1', 'תל אביב', '050-0000000', '', 'david@example.com', '1'];
+    const csvContent = [headers.join(','), sample.join(',')].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'worshipers_template.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   const handleSaveWorshiper = () => {
     if (!formData.firstName || !formData.lastName) return;
@@ -105,14 +154,37 @@ const WorshiperManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">ניהול מתפללים</h1>
-        <button
-          onClick={handleAddNew}
-          disabled={isAdding || editingWorshiper}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="h-4 w-4 ml-2" />
-          הוסף מתפלל חדש
-        </button>
+        <div className="flex space-x-2 space-x-reverse">
+          <input
+            type="file"
+            accept=".csv"
+            ref={fileInputRef}
+            onChange={handleCsvUpload}
+            className="hidden"
+          />
+          <button
+            onClick={downloadSampleCsv}
+            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            <Download className="h-4 w-4 ml-2" />
+            הורד קובץ לדוגמה
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
+          >
+            <Upload className="h-4 w-4 ml-2" />
+            העלה רשימה מאקסל
+          </button>
+          <button
+            onClick={handleAddNew}
+            disabled={isAdding || editingWorshiper}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Plus className="h-4 w-4 ml-2" />
+            הוסף מתפלל חדש
+          </button>
+        </div>
       </div>
 
       {(isAdding || editingWorshiper) && (
