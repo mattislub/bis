@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'ניהול משתמשים', icon: Users },
+    { path: '/', label: 'ניהול מתפללים', icon: Users },
     { path: '/seats-view', label: 'תצוגת מקומות', icon: MapPin },
     { path: '/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/contact', label: 'צור קשר', icon: Mail },

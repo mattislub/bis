@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { Seat, User } from '../../types';
+import { Seat, Worshiper } from '../../types';
 import { Users as UsersIcon, MapPin, User as UserIcon, Grid3X3, Armchair } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 
 const SeatsView: React.FC = () => {
-  const { seats, users, benches, gridSettings } = useAppContext();
+  const { seats, worshipers, benches, gridSettings } = useAppContext();
   const [zoom, setZoom] = useState(1);
 
-  const getUserById = (userId: string): User | undefined => {
-    return users.find(user => user.id === userId);
+  const getWorshiperById = (id: string): Worshiper | undefined => {
+    return worshipers.find(w => w.id === id);
   };
 
 
   const getSeatStatus = (seat: Seat) => {
     if (seat.userId) {
-      const user = getUserById(seat.userId);
+      const worshiper = getWorshiperById(seat.userId);
       return {
         isOccupied: true,
-        user,
+        worshiper,
         color: 'bg-blue-500',
         hoverColor: 'hover:bg-blue-600'
       };
     }
     return {
       isOccupied: false,
-      user: null,
+      worshiper: null,
       color: 'bg-gray-300',
       hoverColor: 'hover:bg-gray-400'
     };
@@ -182,22 +182,22 @@ const SeatsView: React.FC = () => {
                               top: bench.orientation === 'horizontal' ? '10px' : `${index * 60 + 10}px`,
                               zIndex: 10,
                             }}
-                            title={status.user ? `${status.user.name} - ${status.user.department}` : `מקום ${seat.id} - פנוי`}
+                            title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : `מקום ${seat.id} - פנוי`}
                           >
                             <div className="text-white font-bold text-xs">{seat.id}</div>
 
-                            {status.user && (
+                            {status.worshiper && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
                                 <UserIcon className="h-2 w-2 text-white" />
                               </div>
                             )}
 
                             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap pointer-events-none z-20 max-w-xs">
-                              {status.user ? (
+                              {status.worshiper ? (
                                 <>
-                                  <div className="font-semibold">{status.user.name}</div>
-                                  <div className="text-gray-300">{status.user.department}</div>
-                                  <div className="text-gray-300">{status.user.email}</div>
+                                  <div className="font-semibold">{status.worshiper.title} {status.worshiper.firstName} {status.worshiper.lastName}</div>
+                                  <div className="text-gray-300">{status.worshiper.city}</div>
+                                  <div className="text-gray-300">{status.worshiper.email}</div>
                                   <div className="text-gray-400 text-xs mt-1">{bench.name}</div>
                                 </>
                               ) : (
