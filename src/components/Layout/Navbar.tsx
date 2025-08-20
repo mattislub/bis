@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Users,
   MapPin,
@@ -11,7 +11,6 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar: React.FC = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -35,21 +34,21 @@ const Navbar: React.FC = () => {
           <div className="flex space-x-1 space-x-reverse items-center">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
               return (
-                <Link
+                <NavLink
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    isActive
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                  className={({ isActive }) =>
+                    `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                      isActive
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`
+                  }
                 >
                   <Icon className="h-4 w-4 ml-2" />
                   {item.label}
-                </Link>
+                </NavLink>
               );
             })}
             <button
