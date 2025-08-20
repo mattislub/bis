@@ -123,6 +123,7 @@ const SeatsView: React.FC = () => {
           }}
         >
           <div
+            className="relative"
             style={{
               transform: `scale(${zoom})`,
               transformOrigin: 'top left',
@@ -131,6 +132,9 @@ const SeatsView: React.FC = () => {
             }}
           >
             {renderGrid()}
+
+            {/* סימון מרכז המפה */}
+            <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50" />
 
             {/* רינדור ספסלים */}
               {benches.map((bench) => (
