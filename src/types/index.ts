@@ -65,3 +65,21 @@ export interface MapOffset {
   x: number;
   y: number;
 }
+
+export interface MapData {
+  id: string;
+  name: string;
+  benches: Bench[];
+  seats: Seat[];
+  mapBounds: MapBounds;
+  mapOffset: MapOffset;
+}
+
+export interface MapTemplate {
+  id: string;
+  name: string;
+  benches: Bench[];
+  seats: Seat[];
+  mapBounds: MapBounds;
+  mapOffset: MapOffset;
+}
