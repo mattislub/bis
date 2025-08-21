@@ -206,7 +206,8 @@ const SeatsManagement: React.FC = () => {
     name: '',
     seatCount: 4,
     orientation: 'horizontal' as 'horizontal' | 'vertical',
-    color: '#3B82F6'
+    color: '#3B82F6',
+    temporary: false,
   });
 
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
@@ -563,6 +564,7 @@ const SeatsManagement: React.FC = () => {
       orientation: benchForm.orientation,
       color: benchForm.color,
       locked: false,
+      temporary: benchForm.temporary,
     };
 
     const updated = [...benches, newBench];
@@ -573,7 +575,7 @@ const SeatsManagement: React.FC = () => {
 
     expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
 
-    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', temporary: false });
     setPendingPosition(null);
     setIsAddingBench(false);
   };
@@ -593,6 +595,7 @@ const SeatsManagement: React.FC = () => {
       color: preset.color,
       icon: preset.icon,
       locked: false,
+      temporary: false,
     };
     const updated = [...benches, newSpecial];
     updateBenches(updated);
@@ -606,7 +609,13 @@ const SeatsManagement: React.FC = () => {
     if (!editingBench || !benchForm.name) return;
     let updatedBenches = benches.map(bench =>
       bench.id === editingBench
-        ? { ...bench, name: benchForm.name, color: benchForm.color, orientation: benchForm.orientation }
+        ? {
+            ...bench,
+            name: benchForm.name,
+            color: benchForm.color,
+            orientation: benchForm.orientation,
+            temporary: benchForm.temporary,
+          }
         : bench
     );
 
@@ -619,6 +628,7 @@ const SeatsManagement: React.FC = () => {
         color: benchForm.color,
         orientation: benchForm.orientation,
         seatCount: benchForm.seatCount,
+        temporary: benchForm.temporary,
       };
       updatedBenches = updatedBenches.map(bench =>
         bench.id === editingBench ? updatedBench : bench
@@ -630,7 +640,7 @@ const SeatsManagement: React.FC = () => {
     updateBenches(updatedBenches);
     expandBoundsIfNeeded(updatedBenches, { width: 1200, height: 800 });
 
-    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+    setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', temporary: false });
     setEditingBench(null);
   };
 
@@ -1264,7 +1274,7 @@ const SeatsManagement: React.FC = () => {
                     onClick={() => {
                       setIsAddingBench(false);
                       setEditingBench(null);
-                      setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6' });
+                      setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', temporary: false });
                     }}
                     className="p-1 text-gray-400 hover:text-gray-600"
                   >
@@ -1305,6 +1315,20 @@ const SeatsManagement: React.FC = () => {
                     >
                       <option value="horizontal">אופקי</option>
                       <option value="vertical">אנכי</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">סוג</label>
+                    <select
+                      value={benchForm.temporary ? 'temporary' : 'permanent'}
+                      onChange={(e) =>
+                        setBenchForm(prev => ({ ...prev, temporary: e.target.value === 'temporary' }))
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="permanent">קבוע</option>
+                      <option value="temporary">זמני</option>
                     </select>
                   </div>
 
@@ -1404,9 +1428,13 @@ const SeatsManagement: React.FC = () => {
                   <span className="text-gray-600">כיוון:</span>
                   <span className="font-semibold">{selectedBenchData.orientation === 'horizontal' ? 'אופקי' : 'אנכי'}</span>
                 </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">סוג:</span>
+                  <span className="font-semibold">{selectedBenchData.temporary ? 'זמני' : 'קבוע'}</span>
+                </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">צבע:</span>
-                  <div 
+                  <div
                     className="w-6 h-6 rounded-full border-2 border-gray-300"
                     style={{ backgroundColor: selectedBenchData.color }}
                   ></div>
@@ -1421,7 +1449,8 @@ const SeatsManagement: React.FC = () => {
                         name: selectedBenchData.name,
                         seatCount: selectedBenchData.seatCount,
                         orientation: selectedBenchData.orientation,
-                        color: selectedBenchData.color
+                        color: selectedBenchData.color,
+                        temporary: selectedBenchData.temporary ?? false,
                       });
                       setEditingBench(selectedBench);
                     }}

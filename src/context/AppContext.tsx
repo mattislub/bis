@@ -81,6 +81,7 @@ const generateInitialBenches = (): Bench[] => {
       orientation: 'horizontal',
       color: getColor(),
       locked: false,
+      temporary: false,
     });
   }
 
@@ -94,6 +95,7 @@ const generateInitialBenches = (): Bench[] => {
       orientation: 'horizontal',
       color: getColor(),
       locked: false,
+      temporary: false,
     });
   }
 
@@ -107,6 +109,7 @@ const generateInitialBenches = (): Bench[] => {
       orientation: 'horizontal',
       color: getColor(),
       locked: false,
+      temporary: false,
     });
   }
 
@@ -120,6 +123,7 @@ const generateInitialBenches = (): Bench[] => {
       orientation: 'horizontal',
       color: getColor(),
       locked: false,
+      temporary: false,
     });
   }
 
@@ -136,6 +140,7 @@ const generateInitialBenches = (): Bench[] => {
     height: 80,
     icon: '🕍',
     locked: false,
+    temporary: false,
   });
 
   benches.push({
@@ -150,6 +155,7 @@ const generateInitialBenches = (): Bench[] => {
     height: 60,
     icon: '🕯️',
     locked: false,
+    temporary: false,
   });
 
   benches.push({
@@ -164,6 +170,7 @@ const generateInitialBenches = (): Bench[] => {
     height: 100,
     icon: '📖',
     locked: false,
+    temporary: false,
   });
 
   return benches;

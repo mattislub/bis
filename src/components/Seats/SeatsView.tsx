@@ -268,9 +268,10 @@ const SeatsView: React.FC = () => {
                   <div>מקומות: {bench.seatCount}</div>
                   <div>תפוס: {occupiedBenchSeats}/{bench.seatCount}</div>
                   <div>כיוון: {bench.orientation === 'horizontal' ? 'אופקי' : 'אנכי'}</div>
+                  <div>סוג: {bench.temporary ? 'זמני' : 'קבוע'}</div>
                 </div>
                 <div className="mt-2 bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className="h-2 rounded-full transition-all duration-300"
                     style={{ 
                       width: `${(occupiedBenchSeats / bench.seatCount) * 100}%`,

@@ -39,6 +39,7 @@ export interface Bench {
   height?: number;
   icon?: string;
   locked?: boolean;
+  temporary?: boolean;
 }
 
 export interface ContactForm {
