@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X } from 'lucide-react';
 import { ContactForm } from '../../types';
 
 const Contact: React.FC = () => {
@@ -11,6 +11,7 @@ const Contact: React.FC = () => {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,6 +84,13 @@ const Contact: React.FC = () => {
                   <h3 className="font-semibold text-gray-900 mb-1">כתובת</h3>
                   <p className="text-gray-600">רחוב הטכנולוגיה 25</p>
                   <p className="text-gray-600">תל אביב-יפו, 6789012</p>
+                  <button
+                    onClick={() => setIsMapOpen(true)}
+                    className="mt-3 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Map className="h-4 w-4 ml-2" />
+                    הצג מפה
+                  </button>
                 </div>
               </div>
             </div>
@@ -215,6 +223,30 @@ const Contact: React.FC = () => {
           )}
         </div>
       </div>
+      {isMapOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg overflow-hidden w-full max-w-3xl">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">מפה</h3>
+              <button
+                onClick={() => setIsMapOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <iframe
+              title="map"
+              width="100%"
+              height="450"
+              style={{ border: 0 }}
+              loading="lazy"
+              allowFullScreen
+              src="https://www.google.com/maps?q=%D7%A8%D7%97%D7%95%D7%91%20%D7%94%D7%98%D7%9B%D7%A0%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94%2025%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91-%D7%99%D7%A4%D7%95&output=embed"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
