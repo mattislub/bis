@@ -6,7 +6,8 @@ import {
   Settings,
   Mail,
   Info,
-  Armchair
+  Armchair,
+  HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,6 +20,7 @@ const Navbar: React.FC = () => {
     { path: '/', label: 'ניהול מתפללים', icon: Users },
     { path: '/seats-view', label: 'תצוגת מקומות', icon: MapPin },
     { path: '/seats-manage', label: 'ניהול מקומות', icon: Settings },
+    { path: '/map-guide', label: 'מדריך מפה', icon: HelpCircle },
     { path: '/contact', label: 'צור קשר', icon: Mail },
     { path: '/about', label: 'אודות', icon: Info },
   ];
