@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { Users as UsersIcon, MapPin, User as UserIcon, Grid3X3, Armchair } from 'lucide-react';
@@ -7,6 +7,23 @@ import MapZoomControls from './MapZoomControls';
 const SeatsView: React.FC = () => {
   const { seats, worshipers, benches, gridSettings } = useAppContext();
   const [zoom, setZoom] = useState(1);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    if (!mapRef.current) return;
+    const printWindow = window.open('', '', 'width=1200,height=800');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>${document.head.innerHTML}</head>
+        <body>${mapRef.current.outerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
 
   const getWorshiperById = (id: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === id);
@@ -105,16 +122,25 @@ const SeatsView: React.FC = () => {
               <span className="text-sm text-gray-600">פנוי</span>
             </div>
           </div>
-          
-          {gridSettings.showGrid && (
-            <div className="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
-              <Grid3X3 className="h-4 w-4" />
-              <span>רשת מסייעת מופעלת</span>
-            </div>
-          )}
+
+          <div className="flex items-center space-x-2 space-x-reverse">
+            {gridSettings.showGrid && (
+              <div className="flex items-center space-x-2 space-x-reverse text-sm text-gray-500">
+                <Grid3X3 className="h-4 w-4" />
+                <span>רשת מסייעת מופעלת</span>
+              </div>
+            )}
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              הדפס PDF
+            </button>
+          </div>
         </div>
 
         <div
+          ref={mapRef}
           className="relative border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-50"
           style={{
             minHeight: '800px',
