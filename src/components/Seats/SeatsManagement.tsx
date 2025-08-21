@@ -1175,9 +1175,11 @@ const SeatsManagement: React.FC = () => {
                             setSelectedSeat(seat.id);
                             setSelectedBenchIds([]);
                           }}
-                          title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : `מקום ${seat.id} - פנוי`}
+                          title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
                         >
-                          <div className="text-white font-bold text-xs">{seat.id}</div>
+                          <div className="text-white font-bold text-[7px] leading-tight text-center px-1">
+                            {status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
+                          </div>
                           
                           {status.worshiper && (
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center shadow-md">
