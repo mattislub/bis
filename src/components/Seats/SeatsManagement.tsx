@@ -763,25 +763,47 @@ const SeatsManagement: React.FC = () => {
 
   const renderGrid = () => {
     if (!gridSettings.showGrid) return null;
-    
     const gridLines = [];
-    const containerWidth = 1200;
-    const containerHeight = 800;
-    
+    const containerWidth = 1200 + mapBounds.left + mapBounds.right;
+    const containerHeight = 800 + mapBounds.top + mapBounds.bottom;
+
     for (let x = 0; x <= containerWidth; x += gridSettings.gridSize) {
       gridLines.push(
-        <line key={`v-${x}`} x1={x} y1={0} x2={x} y2={containerHeight} stroke="#e5e7eb" strokeWidth="1" opacity="0.3" />
+        <line
+          key={`v-${x}`}
+          x1={x}
+          y1={0}
+          x2={x}
+          y2={containerHeight}
+          stroke="#e5e7eb"
+          strokeWidth="1"
+          opacity="0.3"
+        />
       );
     }
-    
+
     for (let y = 0; y <= containerHeight; y += gridSettings.gridSize) {
       gridLines.push(
-        <line key={`h-${y}`} x1={0} y1={y} x2={containerWidth} y2={y} stroke="#e5e7eb" strokeWidth="1" opacity="0.3" />
+        <line
+          key={`h-${y}`}
+          x1={0}
+          y1={y}
+          x2={containerWidth}
+          y2={y}
+          stroke="#e5e7eb"
+          strokeWidth="1"
+          opacity="0.3"
+        />
       );
     }
-    
+
     return (
-      <svg className="absolute inset-0 pointer-events-none" width={containerWidth} height={containerHeight}>
+      <svg
+        className="absolute pointer-events-none"
+        width={containerWidth}
+        height={containerHeight}
+        style={{ left: -mapBounds.left, top: -mapBounds.top }}
+      >
         {gridLines}
       </svg>
     );
