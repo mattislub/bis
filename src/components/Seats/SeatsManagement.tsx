@@ -193,6 +193,7 @@ const SeatsManagement: React.FC = () => {
   const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
   const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
+  const [showSeatDetails, setShowSeatDetails] = useState(false);
   const [dragStartPositions, setDragStartPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
@@ -753,6 +754,7 @@ const SeatsManagement: React.FC = () => {
         : seat
     ));
     setSelectedSeatIds([]);
+    setShowSeatDetails(false);
   };
 
   const getSeatStatus = (seat: Seat) => {
@@ -1056,7 +1058,7 @@ const SeatsManagement: React.FC = () => {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
-              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeatIds([]); setOpenSettingsId(null); }}
+              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeatIds([]); setOpenSettingsId(null); setShowSeatDetails(false); }}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -1231,6 +1233,10 @@ const SeatsManagement: React.FC = () => {
                               setSelectedSeatIds([seat.id]);
                             }
                             setSelectedBenchIds([]);
+                          }}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            setShowSeatDetails(true);
                           }}
                           title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
                         >
@@ -1539,7 +1545,7 @@ const SeatsManagement: React.FC = () => {
           )}
 
           {/* פרטי מקום/ות נבחר/ים */}
-          {selectedSeatIds.length > 0 && selectedSeatsData.length > 0 && !selectedBench && (
+          {selectedSeatIds.length > 0 && selectedSeatsData.length > 0 && !selectedBench && showSeatDetails && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white p-6 rounded-lg shadow-md border border-blue-200 w-full max-w-md">
                 <div className="flex items-center justify-between mb-4">
@@ -1547,7 +1553,7 @@ const SeatsManagement: React.FC = () => {
                     {selectedSeatIds.length > 1 ? `מקומות ${selectedSeatIds.join(', ')}` : `מקום ${selectedSeatIds[0]}`}
                   </h3>
                   <button
-                    onClick={() => setSelectedSeatIds([])}
+                    onClick={() => { setSelectedSeatIds([]); setShowSeatDetails(false); }}
                     className="p-1 text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
