@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin } from 'lucide-react';
+import WorshiperSeatsForm from './WorshiperSeatsForm';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
+  const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
   const [formData, setFormData] = useState<Partial<Worshiper>>({
     title: '',
     firstName: '',
@@ -152,6 +154,7 @@ const WorshiperManagement: React.FC = () => {
   };
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">ניהול מתפללים</h1>
@@ -348,6 +351,14 @@ const WorshiperManagement: React.FC = () => {
                   <td className="px-4 py-2">
                     <div className="flex space-x-2 space-x-reverse">
                       <button
+                        onClick={() => setSeatWorshiper(w)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="מקומות"
+                      >
+                        <MapPin className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleEditWorshiper(w)}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -363,11 +374,11 @@ const WorshiperManagement: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
           </table>
         </div>
       ) : (
@@ -378,6 +389,13 @@ const WorshiperManagement: React.FC = () => {
         </div>
       )}
     </div>
+    {seatWorshiper && (
+      <WorshiperSeatsForm
+        worshiper={seatWorshiper}
+        onClose={() => setSeatWorshiper(null)}
+      />
+    )}
+    </>
   );
 };
 
