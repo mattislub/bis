@@ -275,33 +275,23 @@ const SeatsManagement: React.FC = () => {
     return Math.round(value / gridSettings.gridSize) * gridSettings.gridSize;
   };
 
-  const getBenchDimensions = (bench: Bench) => {
-    if (bench.type === 'special') {
-      return { width: bench.width || 0, height: bench.height || 0 };
-    }
-    if (bench.orientation === 'horizontal') {
-      return { width: bench.seatCount * 60 + 20, height: 80 };
-    }
-    return { width: 80, height: bench.seatCount * 60 + 20 };
-  };
-
   const expandBoundsIfNeeded = useCallback(
     (benchesToCheck: Bench[], rect: DOMRect | { width: number; height: number }) => {
       setMapBounds(prev => {
-      let left = prev.left;
-      let top = prev.top;
-      let right = prev.right;
-      let bottom = prev.bottom;
+        let left = prev.left;
+        let top = prev.top;
+        let right = prev.right;
+        let bottom = prev.bottom;
 
-      benchesToCheck.forEach(b => {
-        const { width, height } = getBenchDimensions(b);
-        left = Math.min(left, b.position.x);
-        top = Math.min(top, b.position.y);
-        right = Math.min(right, rect.width - (b.position.x + width));
-        bottom = Math.min(bottom, rect.height - (b.position.y + height));
-      });
+        benchesToCheck.forEach(b => {
+          const { width, height } = getBenchDimensions(b);
+          left = Math.max(left, Math.max(0, -b.position.x));
+          top = Math.max(top, Math.max(0, -b.position.y));
+          right = Math.max(right, Math.max(0, b.position.x + width - rect.width));
+          bottom = Math.max(bottom, Math.max(0, b.position.y + height - rect.height));
+        });
 
-      return { left, top, right, bottom };
+        return { left, top, right, bottom };
       });
     },
     [setMapBounds]
@@ -349,8 +339,8 @@ const SeatsManagement: React.FC = () => {
     if (!draggedBench) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = snapToGrid((e.clientX - rect.left - mapOffset.x - 40) / zoom);
-    const y = snapToGrid((e.clientY - rect.top - mapOffset.y - 40) / zoom);
+    const x = snapToGrid((e.clientX - rect.left - mapOffset.x - mapBounds.left - 40) / zoom);
+    const y = snapToGrid((e.clientY - rect.top - mapOffset.y - mapBounds.top - 40) / zoom);
 
     let updated: Bench[] = [];
 
@@ -406,8 +396,8 @@ const SeatsManagement: React.FC = () => {
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left - mapOffset.x) / zoom;
-    const y = (e.clientY - rect.top - mapOffset.y) / zoom;
+    const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
+    const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
 
     if (isPanMode) {
       e.preventDefault();
@@ -446,8 +436,8 @@ const SeatsManagement: React.FC = () => {
 
     if (isSelecting && selectionStart) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const x = (e.clientX - rect.left - mapOffset.x) / zoom;
-      const y = (e.clientY - rect.top - mapOffset.y) / zoom;
+      const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
+      const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
       setSelectionRect({
         x: Math.min(x, selectionStart.x),
         y: Math.min(y, selectionStart.y),
@@ -545,8 +535,8 @@ const SeatsManagement: React.FC = () => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     setContextMenuPos({
-      x: (e.clientX - rect.left - mapOffset.x) / zoom,
-      y: (e.clientY - rect.top - mapOffset.y) / zoom,
+      x: (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom,
+      y: (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom,
     });
   };
 
@@ -794,8 +784,10 @@ const SeatsManagement: React.FC = () => {
     const gridLines = [];
     const containerWidth = 1200 + mapBounds.left + mapBounds.right;
     const containerHeight = 800 + mapBounds.top + mapBounds.bottom;
+    const startX = (gridSettings.gridSize - (mapBounds.left % gridSettings.gridSize)) % gridSettings.gridSize;
+    const startY = (gridSettings.gridSize - (mapBounds.top % gridSettings.gridSize)) % gridSettings.gridSize;
 
-    for (let x = 0; x <= containerWidth; x += gridSettings.gridSize) {
+    for (let x = startX; x <= containerWidth; x += gridSettings.gridSize) {
       gridLines.push(
         <line
           key={`v-${x}`}
@@ -810,7 +802,7 @@ const SeatsManagement: React.FC = () => {
       );
     }
 
-    for (let y = 0; y <= containerHeight; y += gridSettings.gridSize) {
+    for (let y = startY; y <= containerHeight; y += gridSettings.gridSize) {
       gridLines.push(
         <line
           key={`h-${y}`}
@@ -830,7 +822,6 @@ const SeatsManagement: React.FC = () => {
         className="absolute pointer-events-none"
         width={containerWidth}
         height={containerHeight}
-        style={{ left: -mapBounds.left, top: -mapBounds.top }}
       >
         {gridLines}
       </svg>
@@ -1077,7 +1068,7 @@ const SeatsManagement: React.FC = () => {
 
             <div
               className={`relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden ${isPanMode ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
-              style={{ minHeight: '800px', width: '1200px', maxWidth: '100%' }}
+              style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom, maxWidth: '100%' }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
@@ -1106,8 +1097,8 @@ const SeatsManagement: React.FC = () => {
                       draggedBench === bench.id ? 'opacity-50' : ''
                     }`}
                   style={{
-                    left: `${bench.position.x}px`,
-                    top: `${bench.position.y}px`,
+                    left: `${bench.position.x + mapBounds.left}px`,
+                    top: `${bench.position.y + mapBounds.top}px`,
                     width: bench.type === 'special' ? `${bench.width}px` :
                            bench.orientation === 'horizontal' ? `${bench.seatCount * 60 + 20}px` : '80px',
                     height: bench.type === 'special' ? `${bench.height}px` :
@@ -1292,8 +1283,8 @@ const SeatsManagement: React.FC = () => {
                 <div
                   className="absolute border-2 border-blue-400 bg-blue-200 bg-opacity-25 pointer-events-none"
                   style={{
-                    left: selectionRect.x,
-                    top: selectionRect.y,
+                    left: selectionRect.x + mapBounds.left,
+                    top: selectionRect.y + mapBounds.top,
                     width: selectionRect.width,
                     height: selectionRect.height,
                   }}
