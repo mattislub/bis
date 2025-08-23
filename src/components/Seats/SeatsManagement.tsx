@@ -198,6 +198,7 @@ const SeatsManagement: React.FC = () => {
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
   const [showSeatDetails, setShowSeatDetails] = useState(false);
   const [dragStartPositions, setDragStartPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
   const [showRowDialog, setShowRowDialog] = useState(false);
@@ -297,7 +298,7 @@ const SeatsManagement: React.FC = () => {
     [setMapBounds]
   );
 
-  const handleBenchDragStart = (e: React.DragEvent, benchId: string) => {
+  const handleBenchDragStart = (e: React.DragEvent<HTMLDivElement>, benchId: string) => {
     if (resizingBench) {
       e.preventDefault();
       return;
@@ -324,6 +325,8 @@ const SeatsManagement: React.FC = () => {
     } else {
       setDragStartPositions(null);
     }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     e.dataTransfer.effectAllowed = 'move';
     // Some browsers require data to be set for drag events to fire properly
     e.dataTransfer.setData('text/plain', benchId);
@@ -332,6 +335,7 @@ const SeatsManagement: React.FC = () => {
   const handleBenchDragEnd = () => {
     setDraggedBench(null);
     setDragStartPositions(null);
+    setDragOffset(null);
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -339,8 +343,10 @@ const SeatsManagement: React.FC = () => {
     if (!draggedBench) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = snapToGrid((e.clientX - rect.left - mapOffset.x - mapBounds.left - 40) / zoom);
-    const y = snapToGrid((e.clientY - rect.top - mapOffset.y - mapBounds.top - 40) / zoom);
+    const offsetX = dragOffset?.x ?? 0;
+    const offsetY = dragOffset?.y ?? 0;
+    const x = snapToGrid((e.clientX - rect.left - mapOffset.x - mapBounds.left - offsetX) / zoom);
+    const y = snapToGrid((e.clientY - rect.top - mapOffset.y - mapBounds.top - offsetY) / zoom);
 
     let updated: Bench[] = [];
 
