@@ -21,7 +21,8 @@ import {
   BoxSelect,
   ListOrdered,
   Save,
-  Eye
+  Eye,
+  UserCheck
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 
@@ -1010,6 +1011,15 @@ const SeatsManagement: React.FC = () => {
                 >
                   <Hand className="h-4 w-4" />
                 </button>
+                {selectedSeatIds.length > 0 && (
+                  <button
+                    onClick={() => setShowSeatDetails(true)}
+                    className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    title="שייך למתפלל"
+                  >
+                    <UserCheck className="h-4 w-4" />
+                  </button>
+                )}
                   <button
                     onClick={reorderSeatNumbers}
                     className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
