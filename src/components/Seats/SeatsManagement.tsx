@@ -763,7 +763,12 @@ const SeatsManagement: React.FC = () => {
   const exportMapToPDF = async () => {
     const element = mapRef.current;
     if (!element) return;
-    const canvas = await html2canvas(element, { scale: 2 });
+    const originalShowGrid = gridSettings.showGrid;
+    setGridSettings(prev => ({ ...prev, showGrid: false }));
+    const centerMarker = element.querySelector('.map-center-marker') as HTMLElement | null;
+    if (centerMarker) centerMarker.style.display = 'none';
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff' });
     const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
     const pdf = new jsPDF({
       orientation,
@@ -772,6 +777,8 @@ const SeatsManagement: React.FC = () => {
     });
     pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
     pdf.save('map.pdf');
+    setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
+    if (centerMarker) centerMarker.style.display = '';
   };
 
   const handlePrintMap = async (id: string) => {
@@ -1139,7 +1146,7 @@ const SeatsManagement: React.FC = () => {
                 {renderGrid()}
 
                 {/* סימון מרכז המפה */}
-                <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50" />
+                <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 map-center-marker" />
 
                 {/* רינדור ספסלים */}
                 {benches.map((bench) => (
