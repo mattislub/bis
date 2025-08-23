@@ -773,6 +773,16 @@ const SeatsManagement: React.FC = () => {
     pdf.save('map.pdf');
   };
 
+  const handlePrintMap = async (id: string) => {
+    const previousId = currentMapId;
+    loadMap(id);
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await exportMapToPDF();
+    if (previousId && previousId !== id) {
+      loadMap(previousId);
+    }
+  };
+
   const assignWorshiperToSeats = (seatIds: number[], worshiperId: string | null) => {
     if (worshiperId) {
       const worshiper = worshipers.find(w => w.id === worshiperId);
@@ -1742,13 +1752,19 @@ const SeatsManagement: React.FC = () => {
                     key={m.id}
                     className={`flex items-center justify-between p-2 rounded ${m.id === currentMapId ? 'bg-blue-100 text-blue-700' : 'bg-gray-100'}`}
                   >
-                    <span className="flex-grow text-right">{m.name}</span>
-                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                  <span className="flex-grow text-right">{m.name}</span>
+                  <div className="flex items-center space-x-1 rtl:space-x-reverse">
                       <button
                         onClick={() => loadMap(m.id)}
                         className="p-1 text-blue-600 hover:text-blue-800"
                       >
                         <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handlePrintMap(m.id)}
+                        className="p-1 text-purple-600 hover:text-purple-800"
+                      >
+                        <Printer className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleRenameMap(m.id)}
