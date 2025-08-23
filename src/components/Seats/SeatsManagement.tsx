@@ -23,7 +23,8 @@ import {
   Save,
   Eye,
   UserCheck,
-  Printer
+  Printer,
+  Tag
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 import html2canvas from 'html2canvas';
@@ -791,6 +792,44 @@ const SeatsManagement: React.FC = () => {
     });
   };
 
+  const exportSelectedSeatsToLabels = () => {
+    const selected = seats.filter(seat => selectedSeatIds.includes(seat.id));
+    if (selected.length === 0) {
+      alert('לא נבחרו מקומות להדפסה');
+      return;
+    }
+
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const labelWidth = 70;
+    const labelHeight = 35;
+    const cols = 3;
+    const rowsPerPage = 8;
+    const topMargin = (297 - rowsPerPage * labelHeight) / 2; // center vertically
+
+    selected.forEach((seat, index) => {
+      const position = index % (cols * rowsPerPage);
+      if (position === 0 && index !== 0) {
+        doc.addPage();
+      }
+      const row = Math.floor(position / cols);
+      const col = position % cols;
+      const x = col * labelWidth;
+      const y = topMargin + row * labelHeight;
+
+      doc.rect(x, y, labelWidth, labelHeight);
+      const worshiper = seat.userId ? worshipers.find(w => w.id === seat.userId) : undefined;
+      const name = worshiper ? `${worshiper.firstName} ${worshiper.lastName}` : '';
+      doc.setFontSize(12);
+      doc.text(`מקום ${seat.id}`, x + labelWidth / 2, y + 12, { align: 'center' });
+      if (name) {
+        doc.setFontSize(10);
+        doc.text(name, x + labelWidth / 2, y + labelHeight / 2 + 5, { align: 'center' });
+      }
+    });
+
+    doc.save('labels.pdf');
+  };
+
   const handlePrintMap = async (id: string) => {
     const previousId = currentMapId;
     loadMap(id);
@@ -1094,6 +1133,13 @@ const SeatsManagement: React.FC = () => {
                     title="ייצא ל-PDF"
                   >
                     <Printer className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={exportSelectedSeatsToLabels}
+                    className="p-2 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
+                    title="הדפס מדבקות"
+                  >
+                    <Tag className="h-4 w-4" />
                   </button>
                   <button
                     onClick={clearMap}
