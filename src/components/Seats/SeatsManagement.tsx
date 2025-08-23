@@ -1184,23 +1184,24 @@ const SeatsManagement: React.FC = () => {
               />
             </div>
 
-            <div
-              className={`relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden ${isPanMode ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
-              style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onContextMenu={handleContextMenu}
-              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeatIds([]); setOpenSettingsId(null); setShowSeatDetails(false); }}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-              onMouseDown={handleMouseDown}
-            >
+            <div className="relative h-[75vh] w-full overflow-auto bg-gray-50 border border-gray-200 rounded-lg">
               <div
-                ref={mapRef}
-                className="absolute inset-0"
-                style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
+                className="relative border-2 border-dashed border-gray-300 rounded-lg mx-auto my-4"
+                style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onContextMenu={handleContextMenu}
+                onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeatIds([]); setOpenSettingsId(null); setShowSeatDetails(false); }}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                onMouseDown={handleMouseDown}
               >
+                <div
+                  ref={mapRef}
+                  className="absolute inset-0"
+                  style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
+                >
                 {renderGrid()}
 
                 {/* סימון מרכז המפה */}
@@ -1437,8 +1438,9 @@ const SeatsManagement: React.FC = () => {
                   </button>
                 </div>
               )}
-            </div>
-            <MapZoomControls setZoom={setZoom} />
+                </div>
+              </div>
+              <MapZoomControls setZoom={setZoom} />
             </div>
           </div>
         </div>
