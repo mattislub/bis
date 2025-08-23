@@ -735,6 +735,16 @@ const SeatsManagement: React.FC = () => {
   };
 
   const assignWorshiperToSeat = (seatId: number, worshiperId: string | null) => {
+    if (worshiperId) {
+      const seat = seats.find(s => s.id === seatId);
+      const worshiper = worshipers.find(w => w.id === worshiperId);
+      const assignedCount = seats.filter(s => s.userId === worshiperId).length;
+      const hasSeatAlready = seat?.userId === worshiperId;
+      if (worshiper && !hasSeatAlready && assignedCount >= worshiper.seatCount) {
+        alert('לא ניתן לשייך למתפלל זה יותר מקומות מהכמות שהוגדרה עבורו');
+        return;
+      }
+    }
     setSeats(prev => prev.map(seat =>
       seat.id === seatId
         ? { ...seat, userId: worshiperId || undefined, isOccupied: !!worshiperId }
@@ -1542,11 +1552,16 @@ const SeatsManagement: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">אין משויך</option>
-                      {worshipers.map(w => (
-                        <option key={w.id} value={w.id}>
-                          {`${w.title} ${w.firstName} ${w.lastName}`}
-                        </option>
-                      ))}
+                      {worshipers.map(w => {
+                        const assignedCount = seats.filter(s => s.userId === w.id).length;
+                        const disabled = selectedSeatData.userId !== w.id && assignedCount >= w.seatCount;
+                        return (
+                          <option key={w.id} value={w.id} disabled={disabled}>
+                            {`${w.title} ${w.firstName} ${w.lastName}`}
+                            {` (${assignedCount}/${w.seatCount})`}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
 
