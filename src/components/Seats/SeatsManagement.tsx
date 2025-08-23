@@ -792,10 +792,12 @@ const SeatsManagement: React.FC = () => {
     });
   };
 
-  const exportSelectedSeatsToLabels = () => {
-    const selected = seats.filter(seat => selectedSeatIds.includes(seat.id));
-    if (selected.length === 0) {
-      alert('לא נבחרו מקומות להדפסה');
+  const exportAllSeatsToLabels = () => {
+    const labeledSeats = seats
+      .filter(seat => seat.userId)
+      .sort((a, b) => a.id - b.id);
+    if (labeledSeats.length === 0) {
+      alert('לא נמצאו שמות להדפסה');
       return;
     }
 
@@ -806,7 +808,7 @@ const SeatsManagement: React.FC = () => {
     const rowsPerPage = 8;
     const topMargin = (297 - rowsPerPage * labelHeight) / 2; // center vertically
 
-    selected.forEach((seat, index) => {
+    labeledSeats.forEach((seat, index) => {
       const position = index % (cols * rowsPerPage);
       if (position === 0 && index !== 0) {
         doc.addPage();
@@ -1135,7 +1137,7 @@ const SeatsManagement: React.FC = () => {
                     <Printer className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={exportSelectedSeatsToLabels}
+                    onClick={exportAllSeatsToLabels}
                     className="p-2 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
                     title="הדפס מדבקות"
                   >
