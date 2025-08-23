@@ -4,7 +4,6 @@ import { AppProvider } from './context/AppContext';
 import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout/Layout';
 import WorshiperManagement from './components/Worshipers/WorshiperManagement';
-import SeatsView from './components/Seats/SeatsView';
 import SeatsManagement from './components/Seats/SeatsManagement';
 import Contact from './components/Contact/Contact';
 import About from './components/About/About';
@@ -29,7 +28,6 @@ function App() {
             }
           >
             <Route index element={<WorshiperManagement />} />
-            <Route path="seats-view" element={<SeatsView />} />
             <Route path="seats-manage" element={<SeatsManagement />} />
             <Route path="map-guide" element={<MapManagementGuide />} />
             <Route path="contact" element={<Contact />} />

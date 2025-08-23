@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Users,
-  MapPin,
   Settings,
   Mail,
   Info,
@@ -18,7 +17,6 @@ const Navbar: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'ניהול מתפללים', icon: Users },
-    { path: '/seats-view', label: 'תצוגת מקומות', icon: MapPin },
     { path: '/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/map-guide', label: 'מדריך מפה', icon: HelpCircle },
     { path: '/contact', label: 'צור קשר', icon: Mail },
