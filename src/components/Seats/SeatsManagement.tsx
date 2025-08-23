@@ -765,8 +765,12 @@ const SeatsManagement: React.FC = () => {
     if (!element) return;
     const originalShowGrid = gridSettings.showGrid;
     setGridSettings(prev => ({ ...prev, showGrid: false }));
-    const centerMarker = element.querySelector('.map-center-marker') as HTMLElement | null;
-    if (centerMarker) centerMarker.style.display = 'none';
+    const hiddenElements = Array.from(
+      element.querySelectorAll('.print-hidden')
+    ) as HTMLElement[];
+    hiddenElements.forEach(el => {
+      el.style.display = 'none';
+    });
     await new Promise(resolve => setTimeout(resolve, 0));
     const canvas = await html2canvas(element, {
       scale: 2,
@@ -782,7 +786,9 @@ const SeatsManagement: React.FC = () => {
     pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'FAST');
     pdf.save('map.pdf');
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
-    if (centerMarker) centerMarker.style.display = '';
+    hiddenElements.forEach(el => {
+      el.style.display = '';
+    });
   };
 
   const handlePrintMap = async (id: string) => {
@@ -1150,7 +1156,7 @@ const SeatsManagement: React.FC = () => {
                 {renderGrid()}
 
                 {/* סימון מרכז המפה */}
-                <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 map-center-marker" />
+                <div className="absolute left-1/2 top-1/2 w-4 h-4 bg-red-500 rounded-full border-2 border-white transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-50 map-center-marker print-hidden" />
 
                 {/* רינדור ספסלים */}
                 {benches.map((bench) => (
@@ -1181,13 +1187,13 @@ const SeatsManagement: React.FC = () => {
                       e.stopPropagation();
                       setOpenSettingsId(openSettingsId === bench.id ? null : bench.id);
                     }}
-                    className="absolute top-1 left-1 z-[50] p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors"
+                    className="absolute top-1 left-1 z-[50] p-1 bg-white rounded shadow-md hover:bg-gray-50 transition-colors print-hidden"
                     title="הגדרות"
                   >
                     <Settings className="h-3 w-3 text-gray-600" />
                   </button>
                   {openSettingsId === bench.id && (
-                    <div className="absolute top-1 left-7 z-[60] flex space-x-1 space-x-reverse p-1 bg-white rounded shadow-md">
+                    <div className="absolute top-1 left-7 z-[60] flex space-x-1 space-x-reverse p-1 bg-white rounded shadow-md print-hidden">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1264,19 +1270,19 @@ const SeatsManagement: React.FC = () => {
                     <>
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'right')}
-                        className="absolute top-1/2 -right-3 p-0.5 bg-blue-500 text-white cursor-e-resize transform -translate-y-1/2"
+                        className="absolute top-1/2 -right-3 p-0.5 bg-blue-500 text-white cursor-e-resize transform -translate-y-1/2 print-hidden"
                       >
                         <ArrowRight className="h-3 w-3" />
                       </div>
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'bottom')}
-                        className="absolute left-1/2 -bottom-3 p-0.5 bg-blue-500 text-white cursor-s-resize transform -translate-x-1/2"
+                        className="absolute left-1/2 -bottom-3 p-0.5 bg-blue-500 text-white cursor-s-resize transform -translate-x-1/2 print-hidden"
                       >
                         <ArrowDown className="h-3 w-3" />
                       </div>
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, bench.id, 'corner')}
-                        className="absolute -bottom-3 -right-3 p-0.5 bg-blue-500 text-white cursor-se-resize"
+                        className="absolute -bottom-3 -right-3 p-0.5 bg-blue-500 text-white cursor-se-resize print-hidden"
                       >
                         <ArrowDownRight className="h-3 w-3" />
                       </div>

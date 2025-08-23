@@ -10,7 +10,7 @@ const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom }) => {
   const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
   return (
-    <div className="absolute top-4 left-4 flex flex-col bg-white rounded shadow-md z-50">
+    <div className="absolute top-4 left-4 flex flex-col bg-white rounded shadow-md z-50 print-hidden">
       <button
         onClick={zoomIn}
         className="p-2 hover:bg-gray-100 border-b"
