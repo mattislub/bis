@@ -192,7 +192,7 @@ const SeatsManagement: React.FC = () => {
   const [draggedBench, setDraggedBench] = useState<string | null>(null);
   const [selectedBenchIds, setSelectedBenchIds] = useState<string[]>([]);
   const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
-  const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
+  const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
   const [dragStartPositions, setDragStartPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
@@ -306,7 +306,7 @@ const SeatsManagement: React.FC = () => {
     if (!currentSelection.includes(benchId)) {
       currentSelection = [benchId];
       setSelectedBenchIds(currentSelection);
-      setSelectedSeat(null);
+      setSelectedSeatIds([]);
     }
     setDraggedBench(benchId);
     if (currentSelection.length > 1) {
@@ -410,11 +410,11 @@ const SeatsManagement: React.FC = () => {
         setSelectionStart({ x, y });
         setSelectionRect({ x, y, width: 0, height: 0 });
         setSelectedBenchIds([]);
-        setSelectedSeat(null);
+        setSelectedSeatIds([]);
         setOpenSettingsId(null);
       } else {
         setSelectedBenchIds([]);
-        setSelectedSeat(null);
+        setSelectedSeatIds([]);
         setOpenSettingsId(null);
       }
     }
@@ -518,7 +518,7 @@ const SeatsManagement: React.FC = () => {
     } else {
       setSelectedBenchIds([benchId]);
     }
-    setSelectedSeat(null);
+    setSelectedSeatIds([]);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -712,7 +712,7 @@ const SeatsManagement: React.FC = () => {
       updateBenches([]);
       setSeats([]);
       setSelectedBenchIds([]);
-      setSelectedSeat(null);
+      setSelectedSeatIds([]);
       setMapOffset({ x: 0, y: 0 });
     }
   };
@@ -734,23 +734,25 @@ const SeatsManagement: React.FC = () => {
     setSeats(updatedSeats);
   };
 
-  const assignWorshiperToSeat = (seatId: number, worshiperId: string | null) => {
+  const assignWorshiperToSeats = (seatIds: number[], worshiperId: string | null) => {
     if (worshiperId) {
-      const seat = seats.find(s => s.id === seatId);
       const worshiper = worshipers.find(w => w.id === worshiperId);
       const assignedCount = seats.filter(s => s.userId === worshiperId).length;
-      const hasSeatAlready = seat?.userId === worshiperId;
-      if (worshiper && !hasSeatAlready && assignedCount >= worshiper.seatCount) {
+      const selectedCount = seatIds.filter(id => {
+        const seat = seats.find(s => s.id === id);
+        return seat?.userId !== worshiperId;
+      }).length;
+      if (worshiper && assignedCount + selectedCount > worshiper.seatCount) {
         alert('לא ניתן לשייך למתפלל זה יותר מקומות מהכמות שהוגדרה עבורו');
         return;
       }
     }
     setSeats(prev => prev.map(seat =>
-      seat.id === seatId
+      seatIds.includes(seat.id)
         ? { ...seat, userId: worshiperId || undefined, isOccupied: !!worshiperId }
         : seat
     ));
-    setSelectedSeat(null);
+    setSelectedSeatIds([]);
   };
 
   const getSeatStatus = (seat: Seat) => {
@@ -820,7 +822,8 @@ const SeatsManagement: React.FC = () => {
   };
 
   const selectedBenchData = selectedBench ? benches.find(b => b.id === selectedBench) : null;
-  const selectedSeatData = selectedSeat ? seats.find(s => s.id === selectedSeat) : null;
+  const selectedSeatsData = seats.filter(s => selectedSeatIds.includes(s.id));
+  const selectedSeatData = selectedSeatsData[0] || null;
   const selectedSeatWorshiper = selectedSeatData?.userId ? getWorshiperById(selectedSeatData.userId) : null;
 
   // טיפול בלחיצות מקלדת
@@ -1053,7 +1056,7 @@ const SeatsManagement: React.FC = () => {
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
-              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeat(null); setOpenSettingsId(null); }}
+              onClick={() => { setContextMenuPos(null); setSelectedBenchIds([]); setSelectedSeatIds([]); setOpenSettingsId(null); }}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -1209,7 +1212,7 @@ const SeatsManagement: React.FC = () => {
                         <div
                           key={seat.id}
                           className={`absolute w-12 h-12 ${status.color} ${status.hoverColor} rounded-lg shadow-md transition-all duration-200 cursor-pointer transform hover:scale-110 flex items-center justify-center group border-2 border-white ${
-                            selectedSeat === seat.id ? 'ring-4 ring-blue-300' : ''
+                            selectedSeatIds.includes(seat.id) ? 'ring-4 ring-blue-300' : ''
                           }`}
                           style={{
                             left: bench.orientation === 'horizontal' ? `${index * 60 + 10}px` : '10px',
@@ -1218,7 +1221,15 @@ const SeatsManagement: React.FC = () => {
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedSeat(seat.id);
+                            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                              setSelectedSeatIds(prev =>
+                                prev.includes(seat.id)
+                                  ? prev.filter(id => id !== seat.id)
+                                  : [...prev, seat.id]
+                              );
+                            } else {
+                              setSelectedSeatIds([seat.id]);
+                            }
                             setSelectedBenchIds([]);
                           }}
                           title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
@@ -1527,14 +1538,16 @@ const SeatsManagement: React.FC = () => {
             </div>
           )}
 
-          {/* פרטי מקום נבחר */}
-          {selectedSeat && selectedSeatData && !selectedBench && (
+          {/* פרטי מקום/ות נבחר/ים */}
+          {selectedSeatIds.length > 0 && selectedSeatsData.length > 0 && !selectedBench && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
               <div className="bg-white p-6 rounded-lg shadow-md border border-blue-200 w-full max-w-md">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">מקום {selectedSeat}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectedSeatIds.length > 1 ? `מקומות ${selectedSeatIds.join(', ')}` : `מקום ${selectedSeatIds[0]}`}
+                  </h3>
                   <button
-                    onClick={() => setSelectedSeat(null)}
+                    onClick={() => setSelectedSeatIds([])}
                     className="p-1 text-gray-400 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
@@ -1547,25 +1560,28 @@ const SeatsManagement: React.FC = () => {
                       משויך למתפלל
                     </label>
                     <select
-                      value={selectedSeatData.userId || ''}
-                      onChange={(e) => assignWorshiperToSeat(selectedSeat, e.target.value || null)}
+                      value={selectedSeatIds.length === 1 ? selectedSeatData?.userId || '' : ''}
+                      onChange={(e) => assignWorshiperToSeats(selectedSeatIds, e.target.value || null)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">אין משויך</option>
                       {worshipers.map(w => {
                         const assignedCount = seats.filter(s => s.userId === w.id).length;
-                        const disabled = selectedSeatData.userId !== w.id && assignedCount >= w.seatCount;
+                        const selectedCount = selectedSeatIds.filter(id => {
+                          const seat = seats.find(s => s.id === id);
+                          return seat?.userId !== w.id;
+                        }).length;
+                        const disabled = assignedCount + selectedCount > w.seatCount;
                         return (
                           <option key={w.id} value={w.id} disabled={disabled}>
-                            {`${w.title} ${w.firstName} ${w.lastName}`}
-                            {` (${assignedCount}/${w.seatCount})`}
+                            {`${w.title} ${w.firstName} ${w.lastName}`} ({assignedCount}/{w.seatCount})
                           </option>
                         );
                       })}
                     </select>
                   </div>
 
-                  {selectedSeatWorshiper && (
+                  {selectedSeatIds.length === 1 && selectedSeatWorshiper && (
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center space-x-3 space-x-reverse">
                         <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
