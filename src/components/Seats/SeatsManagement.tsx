@@ -20,7 +20,8 @@ import {
   Hand,
   BoxSelect,
   ListOrdered,
-  Save
+  Save,
+  Eye
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 
@@ -178,6 +179,7 @@ const SeatsManagement: React.FC = () => {
     saveCurrentMap,
     loadMap,
     currentMapId,
+    renameMap,
   } = useAppContext();
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
@@ -242,6 +244,17 @@ const SeatsManagement: React.FC = () => {
       }
     }
   };
+
+  const handleRenameMap = useCallback(
+    (id: string) => {
+      const currentName = maps.find(m => m.id === id)?.name || '';
+      const name = prompt('הכנס שם חדש למפה:', currentName);
+      if (name) {
+        renameMap(id, name);
+      }
+    },
+    [maps, renameMap]
+  );
 
   const handleBoundChange = (side: keyof MapBounds, value: number) => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
@@ -1682,13 +1695,25 @@ const SeatsManagement: React.FC = () => {
             ) : (
               <ul className="space-y-2">
                 {maps.map(m => (
-                  <li key={m.id}>
-                    <button
-                      onClick={() => loadMap(m.id)}
-                      className={`w-full text-right p-2 rounded ${m.id === currentMapId ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    >
-                      {m.name}
-                    </button>
+                  <li
+                    key={m.id}
+                    className={`flex items-center justify-between p-2 rounded ${m.id === currentMapId ? 'bg-blue-100 text-blue-700' : 'bg-gray-100'}`}
+                  >
+                    <span className="flex-grow text-right">{m.name}</span>
+                    <div className="flex items-center space-x-1 rtl:space-x-reverse">
+                      <button
+                        onClick={() => loadMap(m.id)}
+                        className="p-1 text-blue-600 hover:text-blue-800"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleRenameMap(m.id)}
+                        className="p-1 text-gray-600 hover:text-gray-800"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>

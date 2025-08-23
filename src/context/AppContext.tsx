@@ -34,6 +34,7 @@ interface AppContextType {
   saveCurrentMap: (name?: string) => void;
   loadMap: (id: string) => void;
   deleteMap: (id: string) => void;
+  renameMap: (id: string, name: string) => void;
   createMapFromTemplate: (templateId: string, name: string) => void;
 }
 
@@ -333,6 +334,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const renameMap = (id: string, name: string) => {
+    setMaps(prev => prev.map(m => (m.id === id ? { ...m, name } : m)));
+  };
+
   const addTemplate = (template: MapTemplate) => {
     setMapTemplates(prev => [...prev, template]);
   };
@@ -374,6 +379,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       saveCurrentMap,
       loadMap,
       deleteMap,
+      renameMap,
       createMapFromTemplate
     }}>
       {children}
