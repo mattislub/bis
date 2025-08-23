@@ -1038,7 +1038,7 @@ const SeatsManagement: React.FC = () => {
           <p className="text-gray-600 mt-2">גרור ושחרר ספסלים ומקומות ישיבה לעיצוב הפריסה הרצויה</p>
           <h2 className="text-xl font-semibold text-gray-800 mt-2">מפה נוכחית: {currentMap?.name || 'ללא שם'}</h2>
         </div>
-        
+
         <div className="flex space-x-3 space-x-reverse">
           <button
             onClick={() => setIsAddingBench(true)}
@@ -1046,6 +1046,17 @@ const SeatsManagement: React.FC = () => {
           >
             <Plus className="h-4 w-4 ml-2" />
             הוסף ספסל
+          </button>
+          <button
+            onClick={() => {
+              setPendingPosition({ x: 50, y: 50 });
+              setSelectedSpecialId('');
+              setShowSpecialDialog(true);
+            }}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Plus className="h-4 w-4 ml-2" />
+            הוסף אלמנט קבוע
           </button>
           {selectedBench && (
             <button
