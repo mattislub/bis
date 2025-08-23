@@ -22,9 +22,12 @@ import {
   ListOrdered,
   Save,
   Eye,
-  UserCheck
+  UserCheck,
+  Printer
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 const specialElements = [
   {
@@ -182,6 +185,8 @@ const SeatsManagement: React.FC = () => {
     currentMapId,
     renameMap,
   } = useAppContext();
+  const mapRef = useRef<HTMLDivElement>(null);
+
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
       if (typeof updater === 'function') {
@@ -754,6 +759,20 @@ const SeatsManagement: React.FC = () => {
     setSeats(updatedSeats);
   };
 
+  const exportMapToPDF = async () => {
+    const element = mapRef.current;
+    if (!element) return;
+    const canvas = await html2canvas(element, { scale: 2 });
+    const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({
+      orientation,
+      unit: 'px',
+      format: [canvas.width, canvas.height],
+    });
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save('map.pdf');
+  };
+
   const assignWorshiperToSeats = (seatIds: number[], worshiperId: string | null) => {
     if (worshiperId) {
       const worshiper = worshipers.find(w => w.id === worshiperId);
@@ -1041,6 +1060,13 @@ const SeatsManagement: React.FC = () => {
                     <Save className="h-4 w-4" />
                   </button>
                   <button
+                    onClick={exportMapToPDF}
+                    className="p-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                    title="ייצא ל-PDF"
+                  >
+                    <Printer className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={clearMap}
                     className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                     title="נקה מפה"
@@ -1094,6 +1120,7 @@ const SeatsManagement: React.FC = () => {
               onMouseDown={handleMouseDown}
             >
               <div
+                ref={mapRef}
                 className="absolute inset-0"
                 style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
               >
