@@ -768,14 +768,18 @@ const SeatsManagement: React.FC = () => {
     const centerMarker = element.querySelector('.map-center-marker') as HTMLElement | null;
     if (centerMarker) centerMarker.style.display = 'none';
     await new Promise(resolve => setTimeout(resolve, 0));
-    const canvas = await html2canvas(element, { scale: 3, backgroundColor: '#ffffff' });
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+    });
     const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
     const pdf = new jsPDF({
       orientation,
       unit: 'px',
       format: [canvas.width, canvas.height],
     });
-    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+    const imgData = canvas.toDataURL('image/jpeg', 0.7);
+    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'FAST');
     pdf.save('map.pdf');
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
     if (centerMarker) centerMarker.style.display = '';
