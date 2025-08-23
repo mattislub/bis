@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper, Bench, MapBounds } from '../../types';
 import {
@@ -234,6 +234,15 @@ const SeatsManagement: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+
+  const isInitialRender = useRef(true);
+  React.useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    saveCurrentMap();
+  }, [benches, saveCurrentMap]);
 
   const handleSaveMap = () => {
     if (currentMapId) {
