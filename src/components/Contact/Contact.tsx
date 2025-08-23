@@ -3,6 +3,11 @@ import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X } f
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
 
+// Dimensions for the map modal. This controls the area on the screen where
+// the embedded map is rendered so its size can be easily adjusted in one place.
+const MAP_MODAL_WIDTH = 800;
+const MAP_MODAL_HEIGHT = 450;
+
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState<ContactForm>({
     name: '',
@@ -226,7 +231,10 @@ const Contact: React.FC = () => {
       </div>
       {isMapOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg overflow-hidden w-full max-w-3xl">
+          <div
+            className="bg-white rounded-lg overflow-hidden"
+            style={{ width: MAP_MODAL_WIDTH }}
+          >
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-900">מפה</h3>
               <button
@@ -238,9 +246,8 @@ const Contact: React.FC = () => {
             </div>
             <iframe
               title="map"
-              width="100%"
-              height="450"
-              style={{ border: 0 }}
+              className="w-full"
+              style={{ border: 0, height: MAP_MODAL_HEIGHT }}
               loading="lazy"
               allowFullScreen
               src="https://www.google.com/maps?q=%D7%A8%D7%97%D7%95%D7%91%20%D7%94%D7%98%D7%9B%D7%A0%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94%2025%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91-%D7%99%D7%A4%D7%95&output=embed"
