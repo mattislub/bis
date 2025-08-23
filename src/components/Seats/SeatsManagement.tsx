@@ -1128,7 +1128,7 @@ const SeatsManagement: React.FC = () => {
 
             <div
               className={`relative border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 overflow-hidden ${isPanMode ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : ''}`}
-              style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom, maxWidth: '100%' }}
+              style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onContextMenu={handleContextMenu}
