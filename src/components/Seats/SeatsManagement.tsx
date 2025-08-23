@@ -772,6 +772,14 @@ const SeatsManagement: React.FC = () => {
     hiddenElements.forEach(el => {
       el.style.display = 'none';
     });
+    const shadowElements = Array.from(
+      element.querySelectorAll('[class*="shadow"]')
+    ) as HTMLElement[];
+    const boxShadowMap = new Map<HTMLElement, string>();
+    shadowElements.forEach(el => {
+      boxShadowMap.set(el, el.style.boxShadow);
+      el.style.boxShadow = 'none';
+    });
     await new Promise(resolve => setTimeout(resolve, 0));
     const canvas = await html2canvas(element, {
       scale: 2,
@@ -782,6 +790,7 @@ const SeatsManagement: React.FC = () => {
       orientation,
       unit: 'px',
       format: [canvas.width, canvas.height],
+      compress: true,
     });
     const imgData = canvas.toDataURL('image/jpeg', 0.7);
     pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'FAST');
@@ -789,6 +798,12 @@ const SeatsManagement: React.FC = () => {
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
     hiddenElements.forEach(el => {
       el.style.display = '';
+    });
+    shadowElements.forEach(el => {
+      const original = boxShadowMap.get(el);
+      if (original !== undefined) {
+        el.style.boxShadow = original;
+      }
     });
   };
 
