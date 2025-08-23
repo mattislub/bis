@@ -186,6 +186,7 @@ const SeatsManagement: React.FC = () => {
     renameMap,
   } = useAppContext();
   const mapRef = useRef<HTMLDivElement>(null);
+  const currentMap = maps.find(m => m.id === currentMapId);
 
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
@@ -962,6 +963,7 @@ const SeatsManagement: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">ניהול מקומות ישיבה</h1>
           <p className="text-gray-600 mt-2">גרור ושחרר ספסלים ומקומות ישיבה לעיצוב הפריסה הרצויה</p>
+          <h2 className="text-xl font-semibold text-gray-800 mt-2">מפה נוכחית: {currentMap?.name || 'ללא שם'}</h2>
         </div>
         
         <div className="flex space-x-3 space-x-reverse">
