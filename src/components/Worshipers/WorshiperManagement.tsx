@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
+import WorshiperCommitmentsForm from './WorshiperCommitmentsForm';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
+  const [commitmentWorshiper, setCommitmentWorshiper] = useState<Worshiper | null>(null);
   const [formData, setFormData] = useState<Partial<Worshiper>>({
     title: '',
     firstName: '',
@@ -19,6 +21,7 @@ const WorshiperManagement: React.FC = () => {
     secondaryPhone: '',
     email: '',
     seatCount: 1,
+    commitments: [],
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -91,6 +94,7 @@ const WorshiperManagement: React.FC = () => {
         secondaryPhone: formData.secondaryPhone || '',
         email: formData.email || '',
         seatCount: formData.seatCount || 1,
+        commitments: formData.commitments || [],
       };
       setWorshipers(prev => [...prev, newWorshiper]);
       setIsAdding(false);
@@ -106,6 +110,7 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
+      commitments: [],
     });
   };
 
@@ -134,6 +139,7 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
+      commitments: [],
     });
   };
 
@@ -150,6 +156,7 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
+      commitments: [],
     });
   };
 
@@ -356,7 +363,15 @@ const WorshiperManagement: React.FC = () => {
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="מקומות"
                       >
-                        <MapPin className="h-4 w-4" />
+                    <MapPin className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setCommitmentWorshiper(w)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="התחייבויות"
+                      >
+                        <FileText className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleEditWorshiper(w)}
@@ -393,6 +408,12 @@ const WorshiperManagement: React.FC = () => {
       <WorshiperSeatsForm
         worshiper={seatWorshiper}
         onClose={() => setSeatWorshiper(null)}
+      />
+    )}
+    {commitmentWorshiper && (
+      <WorshiperCommitmentsForm
+        worshiper={commitmentWorshiper}
+        onClose={() => setCommitmentWorshiper(null)}
       />
     )}
     </>
