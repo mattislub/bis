@@ -5,7 +5,8 @@ import { ContactForm } from '../../types';
 
 // Dimensions for the map modal. This controls the area on the screen where
 // the embedded map is rendered so its size can be easily adjusted in one place.
-const MAP_MODAL_WIDTH = 800;
+// Use a percentage for the width so the map never exceeds 70% of the page width.
+const MAP_MODAL_WIDTH = '70%';
 const MAP_MODAL_HEIGHT = 450;
 
 const Contact: React.FC = () => {
