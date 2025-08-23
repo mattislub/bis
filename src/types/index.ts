@@ -11,6 +11,18 @@ export interface Worshiper {
   email: string;
   seatCount: number;
   avatar?: string;
+  commitments?: Commitment[];
+}
+
+export interface Commitment {
+  id: string;
+  description: string;
+  amount: number;
+  paid: boolean;
+  paidToPlace: boolean;
+  placeAmount: number;
+  aliyah?: string;
+  date?: string;
 }
 
 export interface Seat {
