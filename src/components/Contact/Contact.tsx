@@ -3,10 +3,9 @@ import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X, Ar
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
 
-// Dimensions for the map modal. This controls the area on the screen where
-// the embedded map is rendered so its size can be easily adjusted in one place.
-// Use a percentage for the width so the map never exceeds 70% of the page width.
-const MAP_MODAL_WIDTH = '70%';
+// Dimensions for the map modal. Using fixed values keeps the map inside
+// a constant frame regardless of the viewport size.
+const MAP_MODAL_WIDTH = 600;
 const MAP_MODAL_HEIGHT = 450;
 // Fixed size for the embedded map. When larger than the container,
 // navigation arrows will allow panning within the modal.
@@ -277,8 +276,8 @@ const Contact: React.FC = () => {
             </div>
             <div
               ref={containerRef}
-              className="relative overflow-hidden"
-              style={{ width: '100%', height: MAP_MODAL_HEIGHT }}
+              className="relative overflow-hidden border-4 border-gray-300 rounded-lg"
+              style={{ width: MAP_MODAL_WIDTH, height: MAP_MODAL_HEIGHT }}
             >
               <iframe
                 title="map"
