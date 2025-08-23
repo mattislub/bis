@@ -1,17 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X } from 'lucide-react';
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
 
-// Dimensions for the map modal. This controls the area on the screen where
-// the embedded map is rendered so its size can be easily adjusted in one place.
-// Use a percentage for the width so the map never exceeds 70% of the page width.
-const MAP_MODAL_WIDTH = '70%';
+// Height for the map modal
 const MAP_MODAL_HEIGHT = 450;
-// Fixed size for the embedded map. When larger than the container,
-// navigation arrows will allow panning within the modal.
-const MAP_IFRAME_WIDTH = 1000;
-const MAP_IFRAME_HEIGHT = 600;
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState<ContactForm>({
@@ -23,32 +16,6 @@ const Contact: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMapOpen, setIsMapOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [maxOffset, setMaxOffset] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const updateBounds = () => {
-      const container = containerRef.current;
-      if (!container) return;
-      setMaxOffset({
-        x: Math.min(0, container.clientWidth - MAP_IFRAME_WIDTH),
-        y: Math.min(0, MAP_MODAL_HEIGHT - MAP_IFRAME_HEIGHT),
-      });
-      setOffset({ x: 0, y: 0 });
-    };
-
-    updateBounds();
-    window.addEventListener('resize', updateBounds);
-    return () => window.removeEventListener('resize', updateBounds);
-  }, [isMapOpen]);
-
-  const pan = (dx: number, dy: number) => {
-    setOffset(prev => ({
-      x: Math.max(Math.min(prev.x + dx, 0), maxOffset.x),
-      y: Math.max(Math.min(prev.y + dy, 0), maxOffset.y),
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,10 +229,7 @@ const Contact: React.FC = () => {
       </div>
       {isMapOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white rounded-lg overflow-hidden"
-            style={{ width: MAP_MODAL_WIDTH }}
-          >
+          <div className="bg-white rounded-lg overflow-hidden w-full">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-900">מפה</h3>
               <button
@@ -275,55 +239,14 @@ const Contact: React.FC = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div
-              ref={containerRef}
-              className="relative overflow-hidden"
-              style={{ width: '100%', height: MAP_MODAL_HEIGHT }}
-            >
+            <div className="relative overflow-hidden" style={{ width: '100%', height: MAP_MODAL_HEIGHT }}>
               <iframe
                 title="map"
-                style={{
-                  border: 0,
-                  width: MAP_IFRAME_WIDTH,
-                  height: MAP_IFRAME_HEIGHT,
-                  transform: `translate(${offset.x}px, ${offset.y}px)`,
-                }}
+                style={{ border: 0, width: '100%', height: '100%' }}
                 loading="lazy"
                 allowFullScreen
                 src="https://www.google.com/maps?q=%D7%A8%D7%97%D7%95%D7%91%20%D7%94%D7%98%D7%9B%D7%A0%D7%95%D7%9C%D7%95%D7%92%D7%99%D7%94%2025%20%D7%AA%D7%9C%20%D7%90%D7%91%D7%99%D7%91-%D7%99%D7%A4%D7%95&output=embed"
               />
-              {maxOffset.x < 0 && (
-                <>
-                  <button
-                    onClick={() => pan(100, 0)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => pan(-100, 0)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1"
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-              {maxOffset.y < 0 && (
-                <>
-                  <button
-                    onClick={() => pan(0, 100)}
-                    className="absolute left-1/2 -translate-x-1/2 top-2 bg-white bg-opacity-70 rounded-full p-1"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => pan(0, -100)}
-                    className="absolute left-1/2 -translate-x-1/2 bottom-2 bg-white bg-opacity-70 rounded-full p-1"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
