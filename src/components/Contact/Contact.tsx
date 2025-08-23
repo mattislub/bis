@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X } from 'lucide-react';
+import Align from '../common/Align';
 import { ContactForm } from '../../types';
 
 const Contact: React.FC = () => {
@@ -41,12 +42,12 @@ const Contact: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="text-center">
+      <Align align="center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">צור קשר</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           יש לך שאלות או הצעות? נשמח לשמוע ממך ולעזור בכל דרך אפשרית
         </p>
-      </div>
+      </Align>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-8">
@@ -117,11 +118,11 @@ const Contact: React.FC = () => {
 
         <div className="bg-white p-8 rounded-lg shadow-lg border">
           {isSubmitted ? (
-            <div className="text-center py-12">
+            <Align align="center" className="py-12">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-gray-900 mb-2">תודה רבה!</h3>
               <p className="text-gray-600">הודעתך נשלחה בהצלחה. נחזור אליך בהקדם האפשרי.</p>
-            </div>
+            </Align>
           ) : (
             <>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">שלח הודעה</h2>
