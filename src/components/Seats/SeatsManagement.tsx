@@ -1414,8 +1414,10 @@ const SeatsManagement: React.FC = () => {
                           }}
                           title={status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
                         >
-                          <div className="text-white font-bold text-[7px] leading-tight text-center px-1">
-                            {status.worshiper ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}` : 'פנוי'}
+                          <div className="text-white font-medium text-[10px] leading-tight text-center px-1">
+                            {status.worshiper
+                              ? `${status.worshiper.title} ${status.worshiper.firstName} ${status.worshiper.lastName}`
+                              : 'פנוי'}
                           </div>
                           
                           {status.worshiper && (
