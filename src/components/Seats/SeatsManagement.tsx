@@ -776,21 +776,53 @@ const SeatsManagement: React.FC = () => {
       el.style.display = 'none';
     });
     await new Promise(resolve => setTimeout(resolve, 0));
+    // 1) רנדר איכותי מה-DOM
     const canvas = await html2canvas(element, {
-      scale: 1,
-      backgroundColor: '#ffffff',
+      scale: 3,           // 2–3 בדרך כלל מספיק. אפשר 4 אם צריך חדות קיצונית
+      useCORS: true,
+      backgroundColor: '#ffffff', // או null אם צריך שקיפות מלאה
     });
-    const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+
+    // 2) יצירת PDF עם יחידות מ״מ וללא דחיסה אגרסיבית
     const pdf = new jsPDF({
-      orientation,
-      unit: 'px',
-      format: [canvas.width, canvas.height],
-      compress: true,
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: false,
     });
-    const imgData = canvas.toDataURL('image/jpeg', 0.7);
-    pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'FAST');
-    const fileName = (currentMap?.name ? currentMap.name.replace(/\s+/g, '_') : 'map') + '.pdf';
-    pdf.save(fileName);
+
+    // 3) המרת הקנבס לתמונה באיכות גבוהה (נסה גם PNG אם רוב התוכן הוא טקסט/UI)
+    const imgData = canvas.toDataURL('image/jpeg', 0.98); // 0.95–0.99 ייתן חדות עדיפה
+
+    // 4) חישוב גודל התמונה בתוך ה-PDF לפי יחס ממדים, ולא לפי פיקסלים
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // שוליים אופציונליים
+    const margin = 10; // מ״מ
+    const maxWidth = pageWidth - margin * 2;
+    const imgWidth = maxWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // אם התמונה גבוהה מדי לדף אחד — מקטינים לגובה הדף (שמירה על יחס)
+    let renderWidth = imgWidth;
+    let renderHeight = imgHeight;
+    if (renderHeight > pageHeight - margin * 2) {
+      renderHeight = pageHeight - margin * 2;
+      renderWidth = (canvas.width * renderHeight) / canvas.height;
+    }
+
+    // 5) הוספת התמונה למסמך ביחידות מ״מ, ללא 'FAST'
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      (pageWidth - renderWidth) / 2, // מרכז אופקית
+      (pageHeight - renderHeight) / 2, // מרכז אנכית (או השתמש ב-margin)
+      renderWidth,
+      renderHeight
+    );
+
+    pdf.save('seats.pdf');
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
     if (!isColor) element.classList.remove('pdf-export');
     hiddenElements.forEach(el => {
@@ -807,7 +839,7 @@ const SeatsManagement: React.FC = () => {
       return;
     }
 
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
     const labelWidth = 70;
     const labelHeight = 35;
     const cols = 3;
