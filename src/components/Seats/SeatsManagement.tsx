@@ -186,6 +186,7 @@ const SeatsManagement: React.FC = () => {
     loadMap,
     currentMapId,
     renameMap,
+    trimMap,
   } = useAppContext();
   const mapRef = useRef<HTMLDivElement>(null);
   const currentMap = maps.find(m => m.id === currentMapId);
@@ -764,6 +765,8 @@ const SeatsManagement: React.FC = () => {
   };
 
   const exportMapToPDF = async (isColor = false) => {
+    trimMap();
+    await new Promise(resolve => setTimeout(resolve, 0));
     const element = mapRef.current;
     if (!element) return;
     const originalShowGrid = gridSettings.showGrid;

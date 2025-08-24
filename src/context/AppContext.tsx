@@ -31,6 +31,7 @@ interface AppContextType {
   setCurrentMapId: (id: string) => void;
   mapTemplates: MapTemplate[];
   addTemplate: (template: MapTemplate) => void;
+  trimMap: () => void;
   saveCurrentMap: (name?: string) => void;
   loadMap: (id: string) => void;
   deleteMap: (id: string) => void;
@@ -292,15 +293,102 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
 
+  const PX_PER_CM = 96 / 2.54;
+  const PRINT_MARGIN = 1.5 * PX_PER_CM;
+
+  const getBenchDimensions = (bench: Bench) => {
+    if (bench.type === 'special') {
+      return {
+        width: bench.width || 0,
+        height: bench.height || 0,
+      };
+    }
+    return {
+      width: bench.orientation === 'horizontal' ? bench.seatCount * 60 + 20 : 80,
+      height: bench.orientation === 'horizontal' ? 80 : bench.seatCount * 60 + 20,
+    };
+  };
+
+  const calculateTrimmedMap = () => {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    benches.forEach(b => {
+      const { width, height } = getBenchDimensions(b);
+      minX = Math.min(minX, b.position.x);
+      minY = Math.min(minY, b.position.y);
+      maxX = Math.max(maxX, b.position.x + width);
+      maxY = Math.max(maxY, b.position.y + height);
+    });
+
+    seats
+      .filter(s => !s.benchId)
+      .forEach(s => {
+        minX = Math.min(minX, s.position.x);
+        minY = Math.min(minY, s.position.y);
+        maxX = Math.max(maxX, s.position.x + 60);
+        maxY = Math.max(maxY, s.position.y + 60);
+      });
+
+    if (minX === Infinity) {
+      return {
+        benches,
+        seats,
+        mapBounds: { top: PRINT_MARGIN, right: PRINT_MARGIN, bottom: PRINT_MARGIN, left: PRINT_MARGIN },
+      };
+    }
+
+    const shiftX = minX > PRINT_MARGIN ? minX - PRINT_MARGIN : 0;
+    const shiftY = minY > PRINT_MARGIN ? minY - PRINT_MARGIN : 0;
+
+    const adjustedBenches = shiftX || shiftY ? benches.map(b => ({
+      ...b,
+      position: { x: b.position.x - shiftX, y: b.position.y - shiftY },
+    })) : benches;
+
+    const adjustedSeats = shiftX || shiftY ? seats.map(s => ({
+      ...s,
+      position: { x: s.position.x - shiftX, y: s.position.y - shiftY },
+    })) : seats;
+
+    const maxXShifted = maxX - shiftX;
+    const maxYShifted = maxY - shiftY;
+
+    const newBounds: MapBounds = {
+      top: PRINT_MARGIN,
+      left: PRINT_MARGIN,
+      right: Math.max(PRINT_MARGIN, maxXShifted + PRINT_MARGIN > 1200 ? maxXShifted + PRINT_MARGIN - 1200 : PRINT_MARGIN),
+      bottom: Math.max(PRINT_MARGIN, maxYShifted + PRINT_MARGIN > 800 ? maxYShifted + PRINT_MARGIN - 800 : PRINT_MARGIN),
+    };
+
+    return { benches: adjustedBenches, seats: adjustedSeats, mapBounds: newBounds };
+  };
+
+  const trimMap = () => {
+    const trimmed = calculateTrimmedMap();
+    if (trimmed.benches !== benches) setBenches(trimmed.benches);
+    if (trimmed.seats !== seats) setSeats(trimmed.seats);
+    const boundsChanged =
+      trimmed.mapBounds.top !== mapBounds.top ||
+      trimmed.mapBounds.right !== mapBounds.right ||
+      trimmed.mapBounds.bottom !== mapBounds.bottom ||
+      trimmed.mapBounds.left !== mapBounds.left;
+    if (boundsChanged) setMapBounds(trimmed.mapBounds);
+    return trimmed;
+  };
+
   const saveCurrentMap = (name?: string) => {
+    const { benches: b, seats: s, mapBounds: bounds } = trimMap();
     if (name) {
       const id = Date.now().toString();
       const map: MapData = {
         id,
         name,
-        benches,
-        seats,
-        mapBounds,
+        benches: b,
+        seats: s,
+        mapBounds: bounds,
         mapOffset,
       };
       setMaps(prev => [...prev, map]);
@@ -309,7 +397,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMaps(prev =>
         prev.map(m =>
           m.id === currentMapId
-            ? { ...m, benches, seats, mapBounds, mapOffset }
+            ? { ...m, benches: b, seats: s, mapBounds: bounds, mapOffset }
             : m
         )
       );
@@ -376,6 +464,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setCurrentMapId,
       mapTemplates,
       addTemplate,
+      trimMap,
       saveCurrentMap,
       loadMap,
       deleteMap,
