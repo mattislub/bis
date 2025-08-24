@@ -10,6 +10,7 @@ import About from './components/About/About';
 import MapManagementGuide from './components/Seats/MapManagementGuide';
 import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
+import MapView from './components/Seats/MapView';
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/view/:id"
+            element={
+              <AppProvider>
+                <MapView />
+              </AppProvider>
+            }
+          />
           <Route
             path="/"
             element={

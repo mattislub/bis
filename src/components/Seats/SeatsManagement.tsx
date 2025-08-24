@@ -24,7 +24,8 @@ import {
   Eye,
   UserCheck,
   Printer,
-  Tag
+  Tag,
+  ExternalLink
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 import html2canvas from 'html2canvas';
@@ -1871,6 +1872,14 @@ const SeatsManagement: React.FC = () => {
                       >
                         <Eye className="h-4 w-4" />
                       </button>
+                      <a
+                        href={`#/view/${m.id}`}
+                        target="_blank"
+                        className="p-1 text-green-600 hover:text-green-800"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
                       <button
                         onClick={() => handlePrintMap(m.id)}
                         className="p-1 text-purple-600 hover:text-purple-800"
