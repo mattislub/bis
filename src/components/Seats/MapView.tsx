@@ -8,6 +8,17 @@ const MapView: React.FC = () => {
   const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
 
   useEffect(() => {
+    const originalPadding = document.body.style.padding;
+    const originalMargin = document.body.style.margin;
+    document.body.style.padding = '0';
+    document.body.style.margin = '0';
+    return () => {
+      document.body.style.padding = originalPadding;
+      document.body.style.margin = originalMargin;
+    };
+  }, []);
+
+  useEffect(() => {
     if (id) {
       loadMap(id);
     }
@@ -26,9 +37,9 @@ const MapView: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="min-h-screen w-full overflow-auto bg-gray-100">
       <div
-        className="relative bg-white shadow-lg"
+        className="relative"
         style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
       >
         <div
