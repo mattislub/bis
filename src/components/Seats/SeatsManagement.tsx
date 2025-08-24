@@ -782,7 +782,7 @@ const SeatsManagement: React.FC = () => {
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 1,
       backgroundColor: '#ffffff',
     });
     const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
@@ -794,7 +794,8 @@ const SeatsManagement: React.FC = () => {
     });
     const imgData = canvas.toDataURL('image/jpeg', 0.7);
     pdf.addImage(imgData, 'JPEG', 0, 0, canvas.width, canvas.height, undefined, 'FAST');
-    pdf.save('map.pdf');
+    const fileName = (currentMap?.name ? currentMap.name.replace(/\s+/g, '_') : 'map') + '.pdf';
+    pdf.save(fileName);
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
     hiddenElements.forEach(el => {
       el.style.display = '';
