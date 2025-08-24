@@ -766,19 +766,12 @@ const SeatsManagement: React.FC = () => {
     if (!element) return;
     const originalShowGrid = gridSettings.showGrid;
     setGridSettings(prev => ({ ...prev, showGrid: false }));
+    element.classList.add('pdf-export');
     const hiddenElements = Array.from(
       element.querySelectorAll('.print-hidden')
     ) as HTMLElement[];
     hiddenElements.forEach(el => {
       el.style.display = 'none';
-    });
-    const shadowElements = Array.from(
-      element.querySelectorAll('[class*="shadow"]')
-    ) as HTMLElement[];
-    const boxShadowMap = new Map<HTMLElement, string>();
-    shadowElements.forEach(el => {
-      boxShadowMap.set(el, el.style.boxShadow);
-      el.style.boxShadow = 'none';
     });
     await new Promise(resolve => setTimeout(resolve, 0));
     const canvas = await html2canvas(element, {
@@ -797,14 +790,9 @@ const SeatsManagement: React.FC = () => {
     const fileName = (currentMap?.name ? currentMap.name.replace(/\s+/g, '_') : 'map') + '.pdf';
     pdf.save(fileName);
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
+    element.classList.remove('pdf-export');
     hiddenElements.forEach(el => {
       el.style.display = '';
-    });
-    shadowElements.forEach(el => {
-      const original = boxShadowMap.get(el);
-      if (original !== undefined) {
-        el.style.boxShadow = original;
-      }
     });
   };
 
