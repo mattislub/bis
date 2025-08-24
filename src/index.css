@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Styles applied during PDF export to produce a clean black and white map */
+.pdf-export {
+  filter: grayscale(100%) contrast(200%);
+}
+
+.pdf-export *,
+.pdf-export *::before,
+.pdf-export *::after {
+  box-shadow: none !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  border-radius: 6px !important;
+}
