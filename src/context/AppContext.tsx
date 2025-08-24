@@ -293,15 +293,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
 
   const saveCurrentMap = (name?: string) => {
-    if (currentMapId) {
-      setMaps(prev =>
-        prev.map(m =>
-          m.id === currentMapId
-            ? { ...m, benches, seats, mapBounds, mapOffset }
-            : m
-        )
-      );
-    } else if (name) {
+    if (name) {
       const id = Date.now().toString();
       const map: MapData = {
         id,
@@ -313,6 +305,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       };
       setMaps(prev => [...prev, map]);
       setCurrentMapId(id);
+    } else if (currentMapId) {
+      setMaps(prev =>
+        prev.map(m =>
+          m.id === currentMapId
+            ? { ...m, benches, seats, mapBounds, mapOffset }
+            : m
+        )
+      );
     }
   };
 

@@ -253,13 +253,13 @@ const SeatsManagement: React.FC = () => {
   }, [benches, saveCurrentMap]);
 
   const handleSaveMap = () => {
-    if (currentMapId) {
-      saveCurrentMap();
-    } else {
-      const name = prompt('הכנס שם למפה החדשה:');
-      if (name) {
-        saveCurrentMap(name);
-      }
+    saveCurrentMap();
+  };
+
+  const handleAddMap = () => {
+    const name = prompt('הכנס שם למפה החדשה:');
+    if (name) {
+      saveCurrentMap(name);
     }
   };
 
@@ -1832,7 +1832,7 @@ const SeatsManagement: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">מפות בזכרון</h3>
             <button
-              onClick={handleSaveMap}
+              onClick={handleAddMap}
               className="w-full flex items-center justify-center px-4 py-2 mb-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Plus className="h-4 w-4 ml-2" />
