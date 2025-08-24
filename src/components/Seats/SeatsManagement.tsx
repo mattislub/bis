@@ -843,11 +843,15 @@ const SeatsManagement: React.FC = () => {
     }
 
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
-    const labelWidth = 70;
+    const pageWidth = doc.internal.pageSize.getWidth();
     const labelHeight = 35;
     const cols = 3;
     const rowsPerPage = 8;
-    const topMargin = (297 - rowsPerPage * labelHeight) / 2; // center vertically
+
+    // שמירה על שוליים בצדדים וסידור התוויות במרכז העמוד
+    const horizontalMargin = 10; // מ"מ
+    const labelWidth = (pageWidth - horizontalMargin * 2) / cols;
+    const topMargin = (297 - rowsPerPage * labelHeight) / 2; // מרכז אנכית
 
     labeledSeats.forEach((seat, index) => {
       const position = index % (cols * rowsPerPage);
@@ -856,7 +860,7 @@ const SeatsManagement: React.FC = () => {
       }
       const row = Math.floor(position / cols);
       const col = position % cols;
-      const x = col * labelWidth;
+      const x = horizontalMargin + col * labelWidth;
       const y = topMargin + row * labelHeight;
 
       doc.rect(x, y, labelWidth, labelHeight);
