@@ -89,6 +89,7 @@ const specialElements = [
 ];
 
 const MIN_BENCH_SPACING = 20;
+const MAP_EXPANSION_MARGIN = 20;
 
 const getBenchDimensions = (bench: Bench) => {
   if (bench.type === 'special') {
@@ -305,10 +306,16 @@ const SeatsManagement: React.FC = () => {
 
         benchesToCheck.forEach(b => {
           const { width, height } = getBenchDimensions(b);
-          left = Math.max(left, Math.max(0, -b.position.x));
-          top = Math.max(top, Math.max(0, -b.position.y));
-          right = Math.max(right, Math.max(0, b.position.x + width - rect.width));
-          bottom = Math.max(bottom, Math.max(0, b.position.y + height - rect.height));
+          left = Math.max(left, Math.max(0, -b.position.x + MAP_EXPANSION_MARGIN));
+          top = Math.max(top, Math.max(0, -b.position.y + MAP_EXPANSION_MARGIN));
+          right = Math.max(
+            right,
+            Math.max(0, b.position.x + width - rect.width + MAP_EXPANSION_MARGIN)
+          );
+          bottom = Math.max(
+            bottom,
+            Math.max(0, b.position.y + height - rect.height + MAP_EXPANSION_MARGIN)
+          );
         });
 
         return { left, top, right, bottom };
