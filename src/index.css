@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  @apply p-4 text-center;
+}
+
 /* Styles applied during PDF export to produce a clean black and white map */
 .pdf-export {
   filter: grayscale(100%) contrast(200%);
