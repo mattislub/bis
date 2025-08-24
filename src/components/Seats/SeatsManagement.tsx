@@ -242,6 +242,7 @@ const SeatsManagement: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [showPdfOptions, setShowPdfOptions] = useState(false);
 
   const isInitialRender = useRef(true);
   React.useEffect(() => {
@@ -761,12 +762,12 @@ const SeatsManagement: React.FC = () => {
     setSeats(updatedSeats);
   };
 
-  const exportMapToPDF = async () => {
+  const exportMapToPDF = async (isColor = false) => {
     const element = mapRef.current;
     if (!element) return;
     const originalShowGrid = gridSettings.showGrid;
     setGridSettings(prev => ({ ...prev, showGrid: false }));
-    element.classList.add('pdf-export');
+    if (!isColor) element.classList.add('pdf-export');
     const hiddenElements = Array.from(
       element.querySelectorAll('.print-hidden')
     ) as HTMLElement[];
@@ -790,7 +791,7 @@ const SeatsManagement: React.FC = () => {
     const fileName = (currentMap?.name ? currentMap.name.replace(/\s+/g, '_') : 'map') + '.pdf';
     pdf.save(fileName);
     setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
-    element.classList.remove('pdf-export');
+    if (!isColor) element.classList.remove('pdf-export');
     hiddenElements.forEach(el => {
       el.style.display = '';
     });
@@ -1144,13 +1145,37 @@ const SeatsManagement: React.FC = () => {
                   >
                     <Save className="h-4 w-4" />
                   </button>
-                  <button
-                    onClick={exportMapToPDF}
-                    className="p-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-                    title="ייצא ל-PDF"
-                  >
-                    <Printer className="h-4 w-4" />
-                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowPdfOptions(prev => !prev)}
+                      className="p-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
+                      title="ייצא ל-PDF"
+                    >
+                      <Printer className="h-4 w-4" />
+                    </button>
+                    {showPdfOptions && (
+                      <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg z-10">
+                        <button
+                          onClick={() => {
+                            exportMapToPDF(true);
+                            setShowPdfOptions(false);
+                          }}
+                          className="block px-4 py-2 text-right hover:bg-gray-100 w-full"
+                        >
+                          צבעוני
+                        </button>
+                        <button
+                          onClick={() => {
+                            exportMapToPDF(false);
+                            setShowPdfOptions(false);
+                          }}
+                          className="block px-4 py-2 text-right hover:bg-gray-100 w-full"
+                        >
+                          שחור לבן
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={exportAllSeatsToLabels}
                     className="p-2 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
