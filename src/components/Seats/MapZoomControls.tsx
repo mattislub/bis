@@ -4,11 +4,13 @@ import { Plus, Minus, Maximize } from 'lucide-react';
 interface MapZoomControlsProps {
   setZoom: React.Dispatch<React.SetStateAction<number>>;
   onFit?: () => void;
+  min?: number;
+  max?: number;
 }
 
-const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit }) => {
-  const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
-  const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
+const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit, min = 0.3, max = 3 }) => {
+  const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, max));
+  const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, min));
 
   return (
     <div className="flex items-center space-x-2 space-x-reverse">
