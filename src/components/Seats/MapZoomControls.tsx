@@ -1,11 +1,12 @@
 import React from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Maximize } from 'lucide-react';
 
 interface MapZoomControlsProps {
   setZoom: React.Dispatch<React.SetStateAction<number>>;
+  onFit?: () => void;
 }
 
-const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom }) => {
+const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit }) => {
   const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2));
   const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
@@ -25,6 +26,15 @@ const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom }) => {
       >
         <Minus className="h-4 w-4" />
       </button>
+      {onFit && (
+        <button
+          onClick={onFit}
+          className="p-2 hover:bg-gray-100 border-t"
+          aria-label="התאם למסך"
+        >
+          <Maximize className="h-4 w-4" />
+        </button>
+      )}
     </div>
   );
 };
