@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper, Bench, MapBounds } from '../../types';
 import {
@@ -190,7 +190,19 @@ const SeatsManagement: React.FC = () => {
     trimMap,
   } = useAppContext();
   const mapRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const currentMap = maps.find(m => m.id === currentMapId);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setBaseSize({ width: el.clientWidth, height: el.clientHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const updateBenches = useCallback(
     (updater: Bench[] | ((prev: Bench[]) => Bench[])) => {
@@ -485,8 +497,8 @@ const SeatsManagement: React.FC = () => {
 
     const minWidth = 20;
     const minHeight = 20;
-    const containerWidth = 1200;
-    const containerHeight = 800;
+    const containerWidth = baseSize.width;
+    const containerHeight = baseSize.height;
 
     const updated = benches.map(b => {
       if (b.id !== resizingBench) return b;
@@ -610,7 +622,7 @@ const SeatsManagement: React.FC = () => {
     const newSeats = generateSeatsForBench(newBench);
     setSeats(prev => [...prev, ...newSeats]);
 
-    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
 
     setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', temporary: false });
     setPendingPosition(null);
@@ -636,7 +648,7 @@ const SeatsManagement: React.FC = () => {
     };
     const updated = [...benches, newSpecial];
     updateBenches(updated);
-    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
     setShowSpecialDialog(false);
     setSelectedSpecialId('');
     setPendingPosition(null);
@@ -675,7 +687,7 @@ const SeatsManagement: React.FC = () => {
     }
 
     updateBenches(updatedBenches);
-    expandBoundsIfNeeded(updatedBenches, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updatedBenches, { width: baseSize.width, height: baseSize.height });
 
     setBenchForm({ name: '', seatCount: 4, orientation: 'horizontal', color: '#3B82F6', temporary: false });
     setEditingBench(null);
@@ -699,7 +711,7 @@ const SeatsManagement: React.FC = () => {
       b.id === benchId ? { ...b, orientation: newOrientation } : b
     );
     updateBenches(updated);
-    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
 
     // המקומות עכשיו מוכלים בספסל ולא צריכים עדכון מיקום נפרד
   };
@@ -732,7 +744,7 @@ const SeatsManagement: React.FC = () => {
 
     const updated = [...benches, newBench];
     updateBenches(updated);
-    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
 
     const newSeats = generateSeatsForBench(newBench);
     setSeats(prev => [...prev, ...newSeats]);
@@ -937,8 +949,8 @@ const SeatsManagement: React.FC = () => {
   const renderGrid = () => {
     if (!gridSettings.showGrid) return null;
     const gridLines = [];
-    const containerWidth = 1200 + mapBounds.left + mapBounds.right;
-    const containerHeight = 800 + mapBounds.top + mapBounds.bottom;
+    const containerWidth = baseSize.width + mapBounds.left + mapBounds.right;
+    const containerHeight = baseSize.height + mapBounds.top + mapBounds.bottom;
     const startX = (gridSettings.gridSize - (mapBounds.left % gridSettings.gridSize)) % gridSettings.gridSize;
     const startY = (gridSettings.gridSize - (mapBounds.top % gridSettings.gridSize)) % gridSettings.gridSize;
 
@@ -1011,13 +1023,13 @@ const SeatsManagement: React.FC = () => {
           return { ...bench, position: { x: newX, y: newY } };
         });
         updateBenches(updated);
-        expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+        expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedBenchIds, benches, updateBenches, gridSettings, expandBoundsIfNeeded]);
+  }, [selectedBenchIds, benches, updateBenches, gridSettings, expandBoundsIfNeeded, baseSize]);
 
   const createBenchRow = () => {
     if (!selectedBench) return;
@@ -1063,7 +1075,7 @@ const SeatsManagement: React.FC = () => {
     const updated = [...benches, ...newBenches];
     updateBenches(updated);
     setSeats(prev => [...prev, ...newSeats]);
-    expandBoundsIfNeeded(updated, { width: 1200, height: 800 });
+    expandBoundsIfNeeded(updated, { width: baseSize.width, height: baseSize.height });
     setShowRowDialog(false);
   };
 
@@ -1271,10 +1283,13 @@ const SeatsManagement: React.FC = () => {
               />
             </div>
 
-            <div className="relative h-[75vh] w-full overflow-auto bg-gray-50 border border-gray-200 rounded-lg">
+            <div
+              ref={containerRef}
+              className="relative h-[75vh] w-full overflow-auto bg-gray-50 border border-gray-200 rounded-lg"
+            >
               <div
                 className="relative border-2 border-dashed border-gray-300 rounded-lg mx-auto my-4"
-                style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
+                style={{ width: baseSize.width + mapBounds.left + mapBounds.right, height: baseSize.height + mapBounds.top + mapBounds.bottom }}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onContextMenu={handleContextMenu}
