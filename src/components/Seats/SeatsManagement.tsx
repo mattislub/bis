@@ -868,6 +868,7 @@ const SeatsManagement: React.FC = () => {
     await new Promise(resolve => setTimeout(resolve, 0));
     const element = mapRef.current;
     if (!element) return;
+    const wrapperEl = element.parentElement as HTMLDivElement | null;
     const originalShowGrid = gridSettings.showGrid;
     setGridSettings(prev => ({ ...prev, showGrid: false }));
     if (!isColor) element.classList.add('pdf-export');
@@ -878,9 +879,17 @@ const SeatsManagement: React.FC = () => {
       el.style.display = 'none';
     });
     await new Promise(resolve => setTimeout(resolve, 0));
-    // 1) רנדר איכותי מה-DOM
-    const canvas = await html2canvas(element, {
-      scale: 3,           // 2–3 בדרך כלל מספיק. אפשר 4 אם צריך חדות קיצונית
+    // 1) רנדר איכותי מה-DOM עם ממדים מלאים של ה-wrapper
+    const fullWidth =
+      wrapperEl?.scrollWidth ?? wrapperEl?.clientWidth ?? element.clientWidth;
+    const fullHeight =
+      wrapperEl?.scrollHeight ?? wrapperEl?.clientHeight ?? element.clientHeight;
+    const canvas = await html2canvas(wrapperEl || element, {
+      width: fullWidth,
+      height: fullHeight,
+      windowWidth: fullWidth,
+      windowHeight: fullHeight,
+      scale: 3, // 2–3 בדרך כלל מספיק. אפשר 4 אם צריך חדות קיצונית
       useCORS: true,
       backgroundColor: '#ffffff', // או null אם צריך שקיפות מלאה
     });
