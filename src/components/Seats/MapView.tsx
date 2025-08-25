@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
@@ -6,6 +6,8 @@ import { Seat, Worshiper } from '../../types';
 const MapView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
 
   useEffect(() => {
     const originalPadding = document.body.style.padding;
@@ -16,6 +18,16 @@ const MapView: React.FC = () => {
       document.body.style.padding = originalPadding;
       document.body.style.margin = originalMargin;
     };
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setBaseSize({ width: el.clientWidth, height: el.clientHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   useEffect(() => {
@@ -38,15 +50,16 @@ const MapView: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100">
-      <div
-        className="relative"
-        style={{ width: 1200 + mapBounds.left + mapBounds.right, height: 800 + mapBounds.top + mapBounds.bottom }}
-      >
+      <div ref={containerRef} className="relative h-screen w-full">
         <div
-          className="absolute inset-0"
-          style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)`, transformOrigin: 'top left' }}
+          className="absolute"
+          style={{ width: baseSize.width + mapBounds.left + mapBounds.right, height: baseSize.height + mapBounds.top + mapBounds.bottom }}
         >
-          {benches.map(bench => (
+          <div
+            className="absolute inset-0"
+            style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)`, transformOrigin: 'top left' }}
+          >
+            {benches.map(bench => (
             <div
               key={bench.id}
               className="absolute rounded-lg border-2"
@@ -104,7 +117,8 @@ const MapView: React.FC = () => {
                 </div>
               )}
             </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

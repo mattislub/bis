@@ -1329,7 +1329,7 @@ const SeatsManagement: React.FC = () => {
                   >
                     <Trash2 className="h-4 w-4" />
                 </button>
-                  <MapZoomControls setZoom={setZoom} onFit={handleFitToScreen} />
+                  <MapZoomControls setZoom={setZoom} onFit={handleFitToScreen} min={MIN_ZOOM} max={MAX_ZOOM} />
               </div>
             </div>
 
