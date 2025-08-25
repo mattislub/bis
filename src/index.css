@@ -8,6 +8,7 @@ body {
 
 /* Styles applied during PDF export to produce a clean black and white map */
 .pdf-export {
+  transform: none !important;
   filter: grayscale(100%) contrast(200%);
 }
 
