@@ -29,7 +29,229 @@ import {
 } from 'lucide-react';
 import MapZoomControls from './MapZoomControls';
 import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
+
+type PdfMode = 'a4' | 'onePage';
+type ColorMode = 'color' | 'bw';
+
+const DPI_FOR_MM = 96;
+const MM_PER_INCH = 25.4;
+
+function pxToMm(px: number, dpi = DPI_FOR_MM) {
+  return (px / dpi) * MM_PER_INCH;
+}
+
+async function renderWrapperToCanvas(wrapperEl: HTMLElement) {
+  const fullWidth = wrapperEl.scrollWidth || wrapperEl.clientWidth;
+  const fullHeight = wrapperEl.scrollHeight || wrapperEl.clientHeight;
+
+  return await html2canvas(wrapperEl, {
+    width: fullWidth,
+    height: fullHeight,
+    windowWidth: fullWidth,
+    windowHeight: fullHeight,
+    scale: 3,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+  });
+}
+
+function toGrayscaleCanvas(src: HTMLCanvasElement, pureBW = false, threshold = 128) {
+  const w = src.width, h = src.height;
+  const dst = document.createElement('canvas');
+  dst.width = w; dst.height = h;
+  const sctx = src.getContext('2d')!;
+  const dctx = dst.getContext('2d')!;
+  const img = sctx.getImageData(0, 0, w, h);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    const y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    if (pureBW) {
+      const v = y >= threshold ? 255 : 0;
+      data[i] = data[i + 1] = data[i + 2] = v;
+    } else {
+      data[i] = data[i + 1] = data[i + 2] = y;
+    }
+  }
+  dctx.putImageData(img, 0, 0);
+  return dst;
+}
+
+async function exportMapToPDF(opts: {
+  wrapperEl: HTMLElement;
+  mapLayerEl: HTMLElement;
+  mode: PdfMode;
+  colorMode: ColorMode;
+  bwHard?: boolean;
+  bwThreshold?: number;
+  marginsMm?: number;
+  fileName?: string;
+}) {
+  const {
+    wrapperEl,
+    mapLayerEl,
+    mode,
+    colorMode,
+    bwHard = false,
+    bwThreshold = 128,
+    marginsMm = 10,
+    fileName = 'map.pdf',
+  } = opts;
+
+  mapLayerEl.classList.add('pdf-export');
+  let canvas = await renderWrapperToCanvas(wrapperEl);
+  mapLayerEl.classList.remove('pdf-export');
+
+  if (colorMode === 'bw') {
+    canvas = toGrayscaleCanvas(canvas, bwHard, bwThreshold);
+  }
+
+  if (mode === 'onePage') {
+    const pageWmm = pxToMm(canvas.width);
+    const pageHmm = pxToMm(canvas.height);
+    const orientation = pageWmm > pageHmm ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({ orientation, unit: 'mm', format: [pageWmm, pageHmm], compress: false });
+    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageWmm, pageHmm);
+    pdf.save(fileName);
+    return;
+  }
+
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const maxW = pageW - marginsMm * 2;
+  const maxH = pageH - marginsMm * 2;
+
+  const imgWpx = canvas.width;
+  const imgHpx = canvas.height;
+
+  let renderW = maxW;
+  let renderH = (imgHpx * renderW) / imgWpx;
+  if (renderH > maxH) {
+    renderH = maxH;
+    renderW = (imgWpx * renderH) / imgHpx;
+  }
+  const pxPerMm = imgWpx / renderW;
+  const sliceHeightPx = Math.floor(maxH * pxPerMm);
+
+  for (let yPx = 0; yPx < imgHpx; yPx += sliceHeightPx) {
+    if (yPx > 0) pdf.addPage();
+    const sliceCanvas = document.createElement('canvas');
+    sliceCanvas.width = imgWpx;
+    sliceCanvas.height = Math.min(sliceHeightPx, imgHpx - yPx);
+    sliceCanvas.getContext('2d')!.drawImage(
+      canvas,
+      0,
+      yPx,
+      imgWpx,
+      sliceCanvas.height,
+      0,
+      0,
+      imgWpx,
+      sliceCanvas.height
+    );
+    const sliceHmm = sliceCanvas.height / pxPerMm;
+    pdf.addImage(
+      sliceCanvas.toDataURL('image/png'),
+      'PNG',
+      (pageW - renderW) / 2,
+      marginsMm,
+      renderW,
+      Math.min(sliceHmm, maxH)
+    );
+  }
+
+  pdf.save(fileName);
+}
+
+function PdfToolbar({
+  wrapperRef,
+  mapLayerRef,
+}: {
+  wrapperRef: React.RefObject<HTMLDivElement>;
+  mapLayerRef: React.RefObject<HTMLDivElement>;
+}) {
+  const [pdfMode, setPdfMode] = React.useState<PdfMode>('a4');
+  const [colorMode, setColorMode] = React.useState<ColorMode>('color');
+  const [hardBW, setHardBW] = React.useState(false);
+  const [threshold, setThreshold] = React.useState(128);
+
+  const onExport = async () => {
+    if (!wrapperRef.current || !mapLayerRef.current) return;
+    await exportMapToPDF({
+      wrapperEl: wrapperRef.current,
+      mapLayerEl: mapLayerRef.current,
+      mode: pdfMode,
+      colorMode,
+      bwHard: hardBW,
+      bwThreshold: threshold,
+      marginsMm: 10,
+      fileName:
+        (colorMode === 'bw' ? 'map-bw-' : 'map-color-') +
+        (pdfMode === 'a4' ? 'a4.pdf' : 'onepage.pdf'),
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <label className="text-sm">
+        צבע:
+        <select
+          value={colorMode}
+          onChange={e => setColorMode(e.target.value as ColorMode)}
+          className="ml-2 border rounded px-2 py-1"
+        >
+          <option value="color">צבעוני</option>
+          <option value="bw">שחור-לבן</option>
+        </select>
+      </label>
+
+      {colorMode === 'bw' && (
+        <>
+          <label className="text-sm flex items-center gap-1">
+            <input
+              type="checkbox"
+              checked={hardBW}
+              onChange={e => setHardBW(e.target.checked)}
+            />
+            המרה קשיחה (B/W)
+          </label>
+          {hardBW && (
+            <label className="text-sm">
+              סף:
+              <input
+                type="range"
+                min={0}
+                max={255}
+                value={threshold}
+                onChange={e => setThreshold(+e.target.value)}
+                className="ml-2"
+              />
+              <span className="ml-2">{threshold}</span>
+            </label>
+          )}
+        </>
+      )}
+
+      <label className="text-sm">
+        פורמט:
+        <select
+          value={pdfMode}
+          onChange={e => setPdfMode(e.target.value as PdfMode)}
+          className="ml-2 border rounded px-2 py-1"
+        >
+          <option value="a4">A4 (פיצול עמודים אוטומטי)</option>
+          <option value="onePage">דף אחד (כל המפה)</option>
+        </select>
+      </label>
+
+      <button onClick={onExport} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">
+        ייצוא PDF
+      </button>
+    </div>
+  );
+}
 
 const specialElements = [
   {
@@ -215,7 +437,8 @@ const SeatsManagement: React.FC = () => {
     renameMap,
     trimMap,
   } = useAppContext();
-  const mapRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const mapLayerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const currentMap = maps.find(m => m.id === currentMapId);
@@ -298,7 +521,6 @@ const SeatsManagement: React.FC = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionStart, setSelectionStart] = useState<XY | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const [showPdfOptions, setShowPdfOptions] = useState(false);
 
   const isInitialRender = useRef(true);
   React.useEffect(() => {
@@ -863,83 +1085,6 @@ const SeatsManagement: React.FC = () => {
     setSeats(updatedSeats);
   };
 
-  const exportMapToPDF = async (isColor = false) => {
-    trimMap();
-    await new Promise(resolve => setTimeout(resolve, 0));
-    const element = mapRef.current;
-    if (!element) return;
-    const wrapperEl = element.parentElement as HTMLDivElement | null;
-    const originalShowGrid = gridSettings.showGrid;
-    setGridSettings(prev => ({ ...prev, showGrid: false }));
-    if (!isColor) element.classList.add('pdf-export');
-    const hiddenElements = Array.from(
-      element.querySelectorAll('.print-hidden')
-    ) as HTMLElement[];
-    hiddenElements.forEach(el => {
-      el.style.display = 'none';
-    });
-    await new Promise(resolve => setTimeout(resolve, 0));
-    // 1) רנדר איכותי מה-DOM עם ממדים מלאים של ה-wrapper
-    const fullWidth =
-      wrapperEl?.scrollWidth ?? wrapperEl?.clientWidth ?? element.clientWidth;
-    const fullHeight =
-      wrapperEl?.scrollHeight ?? wrapperEl?.clientHeight ?? element.clientHeight;
-    const canvas = await html2canvas(wrapperEl || element, {
-      width: fullWidth,
-      height: fullHeight,
-      windowWidth: fullWidth,
-      windowHeight: fullHeight,
-      scale: 3, // 2–3 בדרך כלל מספיק. אפשר 4 אם צריך חדות קיצונית
-      useCORS: true,
-      backgroundColor: '#ffffff', // או null אם צריך שקיפות מלאה
-    });
-
-    // 2) יצירת PDF עם יחידות מ״מ וללא דחיסה אגרסיבית
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-      compress: false,
-    });
-
-    // 3) המרת הקנבס לתמונה באיכות גבוהה (נסה גם PNG אם רוב התוכן הוא טקסט/UI)
-    const imgData = canvas.toDataURL('image/jpeg', 0.98); // 0.95–0.99 ייתן חדות עדיפה
-
-    // 4) חישוב גודל התמונה בתוך ה-PDF לפי יחס ממדים, ולא לפי פיקסלים
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    // שוליים אופציונליים
-    const margin = 10; // מ״מ
-    const maxWidth = pageWidth - margin * 2;
-    const imgWidth = maxWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    // אם התמונה גבוהה מדי לדף אחד — מקטינים לגובה הדף (שמירה על יחס)
-    let renderWidth = imgWidth;
-    let renderHeight = imgHeight;
-    if (renderHeight > pageHeight - margin * 2) {
-      renderHeight = pageHeight - margin * 2;
-      renderWidth = (canvas.width * renderHeight) / canvas.height;
-    }
-
-    // 5) הוספת התמונה למסמך ביחידות מ״מ, ללא 'FAST'
-    pdf.addImage(
-      imgData,
-      'JPEG',
-      (pageWidth - renderWidth) / 2, // מרכז אופקית
-      (pageHeight - renderHeight) / 2, // מרכז אנכית (או השתמש ב-margin)
-      renderWidth,
-      renderHeight
-    );
-
-    pdf.save('seats.pdf');
-    setGridSettings(prev => ({ ...prev, showGrid: originalShowGrid }));
-    if (!isColor) element.classList.remove('pdf-export');
-    hiddenElements.forEach(el => {
-      el.style.display = '';
-    });
-  };
 
   const exportAllSeatsToLabels = () => {
     const labeledSeats = seats
@@ -989,7 +1134,16 @@ const SeatsManagement: React.FC = () => {
     const previousId = currentMapId;
     loadMap(id);
     await new Promise(resolve => setTimeout(resolve, 100));
-    await exportMapToPDF();
+    if (wrapperRef.current && mapLayerRef.current) {
+      await exportMapToPDF({
+        wrapperEl: wrapperRef.current,
+        mapLayerEl: mapLayerRef.current,
+        mode: 'a4',
+        colorMode: 'color',
+        marginsMm: 10,
+        fileName: 'map.pdf',
+      });
+    }
     if (previousId && previousId !== id) {
       loadMap(previousId);
     }
@@ -1293,37 +1447,7 @@ const SeatsManagement: React.FC = () => {
                   >
                     <Save className="h-4 w-4" />
                   </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowPdfOptions(prev => !prev)}
-                      className="p-2 rounded-lg bg-purple-100 text-purple-600 hover:bg-purple-200 transition-colors"
-                      title="ייצא ל-PDF"
-                    >
-                      <Printer className="h-4 w-4" />
-                    </button>
-                    {showPdfOptions && (
-                      <div className="absolute right-0 mt-2 bg-white border rounded shadow-lg z-10">
-                        <button
-                          onClick={() => {
-                            exportMapToPDF(true);
-                            setShowPdfOptions(false);
-                          }}
-                          className="block px-4 py-2 text-right hover:bg-gray-100 w-full"
-                        >
-                          צבעוני
-                        </button>
-                        <button
-                          onClick={() => {
-                            exportMapToPDF(false);
-                            setShowPdfOptions(false);
-                          }}
-                          className="block px-4 py-2 text-right hover:bg-gray-100 w-full"
-                        >
-                          שחור לבן
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <PdfToolbar wrapperRef={wrapperRef} mapLayerRef={mapLayerRef} />
                   <button
                     onClick={exportAllSeatsToLabels}
                     className="p-2 rounded-lg bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-colors"
@@ -1378,6 +1502,7 @@ const SeatsManagement: React.FC = () => {
               className="relative h-[75vh] w-full overflow-auto bg-gray-50 border border-gray-200 rounded-lg"
             >
               <div
+                ref={wrapperRef}
                 className="relative border-2 border-dashed border-gray-300 rounded-lg mx-auto my-4"
                 style={{ width: baseSize.width + mapBounds.left + mapBounds.right, height: baseSize.height + mapBounds.top + mapBounds.bottom }}
                 onDrop={handleDrop}
@@ -1390,7 +1515,7 @@ const SeatsManagement: React.FC = () => {
                 onMouseDown={handleMouseDown}
               >
                 <div
-                  ref={mapRef}
+                  ref={mapLayerRef}
                   className="absolute inset-0"
                   style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
                 >
