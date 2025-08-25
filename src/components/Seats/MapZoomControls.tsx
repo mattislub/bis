@@ -11,17 +11,17 @@ const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit }) => 
   const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
 
   return (
-    <div className="absolute top-4 left-4 flex flex-col bg-white rounded shadow-md z-50 print-hidden">
+    <div className="flex items-center space-x-2 space-x-reverse">
       <button
         onClick={zoomIn}
-        className="p-2 hover:bg-gray-100 border-b"
+        className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
         aria-label="הגדל מפה"
       >
         <Plus className="h-4 w-4" />
       </button>
       <button
         onClick={zoomOut}
-        className="p-2 hover:bg-gray-100"
+        className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
         aria-label="הקטן מפה"
       >
         <Minus className="h-4 w-4" />
@@ -29,7 +29,7 @@ const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit }) => 
       {onFit && (
         <button
           onClick={onFit}
-          className="p-2 hover:bg-gray-100 border-t"
+          className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
           aria-label="התאם למסך"
         >
           <Maximize className="h-4 w-4" />
