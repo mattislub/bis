@@ -6,18 +6,7 @@ body {
   @apply p-4 text-center;
 }
 
-/* Styles applied during PDF export to produce a clean black and white map */
+/* Removes transforms during PDF export */
 .pdf-export {
   transform: none !important;
-  filter: grayscale(100%) contrast(200%);
-}
-
-.pdf-export *,
-.pdf-export *::before,
-.pdf-export *::after {
-  box-shadow: none !important;
-  background: #ffffff !important;
-  color: #000000 !important;
-  border-color: #000000 !important;
-  border-radius: 6px !important;
 }
