@@ -91,6 +91,32 @@ const specialElements = [
 const MIN_BENCH_SPACING = 20;
 const MAP_EXPANSION_MARGIN = 20;
 
+// עזרי חישוב והתאמת זום
+type XY = { x: number; y: number };
+type BBox = { x: number; y: number; w: number; h: number };
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 3;
+const FIT_PADDING = 24;
+
+function getContentBBox(items: Array<{ x: number; y: number; width: number; height: number }>): BBox | null {
+  if (!items || items.length === 0) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const it of items) {
+    const x1 = it.x;
+    const y1 = it.y;
+    const x2 = it.x + it.width;
+    const y2 = it.y + it.height;
+    if (x1 < minX) minX = x1;
+    if (y1 < minY) minY = y1;
+    if (x2 > maxX) maxX = x2;
+    if (y2 > maxY) maxY = y2;
+  }
+  if (!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) return null;
+  return { x: minX, y: minY, w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY) };
+}
+
 const getBenchDimensions = (bench: Bench) => {
   if (bench.type === 'special') {
     return {
@@ -193,6 +219,7 @@ const SeatsManagement: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const currentMap = maps.find(m => m.id === currentMapId);
+  const userInteractedRef = useRef(false);
 
   useLayoutEffect(() => {
     const el = containerRef.current;
@@ -202,6 +229,20 @@ const SeatsManagement: React.FC = () => {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    const onWheel = () => { userInteractedRef.current = true; };
+    const onMouseDown = () => { userInteractedRef.current = true; };
+    const onKeyDown = () => { userInteractedRef.current = true; };
+    window.addEventListener('wheel', onWheel, { passive: true });
+    window.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, []);
 
   const updateBenches = useCallback(
@@ -219,8 +260,8 @@ const SeatsManagement: React.FC = () => {
   const selectedBench = selectedBenchIds.length === 1 ? selectedBenchIds[0] : null;
   const [selectedSeatIds, setSelectedSeatIds] = useState<number[]>([]);
   const [showSeatDetails, setShowSeatDetails] = useState(false);
-  const [dragStartPositions, setDragStartPositions] = useState<Record<string, { x: number; y: number }> | null>(null);
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [dragStartPositions, setDragStartPositions] = useState<Record<string, XY> | null>(null);
+  const [dragOffset, setDragOffset] = useState<XY | null>(null);
   const [isAddingBench, setIsAddingBench] = useState(false);
   const [editingBench, setEditingBench] = useState<string | null>(null);
   const [showRowDialog, setShowRowDialog] = useState(false);
@@ -237,8 +278,8 @@ const SeatsManagement: React.FC = () => {
     temporary: false,
   });
 
-  const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
-  const [pendingPosition, setPendingPosition] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenuPos, setContextMenuPos] = useState<XY | null>(null);
+  const [pendingPosition, setPendingPosition] = useState<XY | null>(null);
   const [showSpecialDialog, setShowSpecialDialog] = useState(false);
   const [selectedSpecialId, setSelectedSpecialId] = useState('');
 
@@ -250,12 +291,12 @@ const SeatsManagement: React.FC = () => {
 
   const [isPanMode, setIsPanMode] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const [panStart, setPanStart] = useState<XY | null>(null);
   const [zoom, setZoom] = useState(1);
 
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
-  const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
+  const [selectionStart, setSelectionStart] = useState<XY | null>(null);
   const [selectionRect, setSelectionRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [showPdfOptions, setShowPdfOptions] = useState(false);
 
@@ -294,10 +335,49 @@ const SeatsManagement: React.FC = () => {
     setMapBounds(prev => ({ ...prev, [side]: value }));
   };
 
+  const handleFitToScreen = () => {
+    userInteractedRef.current = false;
+    setZoom(z => z);
+  };
+
   const colors = [
-    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+    '#3B82F6', '#10B981', '#F59E0B', '#EF4444',
     '#8B5CF6', '#06B6D4', '#F97316', '#84CC16'
   ];
+
+  React.useEffect(() => {
+    if (userInteractedRef.current) return;
+    if (!baseSize?.width || !baseSize?.height) return;
+
+    const items = benches.map(b => {
+      const { width, height } = getBenchDimensions(b);
+      return {
+        x: b.position.x + mapBounds.left,
+        y: b.position.y + mapBounds.top,
+        width,
+        height,
+      };
+    });
+    const bbox = getContentBBox(items);
+    if (!bbox) {
+      setZoom(1);
+      setMapOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    const availW = Math.max(1, baseSize.width - FIT_PADDING * 2);
+    const availH = Math.max(1, baseSize.height - FIT_PADDING * 2);
+    let scale = Math.min(availW / bbox.w, availH / bbox.h);
+    scale = clamp(scale, MIN_ZOOM, MAX_ZOOM);
+
+    const contentCenterX = bbox.x + bbox.w / 2;
+    const contentCenterY = bbox.y + bbox.h / 2;
+    const targetPanX = baseSize.width / 2 - contentCenterX * scale;
+    const targetPanY = baseSize.height / 2 - contentCenterY * scale;
+
+    setZoom(scale);
+    setMapOffset({ x: Math.round(targetPanX), y: Math.round(targetPanY) });
+  }, [baseSize.width, baseSize.height, benches, mapBounds, setMapOffset, setZoom]);
 
   const getWorshiperById = (id: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === id);
@@ -1544,7 +1624,7 @@ const SeatsManagement: React.FC = () => {
               )}
                 </div>
               </div>
-              <MapZoomControls setZoom={setZoom} />
+              <MapZoomControls setZoom={setZoom} onFit={handleFitToScreen} />
             </div>
           </div>
         </div>
