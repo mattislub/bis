@@ -17,7 +17,7 @@ const Login: React.FC = () => {
         register(username, password);
       }
       login(username, password);
-      navigate('/');
+      navigate('/app');
     } catch (err) {
       setError((err as Error).message);
     }

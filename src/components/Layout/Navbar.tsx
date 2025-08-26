@@ -17,12 +17,12 @@ const Navbar: React.FC = () => {
   const { logout } = useAuth();
 
   const navItems = [
-    { path: '/', label: 'ניהול מתפללים', icon: Users },
-    { path: '/seats-manage', label: 'ניהול מקומות', icon: Settings },
-    { path: '/map-guide', label: 'מדריך מפה', icon: HelpCircle },
-    { path: '/contact', label: 'צור קשר', icon: Mail },
-    { path: '/about', label: 'אודות', icon: Info },
-    { path: '/pricing', label: 'מחירון', icon: CreditCard },
+    { path: '/app', label: 'ניהול מתפללים', icon: Users },
+    { path: '/app/seats-manage', label: 'ניהול מקומות', icon: Settings },
+    { path: '/app/map-guide', label: 'מדריך מפה', icon: HelpCircle },
+    { path: '/app/contact', label: 'צור קשר', icon: Mail },
+    { path: '/app/about', label: 'אודות', icon: Info },
+    { path: '/app/pricing', label: 'מחירון', icon: CreditCard },
   ];
 
   return (
