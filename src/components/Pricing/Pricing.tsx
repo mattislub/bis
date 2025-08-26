@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Sparkles, ArrowRight, Shield } from "lucide-react";
+import { Check, Sparkles, ArrowLeft, Shield } from "lucide-react";
 
 /**
  * PricingSinglePlanWithDemo
@@ -17,7 +17,7 @@ export default function PricingSinglePlanWithDemo() {
   ];
 
   return (
-    <div className="relative isolate overflow-hidden">
+    <div className="relative isolate overflow-hidden" dir="rtl">
       {/* Soft background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 left-1/2 h-72 w-[110%] -translate-x-1/2 rounded-[100%] bg-gradient-to-b from-blue-50 to-transparent blur-2xl" />
@@ -52,7 +52,7 @@ export default function PricingSinglePlanWithDemo() {
                 </div>
                 <div className="mt-3 text-5xl font-black text-blue-700">
                   ₪1099
-                  <span className="ml-2 align-middle text-base font-normal text-gray-600">
+                  <span className="ms-2 align-middle text-base font-normal text-gray-600">
                     לשנה
                   </span>
                 </div>
@@ -74,7 +74,7 @@ export default function PricingSinglePlanWithDemo() {
                   className="group inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
                 >
                   התחילו עכשיו
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
                 </button>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function PricingSinglePlanWithDemo() {
                   className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
                 >
                   נסו את הדמו
-                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
                 </a>
                 <p className="mt-2 text-center text-xs text-gray-500">
                   הדמו אינו כולל שמירת נתונים קבועה.
