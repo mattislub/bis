@@ -11,6 +11,7 @@ import MapManagementGuide from './components/Seats/MapManagementGuide';
 import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
 import MapView from './components/Seats/MapView';
+import Pricing from './components/Pricing/Pricing';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
             <Route path="map-guide" element={<MapManagementGuide />} />
             <Route path="contact" element={<Contact />} />
             <Route path="about" element={<About />} />
+            <Route path="pricing" element={<Pricing />} />
           </Route>
         </Routes>
       </Router>
