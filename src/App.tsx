@@ -12,12 +12,14 @@ import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
 import MapView from './components/Seats/MapView';
 import Pricing from './components/Pricing/Pricing';
+import Home from './components/Home/Home';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route
             path="/view/:id"
@@ -28,7 +30,7 @@ function App() {
             }
           />
           <Route
-            path="/"
+            path="/app"
             element={
               <RequireAuth>
                 <AppProvider>
