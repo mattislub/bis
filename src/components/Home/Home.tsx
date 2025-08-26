@@ -1,12 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Armchair,
-  ArrowRight,
-  Users,
-  Zap,
-  Shield
-} from 'lucide-react';
+import { Armchair, ArrowRight, Users, Zap } from 'lucide-react';
 
 const Home: React.FC = () => {
   const features = [
@@ -27,12 +21,6 @@ const Home: React.FC = () => {
       title: 'גרור ושחרר פשוט',
       description:
         'עיצוב פריסת המשרד בקלות עם טכנולוגיית גרור ושחרר מתקדמת'
-    },
-    {
-      icon: Shield,
-      title: 'שמירת נתונים מקומית',
-      description:
-        'כל הנתונים נשמרים במחשב שלך ללא צורך בחיבור לאינטרנט'
     }
   ];
 
@@ -54,18 +42,32 @@ const Home: React.FC = () => {
             ברוכים הבאים! זוהי מערכת מקיפה לניהול מקומות ישיבה במשרדים ובחללי עבודה,
             הכוללת כלי גרירה ושחרור, ניהול מתפללים ומפה אינטואיטיבית בעברית מלאה.
           </p>
-          <Link
-            to="/login"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            התחבר למערכת
-            <ArrowRight className="mr-2 h-5 w-5" />
-          </Link>
+          <div className="flex justify-center gap-4">
+            <Link
+              to="/login"
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg text-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              התחבר למערכת
+              <ArrowRight className="mr-2 h-5 w-5" />
+            </Link>
+            <Link
+              to="/view/example"
+              className="inline-flex items-center px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg text-lg font-medium hover:bg-blue-50 transition-colors"
+            >
+              נסה דוגמה
+            </Link>
+            <Link
+              to="/pricing"
+              className="inline-flex items-center px-6 py-3 bg-white text-blue-600 border border-blue-600 rounded-lg text-lg font-medium hover:bg-blue-50 transition-colors"
+            >
+              מחירון
+            </Link>
+          </div>
         </section>
 
         <section>
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">למה לבחור במערכת שלנו?</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
