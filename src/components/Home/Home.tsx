@@ -35,7 +35,7 @@ const Home: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 space-y-20">
         <section className="text-center space-y-6">
           <div className="flex justify-center">
-            <Armchair className="h-16 w-16 text-blue-600" />
+            <img src="/logo.svg" alt="Logo" className="h-16 w-16" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900">מערכת ניהול מקומות ישיבה</h1>
           <p className="text-xl text-gray-700 max-w-3xl mx-auto">

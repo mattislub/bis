@@ -5,7 +5,6 @@ import {
   Settings,
   Mail,
   Info,
-  Armchair,
   HelpCircle,
   CreditCard
 } from 'lucide-react';
@@ -30,7 +29,7 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4 space-x-reverse">
-            <Armchair className="h-8 w-8 text-blue-600" />
+            <img src="/logo.svg" alt="Logo" className="h-8 w-8" />
             <h1 className="text-xl font-bold text-gray-800">מערכת ניהול מקומות ישיבה</h1>
           </div>
           
