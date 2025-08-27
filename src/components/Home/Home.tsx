@@ -51,18 +51,26 @@ const Home: React.FC = () => {
             <img
               src="/logo.svg"
               alt="Logo"
-              className="h-20 w-20 drop-shadow-md"
+              className="h-20 w-20 drop-shadow-md animate-bounce"
             />
           </div>
-          <h1 className="text-5xl font-extrabold text-gray-900 tracking-tight">
+          <h1
+            className="text-5xl font-extrabold text-gray-900 tracking-tight opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "100ms" }}
+          >
             מערכת ניהול מקומות ישיבה
           </h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-            ברוכים הבאים! מערכת מקיפה לניהול מקומות ישיבה בבתי כנסת/ישיבות ובחללי
-            עבודה, עם כלי גרירה ושחרור, ניהול מתפללים ומפה אינטואיטיבית בעברית מלאה.
+          <p
+            className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "200ms" }}
+          >
+            ברוכים הבאים! מערכת מקיפה לניהול מקומות ישיבה בבתי כנסת/ישיבות ובחללי עבודה, עם כלי גרירה ושחרור, ניהול מתפללים ומפה אינטואיטיבית בעברית מלאה.
           </p>
 
-          <div className="flex justify-center gap-4 flex-wrap">
+          <div
+            className="flex justify-center gap-4 flex-wrap opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "300ms" }}
+          >
             <Link
               to="/login"
               className="inline-flex items-center gap-2 px-7 py-3 rounded-xl bg-blue-600 text-white text-lg font-semibold shadow-sm hover:bg-blue-700 transition"
@@ -95,7 +103,8 @@ const Home: React.FC = () => {
               return (
                 <div
                   key={i}
-                  className="flex flex-col items-center text-center rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition"
+                  className="flex flex-col items-center text-center rounded-2xl bg-white p-8 shadow-md hover:shadow-xl transition transform hover:-translate-y-1 opacity-0 animate-fade-in-up"
+                  style={{ animationDelay: `${i * 150}ms` }}
                 >
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
                     <Icon className="h-8 w-8 text-blue-600" />
@@ -113,17 +122,26 @@ const Home: React.FC = () => {
         </section>
 
         {/* Advantages */}
-        <section className="rounded-3xl bg-white p-10 shadow-md">
+        <section
+          className="rounded-3xl bg-white p-10 shadow-md opacity-0 animate-fade-in-up"
+          style={{ animationDelay: "100ms" }}
+        >
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-10">
             יתרונות המערכת
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
             {advantages.map((adv, i) => (
-              <div key={i} className="p-4">
+              <div
+                key={i}
+                className="p-4 opacity-0 animate-fade-in-up"
+                style={{ animationDelay: `${i * 150}ms` }}
+              >
                 <div className="text-xl font-semibold text-blue-600 mb-2">
                   {adv.title}
                 </div>
-                <div className="text-gray-700 leading-relaxed">{adv.description}</div>
+                <div className="text-gray-700 leading-relaxed">
+                  {adv.description}
+                </div>
               </div>
             ))}
           </div>
