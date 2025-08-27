@@ -10,6 +10,7 @@ import {
   MapTemplate,
 } from '../types';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useServerStorage } from '../hooks/useServerStorage';
 import { useAuth } from './AuthContext';
 
 interface AppContextType {
@@ -270,8 +271,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches, userKey);
   const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats, userKey);
 
-  const [maps, setMaps] = useLocalStorage<MapData[]>('maps', [defaultMap], userKey);
-  const [currentMapId, setCurrentMapId] = useLocalStorage<string>('currentMapId', defaultMap.id, userKey);
+  const [maps, setMaps] = useServerStorage<MapData[]>('maps', [defaultMap], userKey);
+  const [currentMapId, setCurrentMapId] = useServerStorage<string>('currentMapId', defaultMap.id, userKey);
 
   const defaultTemplate: MapTemplate = {
     id: 'default',
