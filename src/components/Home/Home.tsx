@@ -55,18 +55,24 @@ const Home: React.FC = () => {
             className="text-5xl font-extrabold text-gray-900 tracking-tight opacity-0 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
-            מערכת ניהול מקומות ישיבה
+            SeatFlow.tech
           </h1>
           <p
             className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed opacity-0 animate-fade-in-up"
             style={{ animationDelay: "200ms" }}
+          >
+            ניהול מושבים חכם, פשוט וזורם
+          </p>
+          <p
+            className="text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed opacity-0 animate-fade-in-up"
+            style={{ animationDelay: "300ms" }}
           >
             ברוכים הבאים! מערכת מקיפה לניהול מקומות ישיבה בבתי כנסת/ישיבות ובחללי עבודה, עם כלי גרירה ושחרור, ניהול מתפללים ומפה אינטואיטיבית בעברית מלאה.
           </p>
 
           <div
             className="flex justify-center gap-4 flex-wrap opacity-0 animate-fade-in-up"
-            style={{ animationDelay: "300ms" }}
+            style={{ animationDelay: "400ms" }}
           >
             <Link
               to="/login"
