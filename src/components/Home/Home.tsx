@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Armchair, ArrowRight, Users, Zap, Sparkles } from "lucide-react";
+import Logo from "../common/Logo";
 
 const Home: React.FC = () => {
   const features = [
@@ -47,12 +48,8 @@ const Home: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 space-y-24">
         {/* Hero */}
         <section className="text-center space-y-8">
-          <div className="flex justify-center">
-            <img
-              src="/logo.svg"
-              alt="Logo"
-              className="h-20 w-20 drop-shadow-md animate-bounce"
-            />
+          <div className="flex justify-center drop-shadow-md animate-bounce">
+            <Logo />
           </div>
           <h1
             className="text-5xl font-extrabold text-gray-900 tracking-tight opacity-0 animate-fade-in-up"
