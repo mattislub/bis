@@ -9,6 +9,7 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Logo from '../common/Logo';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -28,10 +29,7 @@ const Navbar: React.FC = () => {
     <nav className="bg-white shadow-lg border-b">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4 space-x-reverse">
-            <img src="/logo.svg" alt="Logo" className="h-8 w-8" />
-            <h1 className="text-xl font-bold text-gray-800">מערכת ניהול מקומות ישיבה</h1>
-          </div>
+          <Logo />
           
           <div className="flex space-x-1 space-x-reverse items-center">
             {navItems.map((item) => {
