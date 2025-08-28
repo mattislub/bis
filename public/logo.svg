@@ -1,50 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 320" role="img" aria-labelledby="t5 d5">
-  <title id="t5">SeatFlow – Chairs Logo</title>
-  <desc id="d5">אייקון 2x2 של כיסאות קטנות, אחד מודגש, עם טקסט וסלוגן SeatFlow</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="t5 d5">
+  <title id="t5">SeatFlow chairs icon</title>
+  <desc id="d5">Grid of four small chairs, bottom-right highlighted</desc>
   <style>
-    :root { --sf-primary:#1f4eff; --sf-accent:#14b8a6; --sf-text:#0f172a; }
+    :root { --sf-primary:#1f4eff; --sf-accent:#14b8a6; }
     .chair-seat{fill:var(--sf-primary);}
     .chair-leg{stroke:var(--sf-primary);stroke-width:6;stroke-linecap:round;}
     .acc-seat{fill:var(--sf-accent);}
     .acc-leg{stroke:var(--sf-accent);stroke-width:6;stroke-linecap:round;}
-    .txt{fill:var(--sf-text);}
   </style>
-
-  <!-- Grid של 4 כיסאות -->
-  <g transform="translate(60,60)">
-    <!-- כיסא שמאל עליון -->
+  <g transform="translate(20,20)">
+    <!-- top left chair -->
     <rect x="0" y="0" width="60" height="40" rx="6" class="chair-seat"/>
     <line x1="5" y1="40" x2="5" y2="70" class="chair-leg"/>
     <line x1="55" y1="40" x2="55" y2="70" class="chair-leg"/>
-
-    <!-- כיסא ימין עליון -->
+    <!-- top right chair -->
     <rect x="100" y="0" width="60" height="40" rx="6" class="chair-seat"/>
     <line x1="105" y1="40" x2="105" y2="70" class="chair-leg"/>
     <line x1="155" y1="40" x2="155" y2="70" class="chair-leg"/>
-
-    <!-- כיסא שמאל תחתון -->
+    <!-- bottom left chair -->
     <rect x="0" y="100" width="60" height="40" rx="6" class="chair-seat"/>
     <line x1="5" y1="140" x2="5" y2="170" class="chair-leg"/>
     <line x1="55" y1="140" x2="55" y2="170" class="chair-leg"/>
-
-    <!-- כיסא ימין תחתון – מודגש -->
+    <!-- bottom right chair highlighted -->
     <rect x="100" y="100" width="60" height="40" rx="6" class="acc-seat"/>
     <line x1="105" y1="140" x2="105" y2="170" class="acc-leg"/>
     <line x1="155" y1="140" x2="155" y2="170" class="acc-leg"/>
   </g>
-
-  <!-- טקסט מותג -->
-  <text x="320" y="140"
-        font-family="Inter, Poppins, Arial, sans-serif"
-        font-size="96" font-weight="700"
-        class="txt">
-    SeatFlow
-  </text>
-
-  <!-- סלוגן -->
-  <text x="320" y="205"
-        font-family="Heebo, Rubik, Arial, sans-serif"
-        font-size="36" fill="var(--sf-primary)">
-    ניהול מושבים חכם, פשוט וזורם
-  </text>
 </svg>
