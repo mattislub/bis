@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
+import Header from '../common/Header';
 
 // Dimensions for the map modal. Using fixed values keeps the map inside
 // a constant frame regardless of the viewport size.
@@ -77,6 +78,7 @@ const Contact: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      <Header />
       <Align align="center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">צור קשר</h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
