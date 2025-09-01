@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
 
+const logoPath = new URL('../public/logo.svg', import.meta.url).pathname;
+
 const app = express();
 app.use(express.json());
 
@@ -45,13 +47,21 @@ app.post('/api/register', async (req, res) => {
       text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.6;direction:rtl;text-align:right;">
+          <img src="cid:logo" alt="SeatFlow logo" style="max-width:150px;margin-bottom:16px;" />
           <h1 style="color:#1e40af;">ברוך הבא ל-SeatFlow</h1>
           <p>היי, תודה שנרשמת למערכת שלנו. להלן סיסמתך:</p>
           <p style="font-size:24px;font-weight:bold;color:#1e3a8a;">${password}</p>
           <p>כדי להתחבר למערכת לחץ על הקישור הבא:</p>
           <a href="https://seatflow.tech/login" style="display:inline-block;padding:10px 20px;background-color:#1e40af;color:#ffffff;text-decoration:none;border-radius:8px;">התחברות למערכת</a>
         </div>
-      `
+      `,
+      attachments: [
+        {
+          filename: 'logo.svg',
+          path: logoPath,
+          cid: 'logo'
+        }
+      ]
     });
     console.log('Email sent', info.messageId);
 
