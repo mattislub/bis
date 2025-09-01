@@ -11,6 +11,12 @@ export async function init() {
       data jsonb
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      email text PRIMARY KEY,
+      password text NOT NULL
+    )
+  `);
 }
 
 export function query(text, params) {

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Armchair, ArrowRight, Users, Zap, Sparkles } from "lucide-react";
 import Logo from "../common/Logo";
+import DemoRequestModal from "../common/DemoRequestModal";
 
 const Home: React.FC = () => {
   const features = [
@@ -39,6 +40,8 @@ const Home: React.FC = () => {
         "שינויים ועריכות מתבצעים בקלות ובמהירות, כך שתמיד תישארו עדכניים.",
     },
   ];
+
+  const [showDemo, setShowDemo] = useState(false);
 
   return (
     <div
@@ -80,12 +83,12 @@ const Home: React.FC = () => {
             >
               התחבר למערכת <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link
-              to="/view/example"
+            <button
+              onClick={() => setShowDemo(true)}
               className="inline-flex items-center gap-2 px-7 py-3 rounded-xl border border-blue-600 bg-white text-blue-600 text-lg font-semibold hover:bg-blue-50 transition"
             >
               נסה דוגמה <Sparkles className="h-5 w-5" />
-            </Link>
+            </button>
             <Link
               to="/pricing"
               className="inline-flex items-center gap-2 px-7 py-3 rounded-xl border border-blue-600 bg-white text-blue-600 text-lg font-semibold hover:bg-blue-50 transition"
@@ -150,6 +153,7 @@ const Home: React.FC = () => {
           </div>
         </section>
       </div>
+      <DemoRequestModal isOpen={showDemo} onClose={() => setShowDemo(false)} />
     </div>
   );
 };
