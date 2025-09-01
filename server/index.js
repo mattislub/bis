@@ -41,6 +41,21 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+app.put('/api/users/:email', async (req, res) => {
+  const { email } = req.params;
+  const { gabbaiName, phone, synagogueName, address, city, contactPhone } = req.body;
+  try {
+    await query(
+      `UPDATE users SET gabbai_name = $1, phone = $2, synagogue_name = $3, address = $4, city = $5, contact_phone = $6 WHERE email = $7`,
+      [gabbaiName, phone, synagogueName, address, city, contactPhone, email]
+    );
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
 app.get('/api/storage/:key', async (req, res) => {
   const { key } = req.params;
   try {

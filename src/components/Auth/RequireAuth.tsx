@@ -10,6 +10,10 @@ const RequireAuth: React.FC<{ children: JSX.Element }> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if ((!user.synagogueName || !user.address) && location.pathname !== '/setup') {
+    return <Navigate to="/setup" replace />;
+  }
+
   return children;
 };
 

@@ -14,7 +14,13 @@ export async function init() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       email text PRIMARY KEY,
-      password text NOT NULL
+      password text NOT NULL,
+      gabbai_name text,
+      phone text,
+      synagogue_name text,
+      address text,
+      city text,
+      contact_phone text
     )
   `);
 }
