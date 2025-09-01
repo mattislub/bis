@@ -40,8 +40,17 @@ app.post('/api/register', async (req, res) => {
     await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: email,
-      subject: 'SeatFlow account details',
-      text: `Your password is: ${password}`
+      subject: 'SeatFlow - פרטי התחברות',
+      text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
+      html: `
+        <div style="font-family:Arial,sans-serif;line-height:1.6;direction:rtl;text-align:right;">
+          <h1 style="color:#1e40af;">ברוך הבא ל-SeatFlow</h1>
+          <p>היי, תודה שנרשמת למערכת שלנו. להלן סיסמתך:</p>
+          <p style="font-size:24px;font-weight:bold;color:#1e3a8a;">${password}</p>
+          <p>כדי להתחבר למערכת לחץ על הקישור הבא:</p>
+          <a href="https://seatflow.tech/login" style="display:inline-block;padding:10px 20px;background-color:#1e40af;color:#ffffff;text-decoration:none;border-radius:8px;">התחברות למערכת</a>
+        </div>
+      `
     });
 
     res.sendStatus(204);

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Check, Sparkles, ArrowLeft, Shield } from "lucide-react";
 import DemoRequestModal from "../common/DemoRequestModal";
+import Header from "../common/Header";
 
 /**
  * PricingSinglePlanWithDemo
@@ -20,6 +21,7 @@ export default function PricingSinglePlanWithDemo() {
 
   return (
     <div className="relative isolate overflow-hidden" dir="rtl">
+      <Header />
       {/* Soft background */}
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-24 left-1/2 h-72 w-[110%] -translate-x-1/2 rounded-[100%] bg-gradient-to-b from-blue-50 to-transparent blur-2xl" />

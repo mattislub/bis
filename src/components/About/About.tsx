@@ -1,14 +1,15 @@
 import React from 'react';
-import { 
-  Armchair, 
-  Users, 
-  Zap, 
-  Shield, 
-  Heart, 
+import {
+  Armchair,
+  Users,
+  Zap,
+  Shield,
+  Heart,
   Target,
   CheckCircle,
   Star
 } from 'lucide-react';
+import Header from '../common/Header';
 
 const About: React.FC = () => {
   const features = [
@@ -45,6 +46,7 @@ const About: React.FC = () => {
 
   return (
     <div className="space-y-12">
+      <Header />
       {/* Header */}
       <div className="text-center">
         <div className="flex items-center justify-center mb-6">

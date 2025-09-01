@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Armchair, ArrowRight, Users, Zap, Sparkles } from "lucide-react";
 import Logo from "../common/Logo";
+import Header from "../common/Header";
 import DemoRequestModal from "../common/DemoRequestModal";
 
 const Home: React.FC = () => {
@@ -45,10 +46,11 @@ const Home: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50 to-white pt-12 pb-20"
+      className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50 to-white pb-20"
       dir="rtl"
     >
-      <div className="max-w-7xl mx-auto px-4 space-y-24">
+      <Header />
+      <div className="max-w-7xl mx-auto px-4 space-y-24 pt-12">
         {/* Hero */}
         <section className="text-center space-y-8">
           <div className="flex justify-center drop-shadow-md animate-bounce">
