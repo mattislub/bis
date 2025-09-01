@@ -63,7 +63,15 @@ app.post('/api/register', async (req, res) => {
         }
       ]
     });
-    console.log('Email sent', info.messageId);
+    if (info.rejected?.length) {
+      console.error('Email rejected by server', info.rejected);
+      throw new Error('Email was rejected by SMTP server');
+    }
+    if (!info.accepted?.length) {
+      console.error('No recipients accepted the email');
+      throw new Error('Email was not accepted by any recipients');
+    }
+    console.log('Email sent', info.messageId, 'accepted:', info.accepted);
 
     res.sendStatus(204);
   } catch (err) {
