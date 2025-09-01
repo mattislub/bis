@@ -122,5 +122,36 @@ app.post('/api/storage/:key', async (req, res) => {
   }
 });
 
+app.post('/api/zcredit/charge', async (req, res) => {
+  const { amount, cardNumber, expMonth, expYear, cvv } = req.body || {};
+  try {
+    const response = await fetch('https://api.zcredit.co.il/api/v3/transactions/charge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        terminalNumber: process.env.ZCREDIT_TERMINAL,
+        userName: process.env.ZCREDIT_USER,
+        password: process.env.ZCREDIT_PASS,
+        sum: amount,
+        card: {
+          number: cardNumber,
+          expMonth,
+          expYear,
+          cvv
+        }
+      })
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      console.error('ZCredit error:', data);
+      return res.status(500).json({ error: 'Payment failed', details: data });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error('zcredit charge error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 const PORT = Number(process.env.PORT || 4001);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
