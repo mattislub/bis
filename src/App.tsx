@@ -10,6 +10,7 @@ import About from './components/About/About';
 import MapManagementGuide from './components/Seats/MapManagementGuide';
 import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
+import ProfileSetup from './components/Auth/ProfileSetup';
 import MapView from './components/Seats/MapView';
 import Pricing from './components/Pricing/Pricing';
 import Home from './components/Home/Home';
@@ -22,6 +23,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/setup" element={<RequireAuth><ProfileSetup /></RequireAuth>} />
           <Route
             path="/view/:id"
             element={
