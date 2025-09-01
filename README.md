@@ -2,6 +2,8 @@
 
 ניהול מושבים חכם, פשוט וזורם
 
+קל לעצב מפות מהבית כנסת שלכם לראש השנה בנפרד ליום הכיפורים בנפרד וכל לכל חגי ישראל או יומי דפגרא
+
 ## Storage Server
 
 This project now includes an Express-based storage server backed by PostgreSQL. The server persists map data in a database so that maps for each account can be accessed from anywhere.
