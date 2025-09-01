@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Check, Sparkles, ArrowLeft, Shield } from "lucide-react";
+import DemoRequestModal from "../common/DemoRequestModal";
 
 /**
  * PricingSinglePlanWithDemo
@@ -7,6 +8,7 @@ import { Check, Sparkles, ArrowLeft, Shield } from "lucide-react";
  * TailwindCSS, RTL-friendly
  */
 export default function PricingSinglePlanWithDemo() {
+  const [showDemo, setShowDemo] = useState(false);
   const features: string[] = [
     "עיצוב מפת בית הכנסת",
     "מדבקות למקומות",
@@ -105,13 +107,13 @@ export default function PricingSinglePlanWithDemo() {
               </div>
 
               <div className="mt-6">
-                <a
-                  href="#demo" // TODO: wire to your demo route
+                <button
+                  onClick={() => setShowDemo(true)}
                   className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-900 transition hover:border-gray-400 hover:bg-gray-50"
                 >
                   נסו את הדמו
                   <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
-                </a>
+                </button>
                 <p className="mt-2 text-center text-xs text-gray-500">
                   הדמו אינו כולל שמירת נתונים קבועה.
                 </p>
@@ -187,6 +189,7 @@ export default function PricingSinglePlanWithDemo() {
           </div>
         </section>
       </div>
+      <DemoRequestModal isOpen={showDemo} onClose={() => setShowDemo(false)} />
     </div>
   );
 }
