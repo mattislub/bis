@@ -13,6 +13,7 @@ import RequireAuth from './components/Auth/RequireAuth';
 import ProfileSetup from './components/Auth/ProfileSetup';
 import MapView from './components/Seats/MapView';
 import Pricing from './components/Pricing/Pricing';
+import ProPayment from './components/Pricing/ProPayment';
 import Home from './components/Home/Home';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/pro-payment" element={<ProPayment />} />
           <Route path="/setup" element={<RequireAuth><ProfileSetup /></RequireAuth>} />
           <Route
             path="/view/:id"
