@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
 
-const logoPath = new URL('../public/logo.svg', import.meta.url).pathname;
+const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
 
 const app = express();
 app.use(express.json());
