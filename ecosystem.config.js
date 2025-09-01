@@ -9,7 +9,7 @@ module.exports = {
       SMTP_HOST: "smtp.hostinger.com",
       SMTP_PORT: "465",
       SMTP_USER: "info@seatflow.online",
-      SMTP_PASS: "613Ml#613"
+      SMTP_PASS: "613Ml#613",
       SMTP_FROM: "ניהול מושבים חכם<info@seatflow.online>"
     }
   }]
