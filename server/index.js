@@ -37,7 +37,8 @@ app.post('/api/register', async (req, res) => {
       [email, password]
     );
 
-    await transporter.sendMail({
+    console.log('Sending registration email to', email);
+    const info = await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: email,
       subject: 'SeatFlow - פרטי התחברות',
@@ -52,6 +53,7 @@ app.post('/api/register', async (req, res) => {
         </div>
       `
     });
+    console.log('Email sent', info.messageId);
 
     res.sendStatus(204);
   } catch (err) {
