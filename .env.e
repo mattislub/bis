@@ -1,7 +1,7 @@
 PORT=5001
 
 # database connection
-DATABASE_URL=postgres://seating_user:StrongPassword123@seatflow.tech:5432/seating_db
+DATABASE_URL=postgres://seating_user:**********@seatflow.tech:5432/seating_db
 
 # mail server
 MAIL_HOST=smtp.mailserver.com
