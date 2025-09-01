@@ -13,15 +13,23 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting registration request", { email });
     try {
-      await fetch("/api/register", {
+      const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
+      console.log("Register request completed", res.status);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Registration failed", res.status, errorText);
+        return;
+      }
+      console.log("Registration succeeded");
       setSent(true);
     } catch (err) {
-      console.error(err);
+      console.error("Registration error", err);
     }
   };
 
