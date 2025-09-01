@@ -38,7 +38,11 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
       <div className="rounded-xl bg-white p-6 shadow-lg w-full max-w-md">
         {sent ? (
           <div className="text-center space-y-4">
-            <p>סיסמה נשלחה למייל שלך.</p>
+            <p>תודה שנרשמת!</p>
+            <p>
+              פתחנו עבורך חשבון ושם המשתמש שלך הוא כתובת המייל שהזנת. בדוק את
+              תיבת הדואר שלך כדי לקבל את הסיסמה לחשבון.
+            </p>
             <button
               onClick={onClose}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white"
