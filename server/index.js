@@ -172,28 +172,28 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
   try {
     const { amount, description, customerName, customerEmail, orderId } = req.body || {};
 
-    // ולידציה בסיסית
     if (!amount || Number(amount) <= 0) {
       return res.status(400).json({ ok: false, message: 'Amount is required' });
     }
 
-    const endpoint = `${ZCREDIT_BASE_URL.replace(/\/?$/, '/') }PaymentGateway.asmx/CreateWebCheckoutSession`;
+    // אם ZC דורשים אגורות – העבר לשורה הבאה:
+    // const payAmount = parseInt(Math.round(Number(amount) * 100), 10);
+    const payAmount = Number(Number(amount).toFixed(2));
 
+    const endpoint = `${ZCREDIT_BASE_URL.replace(/\/?$/, '/') }PaymentGateway.asmx/CreateWebCheckoutSession`;
     const successUrl = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
-    const cancelUrl = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
+    const cancelUrl  = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
-    // שים לב: לעתים נדרש סכום עם 2 נק׳ עשרוניות; כאן נוודא זאת כמספר JS רגיל
-    const normalizedAmount = Number(Number(amount).toFixed(2));
-
+    // שמות שדות – עדכן אם במסמך שלך מופיעים שמות שונים במעט
     const payload = {
       TerminalNumber: ZCREDIT_TERMINAL,
       TerminalPassword: ZCREDIT_PASSWORD,
       ZCreditKey: ZCREDIT_KEY,
 
-      TransactionSum: normalizedAmount,
+      TransactionSum: payAmount,
       Payments: 1,
-      CurrencyCode: 1,   // 1 = ₪ (לפי רוב המסמכים)
+      CurrencyCode: 1,    // 1 = ILS ברוב המקרים
       TransactionType: 1, // 1 = חיוב
 
       CustomerName: customerName || '',
@@ -207,54 +207,47 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       ExternalOrderId: orderId || ''
     };
 
-    // נסיון 1: JSON
-    const tryJson = () => axios.post(endpoint, payload, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 20_000
+    const params = new URLSearchParams();
+    Object.entries(payload).forEach(([k, v]) => params.append(k, String(v ?? '')));
+
+    console.log('ZC endpoint:', endpoint);
+    console.log('ZC sending keys:', Array.from(params.keys()));
+
+    const response = await axios.post(endpoint, params.toString(), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json, text/json, text/plain, */*'
+      },
+      timeout: 20000,
+      validateStatus: () => true
     });
 
-    // נסיון 2: x-www-form-urlencoded
-    const tryForm = () => {
-      const params = new URLSearchParams();
-      Object.entries(payload).forEach(([k, v]) => params.append(k, String(v ?? '')));
-      return axios.post(endpoint, params.toString(), {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        timeout: 20_000
-      });
-    };
+    console.log('ZC status:', response.status, 'type:', typeof response.data);
 
-    let response;
-    try {
-      response = await tryJson();
-    } catch (e) {
-      // אם קיבלנו 415/406, ננסה כ-form
-      const sc = e?.response?.status;
-      if (sc === 415 || sc === 406) {
-        response = await tryForm();
-      } else {
-        throw e;
-      }
+    if (response.status >= 400) {
+      const rawText = typeof response.data === 'string'
+        ? response.data.slice(0, 800)
+        : JSON.stringify(response.data).slice(0, 800);
+      return res.status(502).json({ ok: false, message: 'ZCredit error', status: response.status, raw: rawText });
     }
 
-    const data = response?.data || {};
-    const checkoutUrl = data?.WebCheckoutUrl || data?.CheckoutPage || data?.Url;
+    const data = response.data || {};
+    // נסה לדוג URL נפוץ גם אם חזר טקסט
+    const asText = typeof data === 'string' ? data : JSON.stringify(data);
+    const m = asText.match(/https?:\/\/[^\s"'<>]+/);
+    const checkoutUrl = data.WebCheckoutUrl || data.CheckoutPage || data.Url || data.RedirectUrl || (m && m[0]);
 
     if (!checkoutUrl) {
-      return res.status(502).json({
-        ok: false,
-        message: 'לא התקבל קישור תשלום מה-API',
-        raw: data
-      });
+      return res.status(502).json({ ok: false, message: 'לא התקבל קישור תשלום מה-API', raw: data });
     }
 
     return res.json({ ok: true, checkoutUrl });
   } catch (err) {
-    console.error('create-checkout error:', err?.response?.data || err.message);
-    return res.status(500).json({
-      ok: false,
-      message: 'שגיאה ביצירת קישור תשלום',
-      error: err?.response?.data || err.message
-    });
+    const raw = err?.response?.data
+      ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 800) : err.response.data)
+      : err.message;
+    console.error('create-checkout error:', raw);
+    return res.status(500).json({ ok: false, message: 'שגיאה ביצירת קישור תשלום', error: raw });
   }
 });
 
