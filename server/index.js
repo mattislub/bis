@@ -10,32 +10,38 @@ import { init, query } from './db.js';
 const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
 
 const app = express();
+
+// --- CORS ---
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://seatflow.tech';
+app.use(cors({ origin: FRONTEND_ORIGIN, credentials: false }));
+
+// --- Body parsers ---
+// Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const {
-  ZCREDIT_BASE_URL,
-  ZCREDIT_TERMINAL,
-  ZCREDIT_PASSWORD,
-  ZCREDIT_KEY,
-  PUBLIC_BASE_URL
-} = process.env;
-
-const corsOptions = {
-  origin: 'https://seatflow.tech',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+// --- ENV guardrails ---
+const must = (name) => {
+  const v = process.env[name];
+  if (!v) throw new Error(`Missing required env ${name}`);
+  return v;
 };
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-app.use(express.json());
 
+const ZCREDIT_BASE_URL = must('ZCREDIT_BASE_URL');
+const ZCREDIT_TERMINAL = must('ZCREDIT_TERMINAL');
+const ZCREDIT_PASSWORD = must('ZCREDIT_PASSWORD');
+const ZCREDIT_KEY = must('ZCREDIT_KEY');
+const PUBLIC_BASE_URL = must('PUBLIC_BASE_URL');
+const SMTP_HOST = must('SMTP_HOST');
+const SMTP_PORT = must('SMTP_PORT');
+const SMTP_USER = must('SMTP_USER');
+const SMTP_PASS = must('SMTP_PASS');
 
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587', 10),
+  host: SMTP_HOST,
+  port: parseInt(SMTP_PORT, 10),
   secure: false,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  auth: { user: SMTP_USER, pass: SMTP_PASS }
 });
 
 try {
@@ -63,7 +69,7 @@ app.post('/api/register', async (req, res) => {
 
     console.log('Sending registration email to', email);
     const info = await transporter.sendMail({
-      from: process.env.SMTP_USER,
+      from: SMTP_USER,
       to: email,
       subject: 'SeatFlow - פרטי התחברות',
       text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
@@ -146,84 +152,124 @@ app.post('/api/storage/:key', async (req, res) => {
 
 app.post('/api/zcredit/create-checkout', async (req, res) => {
   try {
-    const { amount, description, customerName, customerEmail, orderId } = req.body;
-    const endpoint = `${ZCREDIT_BASE_URL}PaymentGateway.asmx/CreateWebCheckoutSession`;
+    const { amount, description, customerName, customerEmail, orderId } = req.body || {};
+
+    // ולידציה בסיסית
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ ok: false, message: 'Amount is required' });
+    }
+
+    const endpoint = `${ZCREDIT_BASE_URL.replace(/\/?$/, '/') }PaymentGateway.asmx/CreateWebCheckoutSession`;
 
     const successUrl = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
     const cancelUrl = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
+    // שים לב: לעתים נדרש סכום עם 2 נק׳ עשרוניות; כאן נוודא זאת כמספר JS רגיל
+    const normalizedAmount = Number(Number(amount).toFixed(2));
+
     const payload = {
       TerminalNumber: ZCREDIT_TERMINAL,
       TerminalPassword: ZCREDIT_PASSWORD,
       ZCreditKey: ZCREDIT_KEY,
-      TransactionSum: Number(amount),
+
+      TransactionSum: normalizedAmount,
       Payments: 1,
-      CurrencyCode: 1,
-      TransactionType: 1,
+      CurrencyCode: 1,   // 1 = ₪ (לפי רוב המסמכים)
+      TransactionType: 1, // 1 = חיוב
+
       CustomerName: customerName || '',
       CustomerEmail: customerEmail || '',
       Description: description || `Order ${orderId || ''}`,
+
       SuccessRedirectUrl: successUrl,
       CancelRedirectUrl: cancelUrl,
       CallbackUrl: callbackUrl,
+
       ExternalOrderId: orderId || ''
     };
 
-    const response = await axios.post(endpoint, payload, {
-      headers: { 'Content-Type': 'application/json' }
+    // נסיון 1: JSON
+    const tryJson = () => axios.post(endpoint, payload, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 20_000
     });
 
-    const checkoutUrl =
-      response.data?.WebCheckoutUrl ||
-      response.data?.CheckoutPage ||
-      response.data?.Url;
+    // נסיון 2: x-www-form-urlencoded
+    const tryForm = () => {
+      const params = new URLSearchParams();
+      Object.entries(payload).forEach(([k, v]) => params.append(k, String(v ?? '')));
+      return axios.post(endpoint, params.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        timeout: 20_000
+      });
+    };
+
+    let response;
+    try {
+      response = await tryJson();
+    } catch (e) {
+      // אם קיבלנו 415/406, ננסה כ-form
+      const sc = e?.response?.status;
+      if (sc === 415 || sc === 406) {
+        response = await tryForm();
+      } else {
+        throw e;
+      }
+    }
+
+    const data = response?.data || {};
+    const checkoutUrl = data?.WebCheckoutUrl || data?.CheckoutPage || data?.Url;
 
     if (!checkoutUrl) {
-      return res.status(500).json({
+      return res.status(502).json({
         ok: false,
-        message: 'לא התקבל קישור תשלום מה־API',
-        raw: response.data
+        message: 'לא התקבל קישור תשלום מה-API',
+        raw: data
       });
     }
 
-    return res.json({ ok: true, checkoutUrl, raw: response.data });
+    return res.json({ ok: true, checkoutUrl });
   } catch (err) {
+    console.error('create-checkout error:', err?.response?.data || err.message);
     return res.status(500).json({
       ok: false,
       message: 'שגיאה ביצירת קישור תשלום',
-      error: err.response?.data || err.message
+      error: err?.response?.data || err.message
     });
   }
 });
 
 app.post('/api/zcredit/callback', async (req, res) => {
   try {
-    console.log('ZCredit Callback body:', req.body);
+    // body יכול להגיע כ-JSON או כ-form
+    const body = req.body || {};
+    console.log('ZCredit Callback:', body);
 
-    const signatureFromZC = req.body.Signature;
-    const dataToSign = req.body.DataToSign;
-
-    if (signatureFromZC && dataToSign) {
-      const hmac = crypto
-        .createHmac('sha256', ZCREDIT_KEY)
-        .update(dataToSign, 'utf8')
+    // אימות חתימה (דוגמה בלבד – עדכן לפי הדוק שלך)
+    const signature = body.Signature || body.signature;
+    const dataToSign = body.DataToSign || body.dataToSign;
+    if (signature && dataToSign) {
+      const hmac = crypto.createHmac('sha256', ZCREDIT_KEY)
+        .update(String(dataToSign), 'utf8')
         .digest('hex');
-
-      const valid = hmac.toLowerCase() === String(signatureFromZC).toLowerCase();
-      if (!valid) {
-        console.warn('אזהרה: חתימה לא תואמת!');
+      if (hmac.toLowerCase() !== String(signature).toLowerCase()) {
+        console.warn('אזהרה: חתימה לא תואמת');
+        // יתכן שתרצה להשיב 400 כדי שינסו שוב
+        // return res.status(400).send('invalid signature');
       }
-    } else {
-      console.warn('אזהרה: לא נמצאו שדות חתימה – עדכן לפי התיעוד שלך.');
     }
 
-    const status = req.body.Status || req.body.status || '';
-    const transactionId = req.body.TransactionId || req.body.transactionId || '';
-    const authNumber = req.body.AuthNumber || req.body.authNumber || '';
-    const orderId = req.body.ExternalOrderId || req.body.orderId || '';
+    // שלוף נתונים חשובים (שמות שדות עשויים להשתנות בין מסלולים)
+    const status = body.Status || body.status;
+    const transactionId = body.TransactionId || body.transactionId;
+    const authNumber = body.AuthNumber || body.authNumber;
+    const orderId = body.ExternalOrderId || body.orderId;
 
     console.log('Parsed:', { status, transactionId, authNumber, orderId });
+
+    // כאן עדכן DB אצלך לפי הסטטוס שקיבלת
+    // await query('UPDATE orders SET ... WHERE order_id=$1', [orderId]);
 
     return res.status(200).send('OK');
   } catch (err) {
@@ -233,4 +279,4 @@ app.post('/api/zcredit/callback', async (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 4001);
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}, CORS: ${FRONTEND_ORIGIN}`));
