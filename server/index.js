@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
+import axios from 'axios';
+import bodyParser from 'body-parser';
 import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
@@ -8,8 +10,20 @@ import { init, query } from './db.js';
 const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
 
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+const {
+  ZCREDIT_BASE_URL,
+  ZCREDIT_TERMINAL,
+  ZCREDIT_PASSWORD,
+  ZCREDIT_KEY,
+  PUBLIC_BASE_URL
+} = process.env;
+
 app.use(cors({ origin: 'https://seatflow.tech' }));
 app.use(express.json());
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -124,34 +138,91 @@ app.post('/api/storage/:key', async (req, res) => {
   }
 });
 
-app.post('/api/zcredit/charge', async (req, res) => {
-  const { amount, cardNumber, expMonth, expYear, cvv } = req.body || {};
+app.post('/api/zcredit/create-checkout', async (req, res) => {
   try {
-    const response = await fetch('https://api.zcredit.co.il/api/v3/transactions/charge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        terminalNumber: process.env.ZCREDIT_TERMINAL,
-        userName: process.env.ZCREDIT_USER,
-        password: process.env.ZCREDIT_PASS,
-        sum: amount,
-        card: {
-          number: cardNumber,
-          expMonth,
-          expYear,
-          cvv
-        }
-      })
+    const { amount, description, customerName, customerEmail, orderId } = req.body;
+    const endpoint = `${ZCREDIT_BASE_URL}PaymentGateway.asmx/CreateWebCheckoutSession`;
+
+    const successUrl = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
+    const cancelUrl = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
+    const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
+
+    const payload = {
+      TerminalNumber: ZCREDIT_TERMINAL,
+      TerminalPassword: ZCREDIT_PASSWORD,
+      ZCreditKey: ZCREDIT_KEY,
+      TransactionSum: Number(amount),
+      Payments: 1,
+      CurrencyCode: 1,
+      TransactionType: 1,
+      CustomerName: customerName || '',
+      CustomerEmail: customerEmail || '',
+      Description: description || `Order ${orderId || ''}`,
+      SuccessRedirectUrl: successUrl,
+      CancelRedirectUrl: cancelUrl,
+      CallbackUrl: callbackUrl,
+      ExternalOrderId: orderId || ''
+    };
+
+    const response = await axios.post(endpoint, payload, {
+      headers: { 'Content-Type': 'application/json' }
     });
-    const data = await response.json();
-    if (!response.ok) {
-      console.error('ZCredit error:', data);
-      return res.status(500).json({ error: 'Payment failed', details: data });
+
+    const checkoutUrl =
+      response.data?.WebCheckoutUrl ||
+      response.data?.CheckoutPage ||
+      response.data?.Url;
+
+    if (!checkoutUrl) {
+      return res.status(500).json({
+        ok: false,
+        message: 'לא התקבל קישור תשלום מה־API',
+        raw: response.data
+      });
     }
-    res.json(data);
+
+    return res.json({ ok: true, checkoutUrl, raw: response.data });
   } catch (err) {
-    console.error('zcredit charge error:', err);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({
+      ok: false,
+      message: 'שגיאה ביצירת קישור תשלום',
+      error: err.response?.data || err.message
+    });
+  }
+});
+
+app.post('/api/zcredit/callback', async (req, res) => {
+  try {
+    console.log('ZCredit Callback body:', req.body);
+
+    const signatureFromZC = req.body.Signature;
+    const dataToSign = req.body.DataToSign;
+
+    if (signatureFromZC && dataToSign) {
+      const hmac = crypto
+        .createHmac('sha256', ZCREDIT_KEY)
+        .update(dataToSign, 'utf8')
+        .digest('hex');
+
+      const valid = hmac.toLowerCase() === String(signatureFromZC).toLowerCase();
+      if (!valid) {
+        console.warn('אזהרה: חתימה לא תואמת!');
+      }
+    } else {
+      console.warn('אזהרה: לא נמצאו שדות חתימה – עדכן לפי התיעוד שלך.');
+    }
+
+    const status = req.body.Status || req.body.status || '';
+    const transactionId = req.body.TransactionId || req.body.transactionId || '';
+    const authNumber = req.body.AuthNumber || req.body.authNumber || '';
+    const orderId = req.body.ExternalOrderId || req.body.orderId || '';
+
+    console.log('Parsed:', { status, transactionId, authNumber, orderId });
+
+    return res.status(200).send('OK');
+  } catch (err) {
+    console.error('Callback error:', err);
+    return res.status(500).send('Server error');
   }
 });
 
