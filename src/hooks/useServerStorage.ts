@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE_URL } from '../api';
 
 export function useServerStorage<T>(
   key: string,
@@ -16,7 +17,7 @@ export function useServerStorage<T>(
   useEffect(() => {
     const fetchValue = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/storage/${storageKey}`);
+        const res = await fetch(`${API_BASE_URL}/api/storage/${storageKey}`);
         if (res.ok) {
           const data = await res.json();
           if (data !== null) {
@@ -33,7 +34,7 @@ export function useServerStorage<T>(
   const setValue = (value: T | ((val: T) => T)) => {
     const valueToStore = value instanceof Function ? value(storedValue) : value;
     setStoredValue(valueToStore);
-    fetch(`http://localhost:3001/api/storage/${storageKey}`, {
+    fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(valueToStore),

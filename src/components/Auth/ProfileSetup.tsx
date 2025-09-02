@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../api';
 
 const ProfileSetup: React.FC = () => {
   const { user, updateUser } = useAuth();
@@ -25,7 +26,7 @@ const ProfileSetup: React.FC = () => {
     });
     if (user) {
       try {
-        await fetch(`/api/users/${encodeURIComponent(user.email)}`, {
+        await fetch(`${API_BASE_URL}/api/users/${encodeURIComponent(user.email)}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ gabbaiName, phone, synagogueName, address, city, contactPhone }),
