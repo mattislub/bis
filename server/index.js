@@ -2,7 +2,6 @@ import 'dotenv/config';
 import express from 'express';
 import axios from 'axios';
 import bodyParser from 'body-parser';
-import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
@@ -12,8 +11,6 @@ const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).path
 const app = express();
 
 // --- CORS ---
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://seatflow.tech';
-app.use(cors({ origin: FRONTEND_ORIGIN, credentials: false }));
 
 // --- Body parsers ---
 // Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
@@ -279,4 +276,4 @@ app.post('/api/zcredit/callback', async (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 4001);
-app.listen(PORT, () => console.log(`Server running on port ${PORT}, CORS: ${FRONTEND_ORIGIN}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}));
