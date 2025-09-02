@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
@@ -7,6 +8,7 @@ import { init, query } from './db.js';
 const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
 
 const app = express();
+app.use(cors({ origin: 'https://seatflow.tech' }));
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
