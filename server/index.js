@@ -278,4 +278,4 @@ app.post('/api/zcredit/callback', async (req, res) => {
 });
 
 const PORT = Number(process.env.PORT || 4001);
-app.listen(PORT, () => console.log(`Server running on port ${PORT}));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
