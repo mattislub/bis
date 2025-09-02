@@ -18,12 +18,19 @@ The server creates a `storage` table if it does not exist and listens on `http:/
 
 ### ZCredit payments
 
-To accept Pro plan payments via ZCredit, set the following environment variables before running the server:
+To accept Pro plan payments via ZCredit WebCheckout, set the following environment variables before running the server:
 
 ```
+ZCREDIT_BASE_URL=https://pci.zcredit.co.il/zCreditWS/
 ZCREDIT_TERMINAL=<terminal number>
-ZCREDIT_USER=<api username>
-ZCREDIT_PASS=<api password>
+ZCREDIT_PASSWORD=<terminal password>
+ZCREDIT_KEY=<guid key>
+PUBLIC_BASE_URL=https://yourdomain.com
 ```
 
-The server exposes `POST /api/zcredit/charge` which forwards card details to ZCredit's API (`https://api.zcredit.co.il/api/v3/transactions/charge`). Adjust the endpoint and fields as required by your account.
+The server exposes two endpoints:
+
+- `POST /api/zcredit/create-checkout` – creates a WebCheckout session and returns a URL to redirect the customer.
+- `POST /api/zcredit/callback` – receives the server-to-server notification from ZCredit after payment.
+
+Adjust endpoint URLs and payload fields according to your ZCredit documentation.
