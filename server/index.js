@@ -215,7 +215,11 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
     }
 
     const data = response.data || {};
-    const sessionUrl = data.SessionUrl || data.sessionUrl || data.Url || data.WebCheckoutUrl;
+    const sessionUrl =
+      data?.Data?.SessionUrl ||
+      data?.SessionUrl ||
+      data?.Url ||
+      data?.WebCheckoutUrl;
 
     if (!sessionUrl) {
       const raw = typeof data === 'string' ? data.slice(0, 800) : JSON.stringify(data).slice(0, 800);
