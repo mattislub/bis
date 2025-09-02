@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import axios from 'axios';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
@@ -19,6 +20,10 @@ const {
   ZCREDIT_KEY,
   PUBLIC_BASE_URL
 } = process.env;
+
+app.use(cors({ origin: 'https://seatflow.tech' }));
+app.use(express.json());
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
