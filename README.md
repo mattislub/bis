@@ -21,9 +21,8 @@ The server creates a `storage` table if it does not exist and listens on `http:/
 To accept Pro plan payments via ZCredit WebCheckout, set the following environment variables before running the server:
 
 ```
-ZCREDIT_BASE_URL=https://pci.zcredit.co.il/zCreditWS/
-ZCREDIT_TERMINAL=<terminal number>
-ZCREDIT_PASSWORD=<terminal password>
+ZCREDIT_CREATE_SESSION_URL=https://pci.zcredit.co.il/WebCheckout/api/CreateSession
+ZCREDIT_WEBCHECKOUT_KEY=<webcheckout key>
 ZCREDIT_KEY=<guid key>
 PUBLIC_BASE_URL=https://yourdomain.com
 ```
