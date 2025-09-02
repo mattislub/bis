@@ -5,17 +5,11 @@ import bodyParser from 'body-parser';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
+import cors from 'cors';
 
 const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
 
 const app = express();
-
-// --- CORS ---
-
-// --- Body parsers ---
-// Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 // --- ENV guardrails ---
 const must = (name) => {
@@ -33,6 +27,14 @@ const SMTP_HOST = must('SMTP_HOST');
 const SMTP_PORT = must('SMTP_PORT');
 const SMTP_USER = must('SMTP_USER');
 const SMTP_PASS = must('SMTP_PASS');
+
+// --- CORS ---
+app.use(cors({ origin: PUBLIC_BASE_URL }));
+
+// --- Body parsers ---
+// Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
