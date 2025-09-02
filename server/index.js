@@ -29,7 +29,26 @@ const SMTP_USER = must('SMTP_USER');
 const SMTP_PASS = must('SMTP_PASS');
 
 // --- CORS ---
-app.use(cors({ origin: PUBLIC_BASE_URL }));
+const allowedOrigins = ['https://seatflow.tech', 'https://www.seatflow.tech'];
+
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400
+}));
+
+app.options('*', cors({
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 
 // --- Body parsers ---
 // Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
