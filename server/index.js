@@ -18,9 +18,6 @@ const must = (name) => {
   return v;
 };
 
-const ZCREDIT_BASE_URL = must('ZCREDIT_BASE_URL');
-const ZCREDIT_TERMINAL = must('ZCREDIT_TERMINAL');
-const ZCREDIT_PASSWORD = must('ZCREDIT_PASSWORD');
 const ZCREDIT_KEY = must('ZCREDIT_KEY');
 const PUBLIC_BASE_URL = must('PUBLIC_BASE_URL');
 const SMTP_HOST = must('SMTP_HOST');
@@ -171,83 +168,67 @@ app.post('/api/storage/:key', async (req, res) => {
 app.post('/api/zcredit/create-checkout', async (req, res) => {
   try {
     const { amount, description, customerName, customerEmail, orderId } = req.body || {};
-
     if (!amount || Number(amount) <= 0) {
       return res.status(400).json({ ok: false, message: 'Amount is required' });
     }
 
-    // אם ZC דורשים אגורות – העבר לשורה הבאה:
-    // const payAmount = parseInt(Math.round(Number(amount) * 100), 10);
-    const payAmount = Number(Number(amount).toFixed(2));
+    const endpoint = process.env.ZCREDIT_CREATE_SESSION_URL?.replace(/\/+$/, '/') || '';
+    if (!endpoint) return res.status(500).json({ ok:false, message:'ZCREDIT_CREATE_SESSION_URL is missing' });
 
-    const endpoint = `${ZCREDIT_BASE_URL.replace(/\/?$/, '/') }PaymentGateway.asmx/CreateWebCheckoutSession`;
-    const successUrl = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
-    const cancelUrl  = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
+    const key = process.env.ZCREDIT_WEBCHECKOUT_KEY;
+    if (!key) return res.status(500).json({ ok:false, message:'ZCREDIT_WEBCHECKOUT_KEY is missing' });
+
+    // כתובות חזרה (מהדוק: SuccessUrl / CancelUrl / CallBackUrl)
+    const successUrl  = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
+    const cancelUrl   = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
-    // שמות שדות – עדכן אם במסמך שלך מופיעים שמות שונים במעט
+    // לפי הדוק: JSON. בד"כ השדות הבאים עובדים (שמות מרכזיים מהמסמך)
     const payload = {
-      TerminalNumber: ZCREDIT_TERMINAL,
-      TerminalPassword: ZCREDIT_PASSWORD,
-      ZCreditKey: ZCREDIT_KEY,
-
-      TransactionSum: payAmount,
-      Payments: 1,
-      CurrencyCode: 1,    // 1 = ILS ברוב המקרים
-      TransactionType: 1, // 1 = חיוב
-
+      Key: key,                     // חובה
+      Total: Number(Number(amount).toFixed(2)),   // סכום לעסקה
+      Currency: 'ILS',              // לפי הצורך
+      Installments: 1,              // תשלומים
+      UniqueID: orderId || '',      // מזהה חיצוני
       CustomerName: customerName || '',
       CustomerEmail: customerEmail || '',
       Description: description || `Order ${orderId || ''}`,
-
-      SuccessRedirectUrl: successUrl,
-      CancelRedirectUrl: cancelUrl,
-      CallbackUrl: callbackUrl,
-
-      ExternalOrderId: orderId || ''
+      SuccessUrl: successUrl,
+      CancelUrl: cancelUrl,
+      CallBackUrl: callbackUrl,
+      // אפשרויות נוספות לפי הדוק:
+      // FocusType: 'None',         // CreditCardOnly / GooglePayOnly / ApplePayOnly / BitOnly
+      // ShowCart: false,           // אם לא רוצים להציג סל
+      // CartItems: [{ Name:'SeatFlow Pro', Price: Number(amount), Currency:'ILS', Quantity:1 }]
     };
 
-    const params = new URLSearchParams();
-    Object.entries(payload).forEach(([k, v]) => params.append(k, String(v ?? '')));
-
-    console.log('ZC endpoint:', endpoint);
-    console.log('ZC sending keys:', Array.from(params.keys()));
-
-    const response = await axios.post(endpoint, params.toString(), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json, text/json, text/plain, */*'
-      },
+    console.log('ZC CreateSession URL:', endpoint);
+    const response = await axios.post(endpoint, payload, {
+      headers: { 'Content-Type': 'application/json' },
       timeout: 20000,
       validateStatus: () => true
     });
 
-    console.log('ZC status:', response.status, 'type:', typeof response.data);
-
     if (response.status >= 400) {
-      const rawText = typeof response.data === 'string'
-        ? response.data.slice(0, 800)
-        : JSON.stringify(response.data).slice(0, 800);
-      return res.status(502).json({ ok: false, message: 'ZCredit error', status: response.status, raw: rawText });
+      const raw = typeof response.data === 'string' ? response.data.slice(0, 800) : JSON.stringify(response.data).slice(0, 800);
+      return res.status(502).json({ ok:false, message:'ZCredit error', status: response.status, raw });
     }
 
     const data = response.data || {};
-    // נסה לדוג URL נפוץ גם אם חזר טקסט
-    const asText = typeof data === 'string' ? data : JSON.stringify(data);
-    const m = asText.match(/https?:\/\/[^\s"'<>]+/);
-    const checkoutUrl = data.WebCheckoutUrl || data.CheckoutPage || data.Url || data.RedirectUrl || (m && m[0]);
+    const sessionUrl = data.SessionUrl || data.sessionUrl || data.Url || data.WebCheckoutUrl;
 
-    if (!checkoutUrl) {
-      return res.status(502).json({ ok: false, message: 'לא התקבל קישור תשלום מה-API', raw: data });
+    if (!sessionUrl) {
+      const raw = typeof data === 'string' ? data.slice(0, 800) : JSON.stringify(data).slice(0, 800);
+      return res.status(502).json({ ok:false, message:'לא התקבל SessionUrl מה-API', raw });
     }
 
-    return res.json({ ok: true, checkoutUrl });
+    return res.json({ ok:true, checkoutUrl: sessionUrl });
   } catch (err) {
     const raw = err?.response?.data
       ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 800) : err.response.data)
       : err.message;
     console.error('create-checkout error:', raw);
-    return res.status(500).json({ ok: false, message: 'שגיאה ביצירת קישור תשלום', error: raw });
+    return res.status(500).json({ ok:false, message:'שגיאה ביצירת קישור תשלום', error: raw });
   }
 });
 
