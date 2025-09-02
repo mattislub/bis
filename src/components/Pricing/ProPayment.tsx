@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../../api";
 
 export default function ProPayment() {
   const [form, setForm] = useState({
@@ -17,7 +18,7 @@ export default function ProPayment() {
     e.preventDefault();
     setStatus("processing");
     try {
-      const res = await fetch("/api/zcredit/charge", {
+      const res = await fetch(`${API_BASE_URL}/api/zcredit/charge`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

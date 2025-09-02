@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../../api";
 
 interface DemoRequestModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     console.log("Submitting registration request", { email });
     try {
-      const res = await fetch("/api/register", {
+      const res = await fetch(`${API_BASE_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
