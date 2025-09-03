@@ -310,6 +310,53 @@ app.post('/api/zcredit/callback', async (req, res) => {
          WHERE order_id = $4`,
         [status || '', transactionId || authNumber || '', body, orderId]
       );
+
+      if (status && ['success', 'approved', 'paid'].includes(String(status).toLowerCase())) {
+        try {
+          const { rows } = await query(
+            `SELECT c.email FROM credit_charges cc JOIN clients c ON cc.client_id = c.client_id WHERE cc.order_id = $1`,
+            [orderId]
+          );
+          const email = rows?.[0]?.email;
+          if (email) {
+            const password = crypto.randomBytes(8).toString('hex');
+            await query(
+              `INSERT INTO users(email, password)
+               VALUES ($1, $2)
+               ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password`,
+              [email, password]
+            );
+            const info = await transporter.sendMail({
+              from: SMTP_USER,
+              to: email,
+              subject: 'SeatFlow - פרטי התחברות',
+              text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
+              html: `
+                <div style="font-family:Arial,sans-serif;line-height:1.6;direction:rtl;text-align:right;">
+                  <img src="cid:logo" alt="SeatFlow logo" style="max-width:150px;margin-bottom:16px;" />
+                  <h1 style="color:#1e40af;">ברוך הבא ל-SeatFlow</h1>
+                  <p>היי, תודה שרכשת את החבילה שלנו. להלן סיסמתך:</p>
+                  <p style="font-size:24px;font-weight:bold;color:#1e3a8a;">${password}</p>
+                  <p>כדי להתחבר למערכת לחץ על הקישור הבא:</p>
+                  <a href="https://seatflow.tech/login" style="display:inline-block;padding:10px 20px;background-color:#1e40af;color:#ffffff;text-decoration:none;border-radius:8px;">התחברות למערכת</a>
+                </div>
+              `,
+              attachments: [
+                {
+                  filename: 'logo.svg',
+                  path: logoPath,
+                  cid: 'logo'
+                }
+              ]
+            });
+            if (info.rejected?.length || !info.accepted?.length) {
+              console.error('Thank you email failed', info);
+            }
+          }
+        } catch (e) {
+          console.error('Error sending thank you email', e);
+        }
+      }
     }
 
     return res.status(200).send('OK');
