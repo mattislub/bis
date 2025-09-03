@@ -16,7 +16,6 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => void;
-  register: (username: string, password: string) => void;
   updateUser: (data: Partial<User>) => void;
   logout: () => void;
 }
@@ -43,14 +42,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(existing);
   };
 
-  const register = (username: string, password: string) => {
-    if (users.find(u => u.username === username)) {
-      throw new Error('שם משתמש כבר קיים');
-    }
-    const newUser: User = { username, password, email: username };
-    setUsers([...users, newUser]);
-  };
-
   const updateUser = (data: Partial<User>) => {
     if (!user) return;
     const updated = { ...user, ...data } as User;
@@ -61,7 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = () => setUser(null);
 
   return (
-    <AuthContext.Provider value={{ user, login, register, updateUser, logout }}>
+    <AuthContext.Provider value={{ user, login, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

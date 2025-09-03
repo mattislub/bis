@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import EmailRequestModal from './EmailRequestModal';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
+  const [showReset, setShowReset] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (isRegister) {
-        register(username, password);
-      }
       login(username, password);
       navigate('/app');
     } catch (err) {
@@ -26,7 +25,7 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50" dir="rtl">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm space-y-4">
-        <h2 className="text-xl font-bold text-center">{isRegister ? 'הרשמה' : 'כניסה'}</h2>
+        <h2 className="text-xl font-bold text-center">כניסה</h2>
         {error && <div className="text-red-500 text-sm text-center">{error}</div>}
         <input
           type="text"
@@ -45,16 +44,33 @@ const Login: React.FC = () => {
           required
         />
         <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
-          {isRegister ? 'הרשם והתחבר' : 'התחבר'}
+          התחבר
         </button>
         <button
           type="button"
-          onClick={() => setIsRegister(!isRegister)}
+          onClick={() => setShowReset(true)}
           className="text-sm text-blue-600 underline w-full text-center"
         >
-          {isRegister ? 'כבר רשום? התחבר' : 'משתמש חדש? הרשמה'}
+          שכחת סיסמה?
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowRegister(true)}
+          className="text-sm text-blue-600 underline w-full text-center"
+        >
+          יצירת חשבון
         </button>
       </form>
+      <EmailRequestModal
+        isOpen={showReset}
+        onClose={() => setShowReset(false)}
+        mode="reset"
+      />
+      <EmailRequestModal
+        isOpen={showRegister}
+        onClose={() => setShowRegister(false)}
+        mode="register"
+      />
     </div>
   );
 };
