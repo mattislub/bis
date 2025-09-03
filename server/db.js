@@ -45,6 +45,13 @@ export async function init() {
     )
   `);
   await pool.query(`ALTER TABLE credit_charges ADD COLUMN IF NOT EXISTS details jsonb`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS zcredit_callbacks (
+      id SERIAL PRIMARY KEY,
+      payload jsonb,
+      received_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
 }
 
 export function query(text, params) {
