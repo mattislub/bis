@@ -77,6 +77,16 @@ app.post('/api/register', async (req, res) => {
   try {
     const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
     if (existing.rowCount) {
+      try {
+        await transporter.sendMail({
+          from: SMTP_USER,
+          to: email,
+          subject: 'SeatFlow - כתובת כבר קיימת',
+          text: `התקבלה בקשה לפתיחת חשבון עבור ${email}, אך כבר קיים חשבון במערכת. אם שכחתם את הסיסמה, ניתן לשחזר אותה בקישור: https://seatflow.tech/#/login`,
+        });
+      } catch (e) {
+        console.error('Conflict email failed', e);
+      }
       return res.status(409).json({
         error:
           'המייל כבר רשום במערכת. האם תרצו להשתמש בכתובת מייל אחרת או לשחזר את הסיסמה?'
@@ -229,6 +239,43 @@ app.post('/api/register', async (req, res) => {
     res.sendStatus(204);
   } catch (err) {
     console.error('register error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/reset', async (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  try {
+    const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
+    if (!existing.rowCount) {
+      return res.sendStatus(204);
+    }
+
+    const password = crypto.randomBytes(8).toString('hex');
+    await query('UPDATE users SET password=$1 WHERE email=$2', [password, email]);
+
+    console.log('Sending password reset email to', email);
+    const info = await transporter.sendMail({
+      from: SMTP_USER,
+      to: email,
+      subject: 'SeatFlow - סיסמה חדשה',
+      text: `סיסמתך החדשה: ${password}. להתחברות: https://seatflow.tech/#/login`,
+    });
+    if (info.rejected?.length) {
+      console.error('Email rejected by server', info.rejected);
+      throw new Error('Email was rejected by SMTP server');
+    }
+    if (!info.accepted?.length) {
+      console.error('No recipients accepted the email');
+      throw new Error('Email was not accepted by any recipients');
+    }
+    console.log('Reset email sent', info.messageId, 'accepted:', info.accepted);
+
+    res.sendStatus(204);
+  } catch (err) {
+    console.error('reset error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
