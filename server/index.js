@@ -7,7 +7,7 @@ import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
 import cors from 'cors';
 
-const logoPath = new URL('https://seatflow.tech/logo.svg', import.meta.url).pathname;
+const logoPath = new URL('../public/logo.svg', import.meta.url).pathname;
 
 const app = express();
 
