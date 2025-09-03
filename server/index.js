@@ -172,64 +172,70 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Amount is required' });
     }
 
-    const endpoint = process.env.ZCREDIT_CREATE_SESSION_URL?.replace(/\/+$/, '/') || '';
-    if (!endpoint) return res.status(500).json({ ok:false, message:'ZCREDIT_CREATE_SESSION_URL is missing' });
-
+    const endpoint = (process.env.ZCREDIT_CREATE_SESSION_URL || '').replace(/\/+$/, '');
     const key = process.env.ZCREDIT_WEBCHECKOUT_KEY;
-    if (!key) return res.status(500).json({ ok:false, message:'ZCREDIT_WEBCHECKOUT_KEY is missing' });
+    if (!endpoint || !key) {
+      return res.status(500).json({ ok:false, message:'Missing ZCredit config (endpoint/key)' });
+    }
 
-    // כתובות חזרה (מהדוק: SuccessUrl / CancelUrl / CallBackUrl)
+    // URLs לחזרה
     const successUrl  = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
     const cancelUrl   = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
-    // לפי הדוק: JSON. בד"כ השדות הבאים עובדים (שמות מרכזיים מהמסמך)
+    // payload לפי ה־spec של WebCheckout (שמות/רישיות חשובים!)
     const payload = {
-      Key: key,                     // חובה
-      Total: Number(Number(amount).toFixed(2)),   // סכום לעסקה
-      Currency: 'ILS',              // לפי הצורך
-      Installments: 1,              // תשלומים
-      UniqueID: orderId || '',      // מזהה חיצוני
-      CustomerName: customerName || '',
-      CustomerEmail: customerEmail || '',
-      Description: description || `Order ${orderId || ''}`,
+      Key: key,
+      Local: 'He',
+      UniqueId: orderId || `ORD-${Date.now()}`,
       SuccessUrl: successUrl,
       CancelUrl: cancelUrl,
-      CallBackUrl: callbackUrl,
-      // אפשרויות נוספות לפי הדוק:
-      // FocusType: 'None',         // CreditCardOnly / GooglePayOnly / ApplePayOnly / BitOnly
-      // ShowCart: false,           // אם לא רוצים להציג סל
-      // CartItems: [{ Name:'SeatFlow Pro', Price: Number(amount), Currency:'ILS', Quantity:1 }]
+      CallbackUrl: callbackUrl,
+      PaymentType: 'regular',
+      ShowCart: 'false',
+      Installments: { Type: 'regular', MinQuantity: '1', MaxQuantity: '1' },
+      Customer: {
+        Email: customerEmail || '',
+        Name: customerName || '',
+        PhoneNumber: '',
+        Attributes: { HolderId: 'optional', Name: 'optional', PhoneNumber: 'optional', Email: 'optional' }
+      },
+      CartItems: [{
+        Amount: Number(amount).toFixed(2),   // מחרוזת "120.00"
+        Currency: 'ILS',
+        Name: description || `Order ${orderId || ''}`,
+        Description: description || `Order ${orderId || ''}`,
+        Quantity: 1,
+        IsTaxFree: 'false',
+        AdjustAmount: 'false',
+        Image: ''
+      }]
     };
 
     console.log('ZC CreateSession URL:', endpoint);
-    const response = await axios.post(endpoint, payload, {
-      headers: { 'Content-Type': 'application/json' },
+
+    const r = await axios.post(endpoint, payload, {
+      headers: { 'Content-Type': 'application/json; charset=utf-8', Accept: 'application/json' },
       timeout: 20000,
       validateStatus: () => true
     });
 
-    if (response.status >= 400) {
-      const raw = typeof response.data === 'string' ? response.data.slice(0, 800) : JSON.stringify(response.data).slice(0, 800);
-      return res.status(502).json({ ok:false, message:'ZCredit error', status: response.status, raw });
+    if (r.status >= 400) {
+      const raw = typeof r.data === 'string' ? r.data.slice(0, 1000) : JSON.stringify(r.data).slice(0, 1000);
+      return res.status(502).json({ ok:false, message:'ZCredit error', status:r.status, raw });
     }
 
-    const data = response.data || {};
-    const sessionUrl =
-      data?.Data?.SessionUrl ||
-      data?.SessionUrl ||
-      data?.Url ||
-      data?.WebCheckoutUrl;
-
+    const data = r.data || {};
+    const sessionUrl = data?.Data?.SessionUrl || data?.SessionUrl;
     if (!sessionUrl) {
-      const raw = typeof data === 'string' ? data.slice(0, 800) : JSON.stringify(data).slice(0, 800);
+      const raw = typeof data === 'string' ? data.slice(0, 1000) : JSON.stringify(data).slice(0, 1000);
       return res.status(502).json({ ok:false, message:'לא התקבל SessionUrl מה-API', raw });
     }
 
     return res.json({ ok:true, checkoutUrl: sessionUrl });
   } catch (err) {
     const raw = err?.response?.data
-      ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 800) : err.response.data)
+      ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 1000) : err.response.data)
       : err.message;
     console.error('create-checkout error:', raw);
     return res.status(500).json({ ok:false, message:'שגיאה ביצירת קישור תשלום', error: raw });
