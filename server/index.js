@@ -280,6 +280,13 @@ app.post('/api/zcredit/callback', async (req, res) => {
     const body = req.body || {};
     console.log('ZCredit Callback:', body);
 
+    // save raw callback payload
+    try {
+      await query(`INSERT INTO zcredit_callbacks(payload) VALUES ($1)`, [body]);
+    } catch (e) {
+      console.error('Failed to store callback payload', e);
+    }
+
     // אימות חתימה (דוגמה בלבד – עדכן לפי הדוק שלך)
     const signature = body.Signature || body.signature;
     const dataToSign = body.DataToSign || body.dataToSign;
