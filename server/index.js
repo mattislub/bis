@@ -167,10 +167,13 @@ app.post('/api/storage/:key', async (req, res) => {
 
 app.post('/api/zcredit/create-checkout', async (req, res) => {
   try {
-    const { amount, description, customerName, customerEmail, orderId } = req.body || {};
+    const { amount, description, customerName, customerEmail, orderId, coupon, installments } = req.body || {};
     if (!amount || Number(amount) <= 0) {
       return res.status(400).json({ ok: false, message: 'Amount is required' });
     }
+
+    const coupons = { SEAT10: 0.9, SEAT20: 0.8 };
+    const finalAmount = Number(amount) * (coupons[coupon] || 1);
 
     const endpoint = (process.env.ZCREDIT_CREATE_SESSION_URL || '').replace(/\/+$/, '');
     const key = process.env.ZCREDIT_WEBCHECKOUT_KEY;
@@ -195,7 +198,7 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       CallbackUrl: callbackUrl,
       PaymentType: 'regular',
       ShowCart: 'false',
-      Installments: { Type: 'regular', MinQuantity: '1', MaxQuantity: '1' },
+      Installments: { Type: 'regular', MinQuantity: String(installments || 1), MaxQuantity: String(installments || 1) },
       Customer: {
         Email: customerEmail || '',
         Name: customerName || '',
@@ -203,7 +206,7 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
         Attributes: { HolderId: 'optional', Name: 'optional', PhoneNumber: 'optional', Email: 'optional' }
       },
       CartItems: [{
-        Amount: Number(amount).toFixed(2),   // מחרוזת "120.00"
+        Amount: Number(finalAmount).toFixed(2),   // מחרוזת "120.00"
         Currency: 'ILS',
         Name: description || `Order ${uniqueOrderId}`,
         Description: description || `Order ${uniqueOrderId}`,
