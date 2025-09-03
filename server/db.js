@@ -23,6 +23,26 @@ export async function init() {
       contact_phone text
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS clients (
+      client_id SERIAL PRIMARY KEY,
+      name text,
+      email text UNIQUE
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS credit_charges (
+      charge_id SERIAL PRIMARY KEY,
+      client_id INTEGER REFERENCES clients(client_id),
+      order_id text UNIQUE,
+      amount NUMERIC(10,2),
+      currency text,
+      transaction_date TIMESTAMP,
+      transaction_id text,
+      status text,
+      description text
+    )
+  `);
 }
 
 export function query(text, params) {
