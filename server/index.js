@@ -176,11 +176,20 @@ app.get('/api/storage/:key', async (req, res) => {
 
 app.post('/api/storage/:key', async (req, res) => {
   try {
+    let data = req.body ?? {};
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch (parseErr) {
+        console.error('storage set parse error:', parseErr);
+        return res.status(400).json({ error: 'Invalid JSON' });
+      }
+    }
     await query(
       `INSERT INTO storage(key, data)
        VALUES ($1, $2)
        ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data`,
-      [req.params.key, req.body ?? {}]
+      [req.params.key, data]
     );
     res.sendStatus(204);
   } catch (err) {
