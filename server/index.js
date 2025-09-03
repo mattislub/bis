@@ -252,15 +252,16 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
 
     if (clientId) {
       await query(
-        `INSERT INTO credit_charges(client_id, order_id, amount, currency, description, status)
-         VALUES ($1, $2, $3, $4, $5, $6)
+        `INSERT INTO credit_charges(client_id, order_id, amount, currency, description, status, is_paid)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          ON CONFLICT (order_id) DO UPDATE SET
            client_id = EXCLUDED.client_id,
            amount = EXCLUDED.amount,
            currency = EXCLUDED.currency,
            description = EXCLUDED.description,
-           status = EXCLUDED.status`,
-        [clientId, uniqueOrderId, Number(amount).toFixed(2), 'ILS', description || '', 'pending']
+           status = EXCLUDED.status,
+           is_paid = EXCLUDED.is_paid`,
+        [clientId, uniqueOrderId, Number(amount).toFixed(2), 'ILS', description || '', 'pending', false]
       );
     }
 
@@ -306,6 +307,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
     const transactionId = body.TransactionId || body.transactionId;
     const authNumber = body.AuthNumber || body.authNumber;
     const orderId = body.ExternalOrderId || body.orderId;
+    const isPaid = status && ['success', 'approved', 'paid'].includes(String(status).toLowerCase());
 
     console.log('Parsed:', { status, transactionId, authNumber, orderId });
 
@@ -316,12 +318,13 @@ app.post('/api/zcredit/callback', async (req, res) => {
          SET status = $1,
              transaction_id = $2,
              transaction_date = NOW(),
-             details = $3
-         WHERE order_id = $4`,
-        [status || '', transactionId || authNumber || '', body, orderId]
+             details = $3,
+             is_paid = $4
+         WHERE order_id = $5`,
+        [status || '', transactionId || authNumber || '', body, isPaid, orderId]
       );
 
-      if (status && ['success', 'approved', 'paid'].includes(String(status).toLowerCase())) {
+      if (isPaid) {
         try {
           const { rows } = await query(
             `SELECT c.email FROM credit_charges cc JOIN clients c ON cc.client_id = c.client_id WHERE cc.order_id = $1`,
