@@ -24,6 +24,7 @@ const SMTP_HOST = must('SMTP_HOST');
 const SMTP_PORT = must('SMTP_PORT');
 const SMTP_USER = must('SMTP_USER');
 const SMTP_PASS = must('SMTP_PASS');
+const SMTP_SECURE = must('SMTP_SECURE') === 'true';
 
 // --- CORS ---
 const allowedOrigins = ['https://seatflow.tech', 'https://www.seatflow.tech'];
@@ -55,7 +56,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const transporter = nodemailer.createTransport({
   host: SMTP_HOST,
   port: parseInt(SMTP_PORT, 10),
-  secure: false,
+  secure: SMTP_SECURE,
   auth: { user: SMTP_USER, pass: SMTP_PASS }
 });
 
