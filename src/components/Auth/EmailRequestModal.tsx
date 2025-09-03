@@ -5,11 +5,14 @@ interface EmailRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'register' | 'reset';
+  onSwitchToReset?: () => void;
 }
 
-const EmailRequestModal: React.FC<EmailRequestModalProps> = ({ isOpen, onClose, mode }) => {
+const EmailRequestModal: React.FC<EmailRequestModalProps> = ({ isOpen, onClose, mode, onSwitchToReset }) => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [conflict, setConflict] = useState(false);
 
   if (!isOpen) return null;
 
@@ -22,13 +25,16 @@ const EmailRequestModal: React.FC<EmailRequestModalProps> = ({ isOpen, onClose, 
         body: JSON.stringify({ email })
       });
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error('Email request failed', res.status, errorText);
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || 'אירעה שגיאה. נסו שוב.');
+        setConflict(res.status === 409);
         return;
       }
       setSent(true);
     } catch (err) {
       console.error('Email request error', err);
+      setError('אירעה שגיאה. נסו שוב.');
+      setConflict(false);
     }
   };
 
@@ -68,6 +74,33 @@ const EmailRequestModal: React.FC<EmailRequestModalProps> = ({ isOpen, onClose, 
                 className="mt-1 w-full rounded-md border px-3 py-2"
               />
             </label>
+            {error && (
+              <div className="text-center text-sm text-red-600 space-y-2">
+                <p>{error}</p>
+                {conflict && (
+                  <div className="flex justify-center gap-4">
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        setEmail('');
+                        setError('');
+                        setConflict(false);
+                      }}
+                    >
+                      השתמשו בכתובת אחרת
+                    </button>
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => onSwitchToReset?.()}
+                    >
+                      שחזרו את הסיסמה
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex justify-end gap-2">
               <button
                 type="button"

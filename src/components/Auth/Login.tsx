@@ -164,6 +164,10 @@ const Login: React.FC = () => {
         isOpen={showRegister}
         onClose={() => setShowRegister(false)}
         mode="register"
+        onSwitchToReset={() => {
+          setShowRegister(false);
+          setShowReset(true);
+        }}
       />
     </div>
   );
