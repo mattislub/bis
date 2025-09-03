@@ -124,6 +124,29 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+
+  try {
+    const { rows } = await query(
+      `SELECT email, password, gabbai_name AS "gabbaiName", phone, synagogue_name AS "synagogueName", address, city, contact_phone AS "contactPhone" FROM users WHERE email=$1`,
+      [email]
+    );
+    const user = rows[0];
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
+    }
+    delete user.password;
+    res.json({ user });
+  } catch (err) {
+    console.error('login error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.put('/api/users/:email', async (req, res) => {
   const { email } = req.params;
   const { gabbaiName, phone, synagogueName, address, city, contactPhone } = req.body || {};

@@ -1,21 +1,20 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { API_BASE_URL } from '../api';
 
 interface User {
-  username: string;
-  password: string;
+  email: string;
   gabbaiName?: string;
   phone?: string;
   synagogueName?: string;
   address?: string;
   city?: string;
   contactPhone?: string;
-  email: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => void;
+  login: (email: string, password: string) => Promise<void>;
   updateUser: (data: Partial<User>) => void;
   logout: () => void;
 }
@@ -31,22 +30,28 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [users, setUsers] = useLocalStorage<User[]>('users', []);
   const [user, setUser] = useLocalStorage<User | null>('currentUser', null);
 
-  const login = (username: string, password: string) => {
-    const existing = users.find(u => u.username === username && u.password === password);
-    if (!existing) {
-      throw new Error('שם משתמש או סיסמה שגויים');
+  const login = async (email: string, password: string) => {
+    const res = await fetch(`${API_BASE_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('שם משתמש או סיסמה שגויים');
+      }
+      throw new Error('שגיאה בהתחברות');
     }
-    setUser(existing);
+    const data = await res.json();
+    setUser(data.user);
   };
 
   const updateUser = (data: Partial<User>) => {
     if (!user) return;
     const updated = { ...user, ...data } as User;
     setUser(updated);
-    setUsers(users.map(u => (u.username === user.username ? updated : u)));
   };
 
   const logout = () => setUser(null);

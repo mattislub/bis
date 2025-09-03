@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import EmailRequestModal from './EmailRequestModal';
 
 const Login: React.FC = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [showReset, setShowReset] = useState(false);
@@ -12,10 +12,10 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      login(username, password);
+      await login(email, password);
       navigate('/app');
     } catch (err) {
       setError((err as Error).message);
@@ -28,10 +28,10 @@ const Login: React.FC = () => {
         <h2 className="text-xl font-bold text-center">כניסה</h2>
         {error && <div className="text-red-500 text-sm text-center">{error}</div>}
         <input
-          type="text"
-          placeholder="שם משתמש"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="מייל"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border rounded"
           required
         />
