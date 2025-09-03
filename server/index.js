@@ -182,8 +182,8 @@ app.post('/api/register', async (req, res) => {
                 צריך עזרה? אנחנו כאן בשבילך!
               </p>
               <div style="margin:15px 0;">
-                <a href="mailto:support@seatflow.tech" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">
-                  📧 support@seatflow.tech
+                <a href="mailto:info@seatflow.online" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">
+                  📧 info@seatflow.online
                 </a>
                 <span style="color:#d1d5db;">|</span>
                 <a href="tel:052-718-6026" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">
@@ -575,8 +575,8 @@ app.post('/api/zcredit/callback', async (req, res) => {
                         צריך עזרה? התמיכה הפרו שלנו זמינה עבורך!
                       </p>
                       <div style="margin:15px 0;">
-                        <a href="mailto:pro-support@seatflow.tech" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
-                          📧 pro-support@seatflow.tech
+                        <a href="mailto:info@seatflow.online" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
+                          📧 info@seatflow.online
                         </a>
                         <span style="color:#d1d5db;">|</span>
                         <a href="tel:052-718-6026" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
