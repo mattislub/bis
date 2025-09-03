@@ -178,8 +178,8 @@ app.post('/api/register', async (req, res) => {
                   📧 support@seatflow.tech
                 </a>
                 <span style="color:#d1d5db;">|</span>
-                <a href="tel:050-123-4567" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">
-                  📞 050-123-4567
+                <a href="tel:052-718-6026" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">
+                  📞 052-718-6026
                 </a>
               </div>
               <div style="margin:20px 0;padding:20px 0;border-top:1px solid #e5e7eb;">
@@ -571,8 +571,8 @@ app.post('/api/zcredit/callback', async (req, res) => {
                           📧 pro-support@seatflow.tech
                         </a>
                         <span style="color:#d1d5db;">|</span>
-                        <a href="tel:050-123-4567" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
-                          📞 050-123-4567
+                        <a href="tel:052-718-6026" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
+                          📞 052-718-6026
                         </a>
                       </div>
                       <div style="margin:20px 0;padding:20px 0;border-top:1px solid #e5e7eb;">
