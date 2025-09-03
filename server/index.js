@@ -305,9 +305,10 @@ app.post('/api/zcredit/callback', async (req, res) => {
         `UPDATE credit_charges
          SET status = $1,
              transaction_id = $2,
-             transaction_date = NOW()
-         WHERE order_id = $3`,
-        [status || '', transactionId || authNumber || '', orderId]
+             transaction_date = NOW(),
+             details = $3
+         WHERE order_id = $4`,
+        [status || '', transactionId || authNumber || '', body, orderId]
       );
     }
 

@@ -40,9 +40,11 @@ export async function init() {
       transaction_date TIMESTAMP,
       transaction_id text,
       status text,
-      description text
+      description text,
+      details jsonb
     )
   `);
+  await pool.query(`ALTER TABLE credit_charges ADD COLUMN IF NOT EXISTS details jsonb`);
 }
 
 export function query(text, params) {
