@@ -1,15 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle, User, MessageSquare, Map, X, ArrowLeft, ArrowRight, ArrowUp, ArrowDown } from 'lucide-react';
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Send, 
+  CheckCircle, 
+  User, 
+  MessageSquare, 
+  Map, 
+  X, 
+  ArrowLeft, 
+  ArrowRight, 
+  ArrowUp, 
+  ArrowDown,
+  Clock,
+  Globe,
+  Headphones
+} from 'lucide-react';
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
 import Header from '../common/Header';
 
-// Dimensions for the map modal. Using fixed values keeps the map inside
-// a constant frame regardless of the viewport size.
+// Dimensions for the map modal
 const MAP_MODAL_WIDTH = 600;
 const MAP_MODAL_HEIGHT = 450;
-// Fixed size for the embedded map. When larger than the container,
-// navigation arrows will allow panning within the modal.
 const MAP_IFRAME_WIDTH = 1000;
 const MAP_IFRAME_HEIGHT = 600;
 
@@ -76,102 +90,145 @@ const Contact: React.FC = () => {
     }));
   };
 
+  const contactMethods = [
+    {
+      icon: Mail,
+      title: 'אימייל',
+      primary: 'contact@seatflow.tech',
+      secondary: 'support@seatflow.tech',
+      color: 'from-blue-500 to-blue-600'
+    },
+    {
+      icon: Phone,
+      title: 'טלפון',
+      primary: '03-1234567',
+      secondary: '050-9876543 (נייד)',
+      color: 'from-green-500 to-green-600'
+    },
+    {
+      icon: Headphones,
+      title: 'תמיכה טכנית',
+      primary: 'זמין 24/7',
+      secondary: 'מענה מהיר ומקצועי',
+      color: 'from-purple-500 to-purple-600'
+    }
+  ];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <Header />
-      <Align align="center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">צור קשר</h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          יש לך שאלות או הצעות? נשמח לשמוע ממך ולעזור בכל דרך אפשרית
+      
+      {/* Hero Section */}
+      <div className="text-center relative">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full">
+            <div className="w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+          </div>
+        </div>
+        
+        <h1 className="text-5xl font-black text-gray-900 mb-6">
+          <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">צור קשר</span>
+        </h1>
+        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          יש לך שאלות או הצעות? נשמח לשמוע ממך ולעזור בכל דרך אפשרית.
+          הצוות שלנו זמין עבורך ומוכן לסייע בכל עת.
         </p>
-      </Align>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Contact Information */}
         <div className="space-y-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">פרטי התקשרות</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">פרטי התקשרות</h2>
             
             <div className="space-y-6">
-              <div className="flex items-start space-x-4 space-x-reverse">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">אימייל</h3>
-                  <p className="text-gray-600">contact@seatingmanager.co.il</p>
-                  <p className="text-gray-600">support@seatingmanager.co.il</p>
-                </div>
-              </div>
+              {contactMethods.map((method, index) => {
+                const Icon = method.icon;
+                return (
+                  <div key={index} className="group bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                    <div className="flex items-start space-x-4 space-x-reverse">
+                      <div className={`w-14 h-14 bg-gradient-to-br ${method.color} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                        <Icon className="h-7 w-7 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-900 mb-2 text-lg">{method.title}</h3>
+                        <p className="text-gray-700 font-medium">{method.primary}</p>
+                        <p className="text-gray-600">{method.secondary}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
 
-              <div className="flex items-start space-x-4 space-x-reverse">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Phone className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">טלפון</h3>
-                  <p className="text-gray-600">03-1234567</p>
-                  <p className="text-gray-600">050-9876543 (נייד)</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4 space-x-reverse">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <MapPin className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">כתובת</h3>
-                  <p className="text-gray-600">רחוב הטכנולוגיה 25</p>
-                  <p className="text-gray-600">תל אביב-יפו, 6789012</p>
-                  <button
-                    onClick={() => setIsMapOpen(true)}
-                    className="mt-3 flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    <Map className="h-4 w-4 ml-2" />
-                    הצג מפה
-                  </button>
+              {/* Address */}
+              <div className="group bg-white p-6 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100">
+                <div className="flex items-start space-x-4 space-x-reverse">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <MapPin className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 mb-2 text-lg">כתובת</h3>
+                    <p className="text-gray-700 font-medium">רחוב הטכנולוגיה 25</p>
+                    <p className="text-gray-600">תל אביב-יפו, 6789012</p>
+                    <button
+                      onClick={() => setIsMapOpen(true)}
+                      className="mt-3 flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:-translate-y-0.5"
+                    >
+                      <Map className="h-4 w-4 ml-2" />
+                      הצג מפה
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-3">שעות פעילות</h3>
-            <div className="space-y-2 text-gray-700">
-              <div className="flex justify-between">
-                <span>ראשון - חמישי:</span>
-                <span>08:00 - 18:00</span>
+          {/* Business Hours */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-3xl shadow-lg">
+            <div className="flex items-center mb-6">
+              <Clock className="h-8 w-8 text-blue-600 ml-3" />
+              <h3 className="font-bold text-gray-900 text-xl">שעות פעילות</h3>
+            </div>
+            <div className="space-y-3 text-gray-700">
+              <div className="flex justify-between items-center py-2 border-b border-blue-200">
+                <span className="font-medium">ראשון - חמישי:</span>
+                <span className="font-bold text-blue-700">08:00 - 18:00</span>
               </div>
-              <div className="flex justify-between">
-                <span>שישי:</span>
-                <span>08:00 - 14:00</span>
+              <div className="flex justify-between items-center py-2 border-b border-blue-200">
+                <span className="font-medium">שישי:</span>
+                <span className="font-bold text-blue-700">08:00 - 14:00</span>
               </div>
-              <div className="flex justify-between">
-                <span>שבת:</span>
-                <span>סגור</span>
+              <div className="flex justify-between items-center py-2">
+                <span className="font-medium">שבת:</span>
+                <span className="font-bold text-red-600">סגור</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-8 rounded-lg shadow-lg border">
+        {/* Contact Form */}
+        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border border-white/20">
           {isSubmitted ? (
             <Align align="center" className="py-12">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">תודה רבה!</h3>
-              <p className="text-gray-600">הודעתך נשלחה בהצלחה. נחזור אליך בהקדם האפשרי.</p>
+              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle className="h-10 w-10 text-white" />
+              </div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">תודה רבה!</h3>
+              <p className="text-gray-600 text-lg">הודעתך נשלחה בהצלחה. נחזור אליך בהקדם האפשרי.</p>
             </Align>
           ) : (
             <>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">שלח הודעה</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">שלח הודעה</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Name Field */}
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                       שם מלא *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <User className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
                         id="name"
@@ -179,18 +236,19 @@ const Contact: React.FC = () => {
                         value={formData.name}
                         onChange={handleChange}
                         required
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50 backdrop-blur-sm"
                         placeholder="הכנס שם מלא"
                       />
                     </div>
                   </div>
 
+                  {/* Email Field */}
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                       אימייל *
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="email"
                         id="email"
@@ -198,15 +256,16 @@ const Contact: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         required
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                        className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50 backdrop-blur-sm"
                         placeholder="example@domain.com"
                       />
                     </div>
                   </div>
                 </div>
 
+                {/* Subject Field */}
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
                     נושא
                   </label>
                   <input
@@ -215,17 +274,18 @@ const Contact: React.FC = () => {
                     name="subject"
                     value={formData.subject}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white/50 backdrop-blur-sm"
                     placeholder="נושא ההודעה"
                   />
                 </div>
 
+                {/* Message Field */}
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
                     הודעה *
                   </label>
                   <div className="relative">
-                    <MessageSquare className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                    <MessageSquare className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
                     <textarea
                       id="message"
                       name="message"
@@ -233,16 +293,17 @@ const Contact: React.FC = () => {
                       onChange={handleChange}
                       required
                       rows={6}
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                      className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none bg-white/50 backdrop-blur-sm"
                       placeholder="כתוב כאן את הודעתך..."
                     />
                   </div>
                 </div>
 
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting || !formData.name || !formData.email || !formData.message}
-                  className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg rounded-xl hover:from-blue-700 hover:to-blue-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isSubmitting ? (
                     <>
@@ -261,24 +322,26 @@ const Contact: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Map Modal */}
       {isMapOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div
-            className="bg-white rounded-lg overflow-hidden"
+            className="bg-white rounded-3xl overflow-hidden shadow-2xl"
             style={{ width: MAP_MODAL_WIDTH }}
           >
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">מפה</h3>
+            <div className="flex justify-between items-center p-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+              <h3 className="text-xl font-bold text-gray-900">מיקום המשרד</h3>
               <button
                 onClick={() => setIsMapOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
             <div
               ref={containerRef}
-              className="relative overflow-hidden border-4 border-gray-300 rounded-lg"
+              className="relative overflow-hidden"
               style={{ width: MAP_MODAL_WIDTH, height: MAP_MODAL_HEIGHT }}
             >
               <iframe
@@ -297,15 +360,15 @@ const Contact: React.FC = () => {
                 <>
                   <button
                     onClick={() => pan(100, 0)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all"
                   >
-                    <ArrowLeft className="h-4 w-4" />
+                    <ArrowLeft className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => pan(-100, 0)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-70 rounded-full p-1"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all"
                   >
-                    <ArrowRight className="h-4 w-4" />
+                    <ArrowRight className="h-5 w-5" />
                   </button>
                 </>
               )}
@@ -313,15 +376,15 @@ const Contact: React.FC = () => {
                 <>
                   <button
                     onClick={() => pan(0, 100)}
-                    className="absolute left-1/2 -translate-x-1/2 top-2 bg-white bg-opacity-70 rounded-full p-1"
+                    className="absolute left-1/2 -translate-x-1/2 top-2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all"
                   >
-                    <ArrowUp className="h-4 w-4" />
+                    <ArrowUp className="h-5 w-5" />
                   </button>
                   <button
                     onClick={() => pan(0, -100)}
-                    className="absolute left-1/2 -translate-x-1/2 bottom-2 bg-white bg-opacity-70 rounded-full p-1"
+                    className="absolute left-1/2 -translate-x-1/2 bottom-2 bg-white bg-opacity-90 rounded-full p-2 shadow-lg hover:bg-opacity-100 transition-all"
                   >
-                    <ArrowDown className="h-4 w-4" />
+                    <ArrowDown className="h-5 w-5" />
                   </button>
                 </>
               )}
@@ -329,6 +392,21 @@ const Contact: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <div className="text-center bg-gradient-to-r from-blue-600 to-purple-700 text-white p-8 rounded-3xl">
+        <div className="flex items-center justify-center mb-4">
+          <Globe className="h-8 w-8 text-blue-200" />
+        </div>
+        <h3 className="text-2xl font-bold mb-4">נשמח לעזור לכם</h3>
+        <p className="text-blue-100 max-w-2xl mx-auto leading-relaxed">
+          הצוות שלנו מורכב ממומחים מנוסים בתחום הטכנולוgia וניהול מערכות. 
+          אנחנו כאן כדי להבטיח שתקבלו את השירות הטוב ביותר.
+        </p>
+        <div className="mt-6 text-sm text-blue-200">
+          © 2025 SeatFlow.tech - כל הזכויות שמורות
+        </div>
+      </div>
     </div>
   );
 };
