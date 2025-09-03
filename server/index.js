@@ -185,11 +185,18 @@ app.post('/api/storage/:key', async (req, res) => {
         return res.status(400).json({ error: 'Invalid JSON' });
       }
     }
+    let json;
+    try {
+      json = JSON.stringify(data);
+    } catch (stringErr) {
+      console.error('storage set stringify error:', stringErr);
+      return res.status(400).json({ error: 'Invalid JSON' });
+    }
     await query(
       `INSERT INTO storage(key, data)
-       VALUES ($1, $2)
+       VALUES ($1, $2::jsonb)
        ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data`,
-      [req.params.key, data]
+      [req.params.key, json]
     );
     res.sendStatus(204);
   } catch (err) {
