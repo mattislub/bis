@@ -14,6 +14,7 @@ export default function ProPayment() {
     SEAT20: 0.8 // 20% הנחה
   };
   const finalAmount = Math.round(baseAmount * (coupons[coupon] ?? 1));
+  const monthlyAmount = (finalAmount / installments).toFixed(2);
 
   const handlePay = async () => {
     setStatus("processing");
@@ -96,8 +97,13 @@ export default function ProPayment() {
           </select>
         </div>
 
-        <div className="text-center text-lg font-semibold">
-          סה"כ לתשלום: ₪{finalAmount}
+        <div className="text-center">
+          <div className="text-lg font-semibold">סה"כ לתשלום: ₪{finalAmount}</div>
+          {installments > 1 && (
+            <div className="text-sm text-gray-600">
+              תשלום חודשי: ₪{monthlyAmount}
+            </div>
+          )}
         </div>
 
         <button

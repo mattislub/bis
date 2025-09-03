@@ -435,7 +435,6 @@ const SeatsManagement: React.FC = () => {
     loadMap,
     currentMapId,
     renameMap,
-    trimMap,
   } = useAppContext();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const mapLayerRef = useRef<HTMLDivElement>(null);
