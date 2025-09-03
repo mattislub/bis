@@ -178,16 +178,18 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       return res.status(500).json({ ok:false, message:'Missing ZCredit config (endpoint/key)' });
     }
 
+    const uniqueOrderId = orderId || `ORD-${Date.now()}`;
+
     // URLs לחזרה
-    const successUrl  = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(orderId || '')}`;
-    const cancelUrl   = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(orderId || '')}`;
+    const successUrl  = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
+    const cancelUrl   = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
     // payload לפי ה־spec של WebCheckout (שמות/רישיות חשובים!)
     const payload = {
       Key: key,
       Local: 'He',
-      UniqueId: orderId || `ORD-${Date.now()}`,
+      UniqueId: uniqueOrderId,
       SuccessUrl: successUrl,
       CancelUrl: cancelUrl,
       CallbackUrl: callbackUrl,
@@ -203,8 +205,8 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       CartItems: [{
         Amount: Number(amount).toFixed(2),   // מחרוזת "120.00"
         Currency: 'ILS',
-        Name: description || `Order ${orderId || ''}`,
-        Description: description || `Order ${orderId || ''}`,
+        Name: description || `Order ${uniqueOrderId}`,
+        Description: description || `Order ${uniqueOrderId}`,
         Quantity: 1,
         IsTaxFree: 'false',
         AdjustAmount: 'false',
@@ -232,7 +234,34 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
       return res.status(502).json({ ok:false, message:'לא התקבל SessionUrl מה-API', raw });
     }
 
-    return res.json({ ok:true, checkoutUrl: sessionUrl });
+    // שמירת הלקוח והחיוב במסד הנתונים
+    let clientId;
+    if (customerEmail || customerName) {
+      const clientRes = await query(
+        `INSERT INTO clients(name, email)
+         VALUES ($1, $2)
+         ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name
+         RETURNING client_id`,
+        [customerName || '', customerEmail || null]
+      );
+      clientId = clientRes.rows?.[0]?.client_id;
+    }
+
+    if (clientId) {
+      await query(
+        `INSERT INTO credit_charges(client_id, order_id, amount, currency, description, status)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (order_id) DO UPDATE SET
+           client_id = EXCLUDED.client_id,
+           amount = EXCLUDED.amount,
+           currency = EXCLUDED.currency,
+           description = EXCLUDED.description,
+           status = EXCLUDED.status`,
+        [clientId, uniqueOrderId, Number(amount).toFixed(2), 'ILS', description || '', 'pending']
+      );
+    }
+
+    return res.json({ ok:true, checkoutUrl: sessionUrl, orderId: uniqueOrderId });
   } catch (err) {
     const raw = err?.response?.data
       ? (typeof err.response.data === 'string' ? err.response.data.slice(0, 1000) : err.response.data)
@@ -271,7 +300,16 @@ app.post('/api/zcredit/callback', async (req, res) => {
     console.log('Parsed:', { status, transactionId, authNumber, orderId });
 
     // כאן עדכן DB אצלך לפי הסטטוס שקיבלת
-    // await query('UPDATE orders SET ... WHERE order_id=$1', [orderId]);
+    if (orderId) {
+      await query(
+        `UPDATE credit_charges
+         SET status = $1,
+             transaction_id = $2,
+             transaction_date = NOW()
+         WHERE order_id = $3`,
+        [status || '', transactionId || authNumber || '', orderId]
+      );
+    }
 
     return res.status(200).send('OK');
   } catch (err) {
