@@ -88,7 +88,7 @@ app.post('/api/register', async (req, res) => {
       from: SMTP_USER,
       to: email,
       subject: 'SeatFlow - פרטי התחברות',
-      text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
+      text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/#/login`,
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -141,7 +141,7 @@ app.post('/api/register', async (req, res) => {
               
               <!-- CTA Button -->
               <div style="text-align:center;margin:30px 0;">
-                <a href="https://seatflow.tech/login" style="display:inline-block;background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(59,130,246,0.3);transition:all 0.3s ease;">
+                <a href="https://seatflow.tech/#/login" style="display:inline-block;background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(59,130,246,0.3);transition:all 0.3s ease;">
                   🚀 התחבר למערכת עכשיו
                 </a>
               </div>
@@ -461,7 +461,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
               from: SMTP_USER,
               to: email,
               subject: 'SeatFlow - פרטי התחברות',
-              text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/login`,
+              text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/#/login`,
               html: `
                 <!DOCTYPE html>
                 <html dir="rtl" lang="he">
@@ -516,7 +516,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
                       
                       <!-- CTA Button -->
                       <div style="text-align:center;margin:30px 0;">
-                        <a href="https://seatflow.tech/login" style="display:inline-block;background:linear-gradient(135deg,#059669 0%,#10b981 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(16,185,129,0.3);transition:all 0.3s ease;">
+                        <a href="https://seatflow.tech/#/login" style="display:inline-block;background:linear-gradient(135deg,#059669 0%,#10b981 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(16,185,129,0.3);transition:all 0.3s ease;">
                           ✨ התחבר לחשבון הפרו שלך
                         </a>
                       </div>
