@@ -61,13 +61,13 @@ const Home: React.FC = () => {
     { number: "1000+", label: "מקומות ישיבה", icon: Armchair },
     { number: "50+", label: "בתי כנסת", icon: Globe },
     { number: "99.9%", label: "זמינות", icon: Shield },
-    { number: "24/7", label: "תמיכה", icon: Clock },
+    { number: "מלאה", label: "תמיכה", icon: Clock },
   ];
 
   const testimonials = [
     {
       name: "רב דוד כהן",
-      role: "גבאי בית כנסת 'אהבת שלום'",
+      role: "גבאי בית כנסת",
       content: "המערכת חסכה לנו שעות רבות בכל שבוע. הניהול הפך להיות פשוט ויעיל.",
       rating: 5
     },
@@ -253,7 +253,7 @@ const Home: React.FC = () => {
             מוכנים להתחיל?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            הצטרפו לאלפי בתי כנסת שכבר משתמשים במערכת שלנו
+            הצטרפו להמון בתי כנסת שכבר משתמשים במערכת שלנו
           </p>
           <div className="flex justify-center gap-6 flex-wrap">
             <Link
@@ -267,7 +267,7 @@ const Home: React.FC = () => {
               onClick={() => setShowDemo(true)}
               className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl border-2 border-white text-white text-lg font-bold hover:bg-white hover:text-blue-600 transform hover:-translate-y-1 transition-all duration-300"
             >
-              צפה בדמו
+              נסה בדמו
               <Sparkles className="h-5 w-5" />
             </button>
           </div>
