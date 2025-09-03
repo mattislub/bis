@@ -88,7 +88,7 @@ app.post('/api/register', async (req, res) => {
       from: SMTP_USER,
       to: email,
       subject: 'SeatFlow - פרטי התחברות',
-      text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/#/login`,
+      text: `האימייל שלך: ${email}\nסיסמתך היא: ${password}. להתחברות: https://seatflow.tech/#/login`,
       html: `
         <!DOCTYPE html>
         <html dir="rtl" lang="he">
@@ -124,9 +124,17 @@ app.post('/api/register', async (req, res) => {
                 </p>
               </div>
               
-              <!-- Password Box -->
+              <!-- Credentials Box -->
               <div style="background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%);border-radius:15px;padding:25px;margin:30px 0;text-align:center;border:2px solid #e5e7eb;">
                 <p style="color:#374151;font-size:14px;margin:0 0 10px 0;font-weight:600;">
+                  כתובת המייל שלך:
+                </p>
+                <div style="background:#ffffff;border-radius:10px;padding:15px;border:2px dashed #3b82f6;margin:10px 0;">
+                  <span style="font-size:20px;font-weight:700;color:#1e40af;font-family:monospace;direction:ltr;">
+                    ${email}
+                  </span>
+                </div>
+                <p style="color:#374151;font-size:14px;margin:20px 0 10px 0;font-weight:600;">
                   הסיסמה שלך:
                 </p>
                 <div style="background:#ffffff;border-radius:10px;padding:15px;border:2px dashed #3b82f6;margin:10px 0;">
