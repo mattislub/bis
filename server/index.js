@@ -77,6 +77,26 @@ app.post('/api/register', async (req, res) => {
   try {
     const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
     if (existing.rowCount) {
+      console.log('Sending already registered email to', email);
+      const info = await transporter.sendMail({
+        from: SMTP_USER,
+        to: email,
+        subject: 'SeatFlow - המייל כבר רשום',
+        text: 'ניסית לפתוח חשבון עם כתובת שכבר קיימת. אם שכחת את הסיסמה, ניתן לשחזר אותה כאן: https://seatflow.tech/#/login',
+        html: `
+          <p>ניסית לפתוח חשבון עם כתובת שכבר קיימת במערכת.</p>
+          <p>אם שכחת את הסיסמה, ניתן <a href="https://seatflow.tech/#/login">לשחזר אותה כאן</a>.</p>
+        `
+      });
+      if (info.rejected?.length) {
+        console.error('Already registered email rejected', info.rejected);
+        throw new Error('Email was rejected by SMTP server');
+      }
+      if (!info.accepted?.length) {
+        console.error('No recipients accepted the already registered email');
+        throw new Error('Email was not accepted by any recipients');
+      }
+      console.log('Already registered email sent', info.messageId, 'accepted:', info.accepted);
       return res.status(409).json({ error: 'המייל כבר רשום במערכת' });
     }
 
@@ -226,6 +246,45 @@ app.post('/api/register', async (req, res) => {
     res.sendStatus(204);
   } catch (err) {
     console.error('register error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/password-reset', async (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'Email required' });
+
+  try {
+    const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
+    if (existing.rowCount) {
+      const password = crypto.randomBytes(8).toString('hex');
+      await query('UPDATE users SET password=$1 WHERE email=$2', [password, email]);
+
+      console.log('Sending password reset email to', email);
+      const info = await transporter.sendMail({
+        from: SMTP_USER,
+        to: email,
+        subject: 'SeatFlow - שחזור סיסמה',
+        text: `סיסמתך החדשה: ${password}. להתחברות: https://seatflow.tech/#/login`,
+        html: `
+          <p>סיסמתך החדשה: <strong>${password}</strong></p>
+          <p><a href="https://seatflow.tech/#/login">להתחברות</a></p>
+        `
+      });
+      if (info.rejected?.length) {
+        console.error('Reset email rejected', info.rejected);
+        throw new Error('Email was rejected by SMTP server');
+      }
+      if (!info.accepted?.length) {
+        console.error('No recipients accepted the reset email');
+        throw new Error('Email was not accepted by any recipients');
+      }
+      console.log('Password reset email sent', info.messageId, 'accepted:', info.accepted);
+    }
+
+    res.sendStatus(204);
+  } catch (err) {
+    console.error('password reset error:', err);
     res.status(500).json({ error: 'Server error' });
   }
 });

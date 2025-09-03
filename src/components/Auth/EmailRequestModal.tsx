@@ -16,7 +16,8 @@ const EmailRequestModal: React.FC<EmailRequestModalProps> = ({ isOpen, onClose, 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_BASE_URL}/api/register`, {
+      const endpoint = mode === 'reset' ? '/api/password-reset' : '/api/register';
+      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
