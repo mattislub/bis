@@ -299,9 +299,9 @@ const Home: React.FC = () => {
             <div>
               <h3 className="font-bold text-lg mb-4">צור קשר</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>info@seatflow.tech</li>
-                <li>050-123-4567</li>
-                <li>תל אביב, ישראל</li>
+                <li>info@seatflow.online</li>
+                <li>052-718-6026</li>
+                <li>ירושלים, ישראל</li>
               </ul>
             </div>
           </div>
