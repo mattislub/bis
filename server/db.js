@@ -40,11 +40,13 @@ export async function init() {
       transaction_date TIMESTAMP,
       transaction_id text,
       status text,
+      is_paid BOOLEAN DEFAULT FALSE,
       description text,
       details jsonb
     )
   `);
   await pool.query(`ALTER TABLE credit_charges ADD COLUMN IF NOT EXISTS details jsonb`);
+  await pool.query(`ALTER TABLE credit_charges ADD COLUMN IF NOT EXISTS is_paid BOOLEAN DEFAULT FALSE`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS zcredit_callbacks (
       id SERIAL PRIMARY KEY,
