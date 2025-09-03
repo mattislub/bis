@@ -74,12 +74,16 @@ app.post('/api/register', async (req, res) => {
   const { email } = req.body || {};
   if (!email) return res.status(400).json({ error: 'Email required' });
 
-  const password = crypto.randomBytes(8).toString('hex'); // שוקל לעבור ל-token reset
   try {
+    const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
+    if (existing.rowCount) {
+      return res.status(409).json({ error: 'המייל כבר רשום במערכת' });
+    }
+
+    const password = crypto.randomBytes(8).toString('hex'); // שוקל לעבור ל-token reset
     await query(
       `INSERT INTO users(email, password)
-       VALUES ($1, $2)
-       ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password`,
+       VALUES ($1, $2)`,
       [email, password]
     );
 
