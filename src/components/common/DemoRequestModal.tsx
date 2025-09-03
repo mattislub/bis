@@ -9,6 +9,8 @@ interface DemoRequestModalProps {
 const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const [conflict, setConflict] = useState(false);
 
   if (!isOpen) return null;
 
@@ -23,14 +25,17 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
       });
       console.log("Register request completed", res.status);
       if (!res.ok) {
-        const errorText = await res.text();
-        console.error("Registration failed", res.status, errorText);
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "אירעה שגיאה. נסו שוב.");
+        setConflict(res.status === 409);
         return;
       }
       console.log("Registration succeeded");
       setSent(true);
     } catch (err) {
       console.error("Registration error", err);
+      setError("אירעה שגיאה. נסו שוב.");
+      setConflict(false);
     }
   };
 
@@ -63,6 +68,29 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
                 className="mt-1 w-full rounded-md border px-3 py-2"
               />
             </label>
+            {error && (
+              <div className="text-center text-sm text-red-600 space-y-2">
+                <p>{error}</p>
+                {conflict && (
+                  <div className="flex justify-center gap-4">
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        setEmail("");
+                        setError("");
+                        setConflict(false);
+                      }}
+                    >
+                      השתמשו בכתובת אחרת
+                    </button>
+                    <a href="#/login" className="underline">
+                      שחזרו את הסיסמה
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex justify-end gap-2">
               <button
                 type="button"

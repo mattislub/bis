@@ -77,7 +77,10 @@ app.post('/api/register', async (req, res) => {
   try {
     const existing = await query('SELECT 1 FROM users WHERE email=$1', [email]);
     if (existing.rowCount) {
-      return res.status(409).json({ error: 'המייל כבר רשום במערכת' });
+      return res.status(409).json({
+        error:
+          'המייל כבר רשום במערכת. האם תרצו להשתמש בכתובת מייל אחרת או לשחזר את הסיסמה?'
+      });
     }
 
     const password = crypto.randomBytes(8).toString('hex'); // שוקל לעבור ל-token reset
