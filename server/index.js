@@ -181,8 +181,8 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
     const uniqueOrderId = orderId || `ORD-${Date.now()}`;
 
     // URLs לחזרה
-    const successUrl  = `${PUBLIC_BASE_URL}/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
-    const cancelUrl   = `${PUBLIC_BASE_URL}/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
+    const successUrl  = `${PUBLIC_BASE_URL}/#/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
+    const cancelUrl   = `${PUBLIC_BASE_URL}/#/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
     const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
 
     // payload לפי ה־spec של WebCheckout (שמות/רישיות חשובים!)
