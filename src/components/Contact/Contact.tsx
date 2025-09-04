@@ -94,21 +94,20 @@ const Contact: React.FC = () => {
     {
       icon: Mail,
       title: 'אימייל',
-      primary: 'contact@seatflow.tech',
-      secondary: 'support@seatflow.tech',
+      primary: 'info@seatflow.online',
+      secondary: 'info@seatflow.online',
       color: 'from-blue-500 to-blue-600'
     },
     {
       icon: Phone,
       title: 'טלפון',
-      primary: '03-1234567',
-      secondary: '050-9876543 (נייד)',
+      primary: '052-718-6026',
       color: 'from-green-500 to-green-600'
     },
     {
       icon: Headphones,
       title: 'תמיכה טכנית',
-      primary: 'זמין 24/7',
+      primary: 'זמין במייל',
       secondary: 'מענה מהיר ומקצועי',
       color: 'from-purple-500 to-purple-600'
     }
@@ -168,8 +167,7 @@ const Contact: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 mb-2 text-lg">כתובת</h3>
-                    <p className="text-gray-700 font-medium">רחוב הטכנולוגיה 25</p>
-                    <p className="text-gray-600">תל אביב-יפו, 6789012</p>
+                    <p className="text-gray-600">ירושלים, עיה"ק</p>
                     <button
                       onClick={() => setIsMapOpen(true)}
                       className="mt-3 flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:-translate-y-0.5"
