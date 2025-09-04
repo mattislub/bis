@@ -7,8 +7,6 @@ import nodemailer from 'nodemailer';
 import { init, query } from './db.js';
 import cors from 'cors';
 
-const logoPath = new URL('../public/logo.svg', import.meta.url).pathname;
-
 const app = express();
 
 const generatePassword = () =>
@@ -123,7 +121,7 @@ app.post('/api/register', async (req, res) => {
             <div style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:40px 30px;text-align:center;position:relative;">
               <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"80\" cy=\"40\" r=\"1.5\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"40\" cy=\"80\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"/></svg>');"></div>
               <div style="position:relative;z-index:1;">
-                <img src="cid:logo" alt="SeatFlow logo" style="max-width:80px;height:80px;margin-bottom:20px;filter:brightness(0) invert(1);" />
+                <img src="https://seatflow.tech/logo.svg" alt="SeatFlow logo" style="max-width:80px;height:80px;margin-bottom:20px;filter:brightness(0) invert(1);" />
                 <h1 style="color:#ffffff;font-size:32px;font-weight:900;margin:0;text-shadow:0 2px 4px rgba(0,0,0,0.1);">
                   ברוכים הבאים ל-SeatFlow
                 </h1>
@@ -220,14 +218,7 @@ app.post('/api/register', async (req, res) => {
           </div>
         </body>
         </html>
-      `,
-      attachments: [
-        {
-          filename: 'logo.svg',
-          path: logoPath,
-          cid: 'logo'
-        }
-      ]
+      `
     });
     if (info.rejected?.length) {
       console.error('Email rejected by server', info.rejected);
@@ -278,7 +269,7 @@ app.post('/api/reset', async (req, res) => {
             <div style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:40px 30px;text-align:center;position:relative;">
               <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"80\" cy=\"40\" r=\"1.5\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"40\" cy=\"80\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"/></svg>');"></div>
               <div style="position:relative;z-index:1;">
-                <img src="cid:logo" alt="SeatFlow logo" style="max-width:80px;height:80px;margin-bottom:20px;filter:brightness(0) invert(1);" />
+                <img src="https://seatflow.tech/logo.svg" alt="SeatFlow logo" style="max-width:80px;height:80px;margin-bottom:20px;filter:brightness(0) invert(1);" />
                 <h1 style="color:#ffffff;font-size:32px;font-weight:900;margin:0;text-shadow:0 2px 4px rgba(0,0,0,0.1);">
                   איפוס סיסמה ב-SeatFlow
                 </h1>
@@ -370,14 +361,7 @@ app.post('/api/reset', async (req, res) => {
           </div>
         </body>
         </html>
-      `,
-      attachments: [
-        {
-          filename: 'logo.svg',
-          path: logoPath,
-          cid: 'logo'
-        }
-      ]
+      `
     });
     if (info.rejected?.length) {
       console.error('Email rejected by server', info.rejected);
@@ -794,14 +778,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
                   </div>
                 </body>
                 </html>
-              `,
-              attachments: [
-                {
-                  filename: 'logo.svg',
-                  path: logoPath,
-                  cid: 'logo'
-                }
-              ]
+              `
             });
             if (info.rejected?.length || !info.accepted?.length) {
               console.error('Thank you email failed', info);
