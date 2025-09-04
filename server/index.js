@@ -98,8 +98,8 @@ app.post('/api/register', async (req, res) => {
 
     const password = generatePassword();
     await query(
-      `INSERT INTO users(email, password)
-       VALUES ($1, $2)`,
+      `INSERT INTO users(email, password, role)
+       VALUES ($1, $2, 'demo')`,
       [email, password]
     );
 
@@ -291,7 +291,7 @@ app.post('/api/login', async (req, res) => {
 
   try {
     const { rows } = await query(
-      `SELECT email, password, gabbai_name AS "gabbaiName", phone, synagogue_name AS "synagogueName", address, city, contact_phone AS "contactPhone" FROM users WHERE email=$1`,
+      `SELECT email, password, gabbai_name AS "gabbaiName", phone, synagogue_name AS "synagogueName", address, city, contact_phone AS "contactPhone", role FROM users WHERE email=$1`,
       [email]
     );
     const user = rows[0];
@@ -537,9 +537,9 @@ app.post('/api/zcredit/callback', async (req, res) => {
           if (email) {
             const password = generatePassword();
             await query(
-              `INSERT INTO users(email, password)
-               VALUES ($1, $2)
-               ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password`,
+              `INSERT INTO users(email, password, role)
+               VALUES ($1, $2, 'pro')
+               ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = 'pro'`,
               [email, password]
             );
             const info = await transporter.sendMail({

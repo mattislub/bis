@@ -19,6 +19,7 @@ import PaymentCancelled from './components/Pricing/PaymentCancelled';
 import Home from './components/Home/Home';
 import UserManagement from './components/Admin/UserManagement';
 import DefaultMapView from './components/Admin/DefaultMapView';
+import RequireManager from './components/Auth/RequireManager';
 
 function App() {
   return (
@@ -61,8 +62,8 @@ function App() {
             <Route index element={<WorshiperManagement />} />
             <Route path="seats-manage" element={<SeatsManagement />} />
             <Route path="map-guide" element={<MapManagementGuide />} />
-            <Route path="admin-users" element={<UserManagement />} />
-            <Route path="default-map" element={<DefaultMapView />} />
+            <Route path="admin-users" element={<RequireManager><UserManagement /></RequireManager>} />
+            <Route path="default-map" element={<RequireManager><DefaultMapView /></RequireManager>} />
             <Route path="contact" element={<Contact />} />
             <Route path="about" element={<About />} />
             <Route path="pricing" element={<Pricing />} />
