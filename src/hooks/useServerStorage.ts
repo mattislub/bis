@@ -17,7 +17,9 @@ export function useServerStorage<T>(
   useEffect(() => {
     const fetchValue = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/storage/${storageKey}`);
+        const res = await fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
+          headers: userId ? { 'X-User-Email': userId } : undefined,
+        });
         if (res.ok) {
           const data = await res.json();
           if (data !== null) {
@@ -36,7 +38,10 @@ export function useServerStorage<T>(
     setStoredValue(valueToStore);
     fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(userId ? { 'X-User-Email': userId } : {}),
+      },
       body: JSON.stringify(valueToStore),
     }).catch(error => {
       console.error(`Error saving ${storageKey} to server:`, error);

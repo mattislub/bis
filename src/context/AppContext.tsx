@@ -201,7 +201,7 @@ const generateSeatsFromBenches = (benches: Bench[]): Seat[] => {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const userKey = user?.email ?? 'guest';
-  const [worshipers, setWorshipers] = useLocalStorage<Worshiper[]>('worshipers', [
+  const [worshipers, setWorshipers] = useServerStorage<Worshiper[]>('worshipers', [
     {
       id: '1',
       title: 'מר',
