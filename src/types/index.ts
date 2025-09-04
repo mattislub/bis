@@ -11,18 +11,18 @@ export interface Worshiper {
   email: string;
   seatCount: number;
   avatar?: string;
-  commitments?: Commitment[];
+  promises?: WorshiperItem[];
+  aliyot?: WorshiperItem[];
+  places?: WorshiperItem[];
 }
 
-export interface Commitment {
+export interface WorshiperItem {
   id: string;
   description: string;
   amount: number;
   paid: boolean;
-  paidToPlace: boolean;
-  placeAmount: number;
-  aliyah?: string;
-  date?: string;
+  createdAtGregorian: string;
+  createdAtHebrew: string;
 }
 
 export interface Seat {
