@@ -77,7 +77,7 @@ function SeatsManagement(): JSX.Element {
   const [activeTool, setActiveTool] = useState<Tool>('select');
   const [zoom, setZoom] = useState(1);
   const [showWorshiperModal, setShowWorshiperModal] = useState(false);
-  const [selectedSeatForWorshiper, setSelectedSeatForWorshiper] = useState<number | null>(null);
+  const [selectedSeatsForWorshiper, setSelectedSeatsForWorshiper] = useState<number[]>([]);
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newMapName, setNewMapName] = useState('');
@@ -197,9 +197,12 @@ function SeatsManagement(): JSX.Element {
 
   const handleSeatClick = useCallback((seatId:number, e:React.MouseEvent)=>{
     e.stopPropagation();
-    setSelectedSeatForWorshiper(seatId);
+    const seatsToAssign = selectedSeats.size
+      ? (selectedSeats.has(seatId) ? Array.from(selectedSeats) : [seatId])
+      : [seatId];
+    setSelectedSeatsForWorshiper(seatsToAssign);
     setShowWorshiperModal(true);
-  }, []);
+  }, [selectedSeats]);
 
   const handleMapClick = useCallback((e: React.MouseEvent) => {
     if (activeTool === 'add') {
@@ -312,7 +315,21 @@ function SeatsManagement(): JSX.Element {
                 b.position.y + height > selectionRect.y &&
                 b.position.y < selectionRect.y + selectionRect.height);
       }).map(b=>b.id);
+      const seatIds: number[] = [];
+      benches.forEach(b => {
+        if (b.type === 'special') return;
+        const benchSeats = seats.filter(s => s.benchId === b.id);
+        benchSeats.forEach((seat, idx) => {
+          const sx = b.position.x + (b.orientation==='horizontal' ? idx*60 + 10 : 10);
+          const sy = b.position.y + (b.orientation==='horizontal' ? 10 : idx*60 + 10);
+          if (sx + 60 > selectionRect.x && sx < selectionRect.x + selectionRect.width &&
+              sy + 60 > selectionRect.y && sy < selectionRect.y + selectionRect.height) {
+            seatIds.push(seat.id);
+          }
+        });
+      });
       setSelectedBenches(selected);
+      setSelectedSeats(new Set(seatIds));
     }
     setIsSelecting(false); setSelectionStart(null); setSelectionRect(null);
   };
@@ -531,7 +548,7 @@ function SeatsManagement(): JSX.Element {
           {/* Map Actions */}
           <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
             <span className="text-xs font-semibold text-gray-600 px-2">מפה:</span>
-            <button onClick={()=>{ if (selectedOne) { const benchId=selectedOne.id; const nb: Bench={...selectedOne,id:`bench-${Date.now()}`,name:`${selectedOne.name} (שורה)`,position:{x:selectedOne.position.x,y:selectedOne.position.y+100}}; setBenches(prev=>ensureBenchSpacing([...prev, nb])); const maxSeatId = Math.max(0, ...seats.map(s=>s.id)); const newSeats: Seat[] = Array.from({length:nb.seatCount}).map((_,i)=>({ id:maxSeatId+i+1, benchId: nb.id, position:{x:0,y:0}, isOccupied:false })); setSeats(prev=>[...prev, ...newSeats]); }}} disabled={!selectedOne} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="צור שורה"><Grid3X3 className="h-4 w-4" /></button>
+              <button onClick={()=>{ if (selectedOne) { const nb: Bench={...selectedOne,id:`bench-${Date.now()}`,name:`${selectedOne.name} (שורה)`,position:{x:selectedOne.position.x,y:selectedOne.position.y+100}}; setBenches(prev=>ensureBenchSpacing([...prev, nb])); const maxSeatId = Math.max(0, ...seats.map(s=>s.id)); const newSeats: Seat[] = Array.from({length:nb.seatCount}).map((_,i)=>({ id:maxSeatId+i+1, benchId: nb.id, position:{x:0,y:0}, isOccupied:false })); setSeats(prev=>[...prev, ...newSeats]); }}} disabled={!selectedOne} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="צור שורה"><Grid3X3 className="h-4 w-4" /></button>
             <button onClick={()=>setGridSettings(p=>({...p, showGrid:!p.showGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.showGrid ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצג/הסתר רשת">{gridSettings.showGrid ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button onClick={()=>setGridSettings(p=>({...p, snapToGrid:!p.snapToGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.snapToGrid ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצמד לרשת"><Target className="h-4 w-4" /></button>
             <button onClick={renumberSeats} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="מספר מחדש"><ListOrdered className="h-4 w-4" /></button>
@@ -722,11 +739,23 @@ function SeatsManagement(): JSX.Element {
                       seats.filter(s=>s.benchId===bench.id).map((seat, idx)=>{
                         const w = seat.userId ? getWorshiperById(seat.userId) : undefined;
                         return (
-                          <div key={seat.id}
-                               className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-xs text-white border-2 border-white cursor-pointer transition-all hover:scale-105 ${w ? 'bg-blue-500' : 'bg-gray-300'} ${selectedSeats.has(seat.id) ? 'ring-2 ring-yellow-400' : ''}`}
-                               style={{ left: bench.orientation==='horizontal' ? idx*60+10 : 10, top: bench.orientation==='horizontal' ? 10 : idx*60+10 }}
-                               onDoubleClick={(e)=>handleSeatClick(seat.id, e)}
-                               title={w ? `${w.title} ${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}>
+                          <div
+                            key={seat.id}
+                            className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-xs text-white border-2 border-white cursor-pointer transition-all hover:scale-105 ${w ? 'bg-blue-500' : 'bg-gray-300'} ${selectedSeats.has(seat.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                            style={{ left: bench.orientation==='horizontal' ? idx*60+10 : 10, top: bench.orientation==='horizontal' ? 10 : idx*60+10 }}
+                            onClick={(e)=>{
+                              e.stopPropagation();
+                              if (e.detail > 1 || activeTool !== 'select') return;
+                              setSelectedSeats(prev=>{
+                                const set = new Set(prev);
+                                if (!e.shiftKey) set.clear();
+                                if (set.has(seat.id)) set.delete(seat.id); else set.add(seat.id);
+                                return set;
+                              });
+                            }}
+                            onDoubleClick={(e)=>handleSeatClick(seat.id, e)}
+                            title={w ? `${w.title} ${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}
+                          >
                             <span className="font-bold">{seat.id}</span>
                           </div>
                         );
@@ -788,20 +817,35 @@ function SeatsManagement(): JSX.Element {
       )}
 
       {/* Assign worshiper modal */}
-      {showWorshiperModal && selectedSeatForWorshiper && (
+      {showWorshiperModal && selectedSeatsForWorshiper.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">הקצה מקום</h3>
+            <h3 className="text-lg font-bold mb-4">{selectedSeatsForWorshiper.length > 1 ? 'הקצה מקומות' : 'הקצה מקום'}</h3>
             <div className="space-y-3 max-h-60 overflow-y-auto">
-              <button onClick={()=>{ setSeats(prev=>prev.map(s=> s.id===selectedSeatForWorshiper ? {...s, userId: undefined} : s)); setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); }} className="w-full p-3 text-right bg-gray-100 hover:bg-gray-200 rounded-lg">פנה מקום</button>
+              <button
+                onClick={()=>{
+                  setSeats(prev=>prev.map(s=> selectedSeatsForWorshiper.includes(s.id) ? { ...s, userId: undefined } : s));
+                  setShowWorshiperModal(false);
+                  setSelectedSeatsForWorshiper([]);
+                  setSelectedSeats(new Set());
+                }}
+                className="w-full p-3 text-right bg-gray-100 hover:bg-gray-200 rounded-lg"
+              >פנה מקום</button>
               {worshipers.map(w => {
                 const assignedSeats = seats.filter(s => s.userId === w.id).length;
-                const isFull = assignedSeats >= w.seatCount;
+                const isFull = assignedSeats + selectedSeatsForWorshiper.length > w.seatCount;
                 return (
                   <button
                     key={w.id}
                     disabled={isFull}
-                    onClick={()=>{ if (!isFull) { setSeats(prev=>prev.map(s=> s.id===selectedSeatForWorshiper ? {...s, userId: w.id} : s)); setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); } }}
+                    onClick={()=>{
+                      if (!isFull) {
+                        setSeats(prev=>prev.map(s=> selectedSeatsForWorshiper.includes(s.id) ? { ...s, userId: w.id } : s));
+                        setShowWorshiperModal(false);
+                        setSelectedSeatsForWorshiper([]);
+                        setSelectedSeats(new Set());
+                      }
+                    }}
                     className={`w-full p-3 text-right rounded-lg ${isFull ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 hover:bg-blue-100'}`}
                   >
                     {w.title} {w.firstName} {w.lastName}
@@ -810,7 +854,13 @@ function SeatsManagement(): JSX.Element {
                 );
               })}
             </div>
-            <button onClick={()=>{ setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); }} className="mt-4 w-full p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">ביטול</button>
+            <button
+              onClick={()=>{
+                setShowWorshiperModal(false);
+                setSelectedSeatsForWorshiper([]);
+              }}
+              className="mt-4 w-full p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+            >ביטול</button>
           </div>
         </div>
       )}
