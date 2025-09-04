@@ -9,7 +9,9 @@ import {
   CreditCard,
   LogOut,
   Menu,
-  X
+  X,
+  UserMinus,
+  Map
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -25,6 +27,8 @@ const Navbar: React.FC = () => {
     { path: '/app', label: 'ניהול מתפללים', icon: Users },
     { path: '/app/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/app/map-guide', label: 'מדריך מפה', icon: HelpCircle },
+    { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus },
+    { path: '/app/default-map', label: 'מפת ברירת מחדל', icon: Map },
     { path: '/app/contact', label: 'צור קשר', icon: Mail },
     { path: '/app/about', label: 'אודות', icon: Info },
     { path: '/app/pricing', label: 'מחירון', icon: CreditCard },
