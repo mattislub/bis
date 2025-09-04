@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard, Printer } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
 
