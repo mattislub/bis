@@ -438,7 +438,18 @@ app.put('/api/users/:email', async (req, res) => {
 
 app.get('/api/users', async (req, res) => {
   try {
-    const { rows } = await query('SELECT email, gabbai_name AS "gabbaiName" FROM users');
+    const { rows } = await query(`
+      SELECT
+        email,
+        gabbai_name AS "gabbaiName",
+        phone,
+        synagogue_name AS "synagogueName",
+        address,
+        city,
+        contact_phone AS "contactPhone",
+        role
+      FROM users
+    `);
     res.json(rows);
   } catch (err) {
     console.error('list users error:', err);
