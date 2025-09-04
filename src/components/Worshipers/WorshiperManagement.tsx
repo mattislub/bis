@@ -1,12 +1,25 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText } from 'lucide-react';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+  X,
+  User as UserIcon,
+  Upload,
+  Download,
+  MapPin,
+  FileText,
+  Printer,
+} from 'lucide-react';
+import jsPDF from 'jspdf';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperCommitmentsForm from './WorshiperCommitmentsForm';
 
 const WorshiperManagement: React.FC = () => {
-  const { worshipers, setWorshipers } = useAppContext();
+  const { worshipers, setWorshipers, seats, benches } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
@@ -72,6 +85,45 @@ const WorshiperManagement: React.FC = () => {
     link.download = 'worshipers_template.csv';
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handlePrintLabels = () => {
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const cols = 3;
+    const rows = 8;
+    const marginX = 10;
+    const marginY = 10;
+    const labelW = (pageW - marginX * 2) / cols;
+    const labelH = (pageH - marginY * 2) / rows;
+
+    const labels = seats
+      .filter(s => s.userId)
+      .map(s => {
+        const w = worshipers.find(w => w.id === s.userId);
+        const bench = benches.find(b => b.id === s.benchId);
+        const name = w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : '';
+        const benchName = bench?.name || '';
+        return { name, benchName };
+      });
+
+    labels.forEach((label, idx) => {
+      if (idx > 0 && idx % (cols * rows) === 0) {
+        pdf.addPage();
+      }
+      const pos = idx % (cols * rows);
+      const col = pos % cols;
+      const row = Math.floor(pos / cols);
+      const x = marginX + col * labelW;
+      const y = marginY + row * labelH;
+      pdf.setFontSize(16);
+      pdf.text(label.name, x + labelW / 2, y + labelH / 2 - 4, { align: 'center' });
+      pdf.setFontSize(10);
+      pdf.text(label.benchName, x + labelW / 2, y + labelH / 2 + 6, { align: 'center' });
+    });
+
+    pdf.save('labels.pdf');
   };
 
   const handleSaveWorshiper = () => {
@@ -173,6 +225,13 @@ const WorshiperManagement: React.FC = () => {
             onChange={handleCsvUpload}
             className="hidden"
           />
+          <button
+            onClick={handlePrintLabels}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Printer className="h-4 w-4 ml-2" />
+            הדפס מדבקות
+          </button>
           <button
             onClick={downloadSampleCsv}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
