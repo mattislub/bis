@@ -11,6 +11,9 @@ const logoPath = new URL('../public/logo.svg', import.meta.url).pathname;
 
 const app = express();
 
+const generatePassword = () =>
+  crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
+
 // --- ENV guardrails ---
 const must = (name) => {
   const v = process.env[name];
@@ -93,7 +96,7 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
-    const password = crypto.randomBytes(8).toString('hex'); // שוקל לעבור ל-token reset
+    const password = generatePassword();
     await query(
       `INSERT INTO users(email, password)
        VALUES ($1, $2)`,
@@ -253,7 +256,7 @@ app.post('/api/reset', async (req, res) => {
       return res.sendStatus(204);
     }
 
-    const password = crypto.randomBytes(8).toString('hex');
+    const password = generatePassword();
     await query('UPDATE users SET password=$1 WHERE email=$2', [password, email]);
 
     console.log('Sending password reset email to', email);
@@ -512,7 +515,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
           );
           const email = rows?.[0]?.email;
           if (email) {
-            const password = crypto.randomBytes(8).toString('hex');
+            const password = generatePassword();
             await query(
               `INSERT INTO users(email, password)
                VALUES ($1, $2)
