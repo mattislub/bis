@@ -122,28 +122,38 @@ function SeatsManagement(): JSX.Element {
   useEffect(() => {
     if (userInteractedRef.current) return;
     if (!wrapperRef.current) return;
-    if (!benches.length) { setZoom(1); setMapOffset({x:0,y:0}); return; }
-    // compute bbox
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-    benches.forEach(b=>{
-      const {width,height}=benchDims(b);
-      minX=Math.min(minX,b.position.x);
-      minY=Math.min(minY,b.position.y);
-      maxX=Math.max(maxX,b.position.x+width);
-      maxY=Math.max(maxY,b.position.y+height);
+
+    let minX = benches.length ? Infinity : 0;
+    let minY = benches.length ? Infinity : 0;
+    let maxX = benches.length ? -Infinity : 0;
+    let maxY = benches.length ? -Infinity : 0;
+
+    benches.forEach(b => {
+      const { width, height } = benchDims(b);
+      minX = Math.min(minX, b.position.x);
+      minY = Math.min(minY, b.position.y);
+      maxX = Math.max(maxX, b.position.x + width);
+      maxY = Math.max(maxY, b.position.y + height);
     });
+
+    // include explicit map bounds
+    minX -= mapBounds.left;
+    minY -= mapBounds.top;
+    maxX += mapBounds.right;
+    maxY += mapBounds.bottom;
+
     const W = wrapperRef.current.clientWidth;
     const H = wrapperRef.current.clientHeight;
-    const contentW = Math.max(1, maxX-minX);
-    const contentH = Math.max(1, maxY-minY);
-    let scale = Math.min((W-FIT_PADDING*2)/contentW,(H-FIT_PADDING*2)/contentH);
+    const contentW = Math.max(1, maxX - minX);
+    const contentH = Math.max(1, maxY - minY);
+    let scale = Math.min((W - FIT_PADDING * 2) / contentW, (H - FIT_PADDING * 2) / contentH);
     scale = clamp(scale, MIN_ZOOM, MAX_ZOOM);
     setZoom(scale);
     setMapOffset({
-      x: Math.round(W/2 - (minX + contentW/2)*scale),
-      y: Math.round(H/2 - (minY + contentH/2)*scale),
+      x: Math.round(W / 2 - (minX + contentW / 2) * scale),
+      y: Math.round(H / 2 - (minY + contentH / 2) * scale),
     });
-  }, [benches, setMapOffset]);
+  }, [benches, mapBounds, setMapOffset]);
 
   // Keyboard move & delete
   useEffect(()=>{
@@ -421,21 +431,40 @@ function SeatsManagement(): JSX.Element {
   }, [setBenches,setSeats,setMapBounds,setMapOffset,setGridSettings]);
 
   // Fit to screen
-  const fitToScreen = useCallback(()=>{
-    if (!wrapperRef.current || benches.length===0) return;
-    let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
-    benches.forEach(b=>{
-      const {width,height}=benchDims(b);
-      minX=Math.min(minX,b.position.x); minY=Math.min(minY,b.position.y);
-      maxX=Math.max(maxX,b.position.x+width); maxY=Math.max(maxY,b.position.y+height);
+  const fitToScreen = useCallback(() => {
+    if (!wrapperRef.current) return;
+
+    let minX = benches.length ? Infinity : 0;
+    let minY = benches.length ? Infinity : 0;
+    let maxX = benches.length ? -Infinity : 0;
+    let maxY = benches.length ? -Infinity : 0;
+
+    benches.forEach(b => {
+      const { width, height } = benchDims(b);
+      minX = Math.min(minX, b.position.x);
+      minY = Math.min(minY, b.position.y);
+      maxX = Math.max(maxX, b.position.x + width);
+      maxY = Math.max(maxY, b.position.y + height);
     });
-    const contentW=Math.max(1,maxX-minX), contentH=Math.max(1,maxY-minY);
-    const W=wrapperRef.current.clientWidth, H=wrapperRef.current.clientHeight;
-    let scale = Math.min((W-FIT_PADDING*2)/contentW,(H-FIT_PADDING*2)/contentH);
+
+    // include explicit map bounds
+    minX -= mapBounds.left;
+    minY -= mapBounds.top;
+    maxX += mapBounds.right;
+    maxY += mapBounds.bottom;
+
+    const contentW = Math.max(1, maxX - minX);
+    const contentH = Math.max(1, maxY - minY);
+    const W = wrapperRef.current.clientWidth;
+    const H = wrapperRef.current.clientHeight;
+    let scale = Math.min((W - FIT_PADDING * 2) / contentW, (H - FIT_PADDING * 2) / contentH);
     scale = clamp(scale, MIN_ZOOM, MAX_ZOOM);
     setZoom(scale);
-    setMapOffset({ x: Math.round(W/2 - (minX + contentW/2)*scale), y: Math.round(H/2 - (minY + contentH/2)*scale) });
-  }, [benches]);
+    setMapOffset({
+      x: Math.round(W / 2 - (minX + contentW / 2) * scale),
+      y: Math.round(H / 2 - (minY + contentH / 2) * scale),
+    });
+  }, [benches, mapBounds]);
 
   // UI derived
   const selectedOne = useMemo(()=> selectedBenches.length===1 ? benches.find(b=>b.id===selectedBenches[0]) : null, [selectedBenches, benches]);
