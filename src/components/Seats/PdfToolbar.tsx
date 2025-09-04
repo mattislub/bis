@@ -4,13 +4,16 @@ import { exportMapToPDF, PdfMode, ColorMode } from './pdfUtils';
 interface PdfToolbarProps {
   wrapperRef: React.RefObject<HTMLDivElement>;
   mapLayerRef: React.RefObject<HTMLDivElement>;
+  /** optional id for the export button */
+  id?: string;
 }
 
-const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef }) => {
+const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef, id }) => {
   const [pdfMode, setPdfMode] = React.useState<PdfMode>('a4');
   const [colorMode, setColorMode] = React.useState<ColorMode>('color');
   const [hardBW, setHardBW] = React.useState(false);
   const [threshold, setThreshold] = React.useState(128);
+  const [orientation, setOrientation] = React.useState<'portrait' | 'landscape'>('portrait');
 
   const onExport = async () => {
     if (!wrapperRef.current || !mapLayerRef.current) return;
@@ -22,6 +25,7 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef }) => {
       bwHard: hardBW,
       bwThreshold: threshold,
       marginsMm: 10,
+      orientation,
       fileName:
         (colorMode === 'bw' ? 'map-bw-' : 'map-color-') +
         (pdfMode === 'a4' ? 'a4.pdf' : 'onepage.pdf'),
@@ -81,7 +85,25 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef }) => {
         </select>
       </label>
 
-      <button onClick={onExport} className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300">
+      {pdfMode === 'a4' && (
+        <label className="text-sm">
+          כיוון:
+          <select
+            value={orientation}
+            onChange={e => setOrientation(e.target.value as 'portrait' | 'landscape')}
+            className="ml-2 border rounded px-2 py-1"
+          >
+            <option value="portrait">אנכי</option>
+            <option value="landscape">אופקי</option>
+          </select>
+        </label>
+      )}
+
+      <button
+        id={id}
+        onClick={onExport}
+        className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
+      >
         ייצוא PDF
       </button>
     </div>
