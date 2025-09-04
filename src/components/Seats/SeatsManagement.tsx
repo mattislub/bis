@@ -1,15 +1,14 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { Bench, Seat, Worshiper, MapBounds } from '../../types';
+import { Bench, Seat } from '../../types';
 import { specialElements } from './specialElements';
 import MapZoomControls from './MapZoomControls';
 import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers, Download,
-  Upload, Maximize2, Grid as GridIcon, Target, MoreVertical, Printer
+  Upload, Maximize2, Grid as GridIcon, Target, Printer
 } from 'lucide-react';
-import jsPDF from 'jspdf';
 
 /**
  * SeatsManagement — Full Merge
@@ -23,10 +22,12 @@ type Tool = 'select' | 'add' | 'multiSelect' | 'pan';
 type XY = { x: number; y: number };
 
 const clamp = (v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
-const MIN_ZOOM = 0.3, MAX_ZOOM = 3, FIT_PADDING = 24, MIN_BENCH_SPACING = 20, MAP_EXPANSION_MARGIN = 20;
+const MIN_ZOOM = 0.3, MAX_ZOOM = 3, FIT_PADDING = 24, MIN_BENCH_SPACING = 20;
 
 function benchDims(bench: Bench) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if ((bench as any).type === 'special') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return { width: (bench as any).width || 120, height: (bench as any).height || 120 };
   }
   return {
@@ -68,11 +69,10 @@ function SeatsManagement(): JSX.Element {
     gridSettings, setGridSettings,
     mapBounds, setMapBounds,
     mapOffset, setMapOffset,
-    saveCurrentMap, maps, currentMapId, loadMap, renameMap,
+    saveCurrentMap, maps, loadMap, renameMap,
   } = useAppContext();
 
   // UI State
-  const [selectedBench, setSelectedBench] = useState<string | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<Set<number>>(new Set());
   const [activeTool, setActiveTool] = useState<Tool>('select');
   const [zoom, setZoom] = useState(1);
@@ -81,7 +81,7 @@ function SeatsManagement(): JSX.Element {
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [newMapName, setNewMapName] = useState('');
-  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+  const [isToolbarCollapsed] = useState(false);
 
   // Multi‑drag & selection
   const [selectedBenches, setSelectedBenches] = useState<string[]>([]);
@@ -164,6 +164,7 @@ function SeatsManagement(): JSX.Element {
         e.preventDefault();
         const dist = gridSettings.snapToGrid ? gridSettings.gridSize : 10;
         setBenches(prev => ensureBenchSpacing(prev.map(b=>{
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if (!selectedBenches.includes(b.id) || (b as any).locked) return b;
           let {x,y}=b.position;
           if (e.key==='ArrowUp') y -= dist;
@@ -190,7 +191,6 @@ function SeatsManagement(): JSX.Element {
       setSelectedBenches(prev => prev.includes(benchId) ? prev.filter(id=>id!==benchId) : [...prev, benchId]);
     } else {
       setSelectedBenches([benchId]);
-      setSelectedBench(benchId);
       setSelectedSeats(new Set());
     }
   }, [activeTool]);
@@ -228,7 +228,6 @@ function SeatsManagement(): JSX.Element {
       }));
       setSeats(prev=>[...prev, ...newSeats]);
     } else {
-      setSelectedBench(null);
       setSelectedBenches([]);
       setSelectedSeats(new Set());
     }
@@ -238,6 +237,7 @@ function SeatsManagement(): JSX.Element {
   // Drag & drop (multi)
   const onDragStartBench = (e: React.DragEvent<HTMLDivElement>, benchId: string) => {
     const bench = benches.find(b=>b.id===benchId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (!bench || (bench as any).locked) { e.preventDefault(); return; }
     let selection = selectedBenches;
     if (!selection.includes(benchId)) selection = [benchId];
@@ -265,11 +265,13 @@ function SeatsManagement(): JSX.Element {
     if (dragStartPositions && selectedBenches.length > 1) {
       const start = dragStartPositions[draggedBench]; const dx = x - start.x; const dy = y - start.y;
       updated = benches.map(b => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (!selectedBenches.includes(b.id) || (b as any).locked) return b;
         const pos = dragStartPositions[b.id];
         return { ...b, position: { x: snapToGrid(pos.x + dx), y: snapToGrid(pos.y + dy) } };
       });
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       updated = benches.map(b => b.id === draggedBench && !(b as any).locked ? { ...b, position: { x, y } } : b);
     }
     setBenches(ensureBenchSpacing(updated));
@@ -405,7 +407,7 @@ function SeatsManagement(): JSX.Element {
   const clearMap = useCallback(()=>{
     if (window.confirm('לנקות את המפה?')) {
       setBenches([]); setSeats([]);
-      setSelectedBenches([]); setSelectedBench(null); setSelectedSeats(new Set());
+      setSelectedBenches([]); setSelectedSeats(new Set());
     }
   }, []);
 
@@ -567,10 +569,23 @@ function SeatsManagement(): JSX.Element {
           <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
             <span className="text-xs font-semibold text-gray-600 px-2">אלמנטים:</span>
             {specialElements.slice(0, 3).map(el => (
-              <button key={el.id} onClick={()=>{
-                const b: any = { ...el, id:`${el.id}-${Date.now()}`, type:'special', locked:false, temporary:false, position:{x:400,y:300}, seatCount:0 };
-                setBenches(prev=>ensureBenchSpacing([...prev, b]));
-              }} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 text-sm" title={el.name}>
+              <button
+                key={el.id}
+                onClick={() => {
+                  const b = {
+                    ...el,
+                    id: `${el.id}-${Date.now()}`,
+                    type: 'special',
+                    locked: false,
+                    temporary: false,
+                    position: { x: 400, y: 300 },
+                    seatCount: 0,
+                  } as Bench;
+                  setBenches(prev => ensureBenchSpacing([...prev, b]));
+                }}
+                className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 text-sm"
+                title={el.name}
+              >
                 {el.icon}
               </button>
             ))}
@@ -710,14 +725,6 @@ function SeatsManagement(): JSX.Element {
                     onContextMenu={(e)=>onContextMenuBench(e, bench.id)}
                     title={bench.name}
                   >
-                    {/* Bench options button */}
-                    <button
-                      className="absolute top-1 right-1 p-1 rounded-md bg-white/90 shadow hover:bg-white"
-                      onClick={(e)=>{ e.stopPropagation(); setCtxMenu({ show:true, x: (e as any).clientX, y: (e as any).clientY, targetId: bench.id }); }}
-                      title="אפשרויות">
-                      <MoreVertical className="h-4 w-4 text-gray-700"/>
-                    </button>
-
                     {/* Bench Label */}
 
                     {/* Seat count badge (non-special) */}
@@ -733,6 +740,7 @@ function SeatsManagement(): JSX.Element {
                     {/* Seats or Special */}
                     {bench.type==='special' ? (
                       <div className="absolute inset-0 flex items-center justify-center text-center">
+                        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                         <div><div className="text-2xl mb-1">{(bench as any).icon}</div><div className="text-xs font-semibold text-gray-700">{bench.name}</div></div>
                       </div>
                     ) : (
@@ -786,16 +794,79 @@ function SeatsManagement(): JSX.Element {
 
             {/* Context menu */}
             {ctxMenu.show && (
-              <div className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 text-sm"
-                   style={{ left: ctxMenu.x, top: ctxMenu.y }}
-                   onMouseLeave={()=>setCtxMenu(s=>({...s,show:false}))}>
-                <button className="block w-full text-right px-4 py-2 hover:bg-gray-50" onClick={()=>{ if (selectedBenches.length) toggleBenchLock(selectedBenches[0]); setCtxMenu(s=>({...s,show:false}));}}>
-                  {selectedBenches.some(id=>benches.find(b=>b.id===id)?.locked) ? 'שחרר נעילה' : 'נעל'}
+              <div
+                className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-xl py-1 text-sm"
+                style={{ left: ctxMenu.x, top: ctxMenu.y }}
+                onMouseLeave={() => setCtxMenu(s => ({ ...s, show: false }))}
+              >
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50 text-red-600"
+                  disabled={!selectedBenches.length}
+                  onClick={() => {
+                    if (selectedBenches.length) deleteSelectedBenches();
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  מחק
                 </button>
-                <button className="block w-full text-right px-4 py-2 hover:bg-gray-50" disabled={selectedBenches.length!==1} onClick={()=>{ if (selectedBenches.length===1) rotateBench(selectedBenches[0]); setCtxMenu(s=>({...s,show:false}));}}>סובב</button>
-                <button className="block w-full text-right px-4 py-2 hover:bg-gray-50" disabled={!selectedBenches.length} onClick={()=>{ if (selectedBenches.length) duplicateBench(selectedBenches[0],'right'); setCtxMenu(s=>({...s,show:false}));}}>שכפל ימינה</button>
-                <button className="block w-full text-right px-4 py-2 hover:bg-gray-50" disabled={!selectedBenches.length} onClick={()=>{ if (selectedBenches.length) duplicateBench(selectedBenches[0],'down'); setCtxMenu(s=>({...s,show:false}));}}>שכפל למטה</button>
-                <button className="block w-full text-right px-4 py-2 hover:bg-red-50 text-red-600" disabled={!selectedBenches.length} onClick={()=>{ deleteSelectedBenches(); setCtxMenu(s=>({...s,show:false}));}}>מחק</button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={!selectedBenches.length}
+                  onClick={() => {
+                    if (selectedBenches.length) {
+                      const current = benches.find(b => b.id === selectedBenches[0])?.seatCount ?? 0;
+                      const result = prompt('מספר מקומות חדש', current.toString());
+                      const count = result ? parseInt(result, 10) : NaN;
+                      if (!Number.isNaN(count)) updateSeatCount(selectedBenches[0], count);
+                    }
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  שנה מספר מקומות
+                </button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={!selectedBenches.length}
+                  onClick={() => {
+                    if (selectedBenches.length) duplicateBench(selectedBenches[0], 'down');
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  העתקה למטה
+                </button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={!selectedBenches.length}
+                  onClick={() => {
+                    if (selectedBenches.length) duplicateBench(selectedBenches[0], 'right');
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  העתקה לצד
+                </button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={selectedBenches.length !== 1}
+                  onClick={() => {
+                    if (selectedBenches.length === 1) rotateBench(selectedBenches[0]);
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  סיבוב 90°
+                </button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={selectedSeats.size === 0}
+                  onClick={() => {
+                    if (selectedSeats.size) {
+                      setSelectedSeatsForWorshiper(Array.from(selectedSeats));
+                      setShowWorshiperModal(true);
+                    }
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  שיוך שם למקום
+                </button>
               </div>
             )}
           </div>
