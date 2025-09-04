@@ -20,9 +20,11 @@ export async function init() {
       synagogue_name text,
       address text,
       city text,
-      contact_phone text
+      contact_phone text,
+      role text NOT NULL DEFAULT 'demo'
     )
   `);
+  await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'demo'`);
   await pool.query(`
     CREATE TABLE IF NOT EXISTS clients (
       client_id SERIAL PRIMARY KEY,

@@ -10,6 +10,7 @@ interface User {
   address?: string;
   city?: string;
   contactPhone?: string;
+  role?: 'manager' | 'pro' | 'demo';
 }
 
 interface AuthContextType {

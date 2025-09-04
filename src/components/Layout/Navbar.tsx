@@ -27,12 +27,13 @@ const Navbar: React.FC = () => {
     { path: '/app', label: 'ניהול מתפללים', icon: Users },
     { path: '/app/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/app/map-guide', label: 'מדריך מפה', icon: HelpCircle },
-    { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus },
-    { path: '/app/default-map', label: 'מפת ברירת מחדל', icon: Map },
+    { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus, admin: true },
+    { path: '/app/default-map', label: 'מפת ברירת מחדל', icon: Map, admin: true },
     { path: '/app/contact', label: 'צור קשר', icon: Mail },
     { path: '/app/about', label: 'אודות', icon: Info },
     { path: '/app/pricing', label: 'מחירון', icon: CreditCard },
   ];
+  const visibleNavItems = navItems.filter((item) => !item.admin || user?.role === 'manager');
 
   const handleLogout = () => {
     logout();
@@ -50,7 +51,7 @@ const Navbar: React.FC = () => {
           
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1 space-x-reverse">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
               return (
@@ -101,7 +102,7 @@ const Navbar: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
-              {navItems.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (
