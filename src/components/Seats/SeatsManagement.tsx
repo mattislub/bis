@@ -696,8 +696,8 @@ function SeatsManagement(): JSX.Element {
                           <div key={seat.id}
                                className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-xs text-white border-2 border-white cursor-pointer transition-all hover:scale-105 ${w ? 'bg-blue-500' : 'bg-gray-300'} ${selectedSeats.has(seat.id) ? 'ring-2 ring-yellow-400' : ''}`}
                                style={{ left: bench.orientation==='horizontal' ? idx*60+10 : 10, top: bench.orientation==='horizontal' ? 10 : idx*60+10 }}
-                               onClick={(e)=>handleSeatClick(seat.id, e)}
-                               title={w ? `${w.title} ${w.firstName} ${w.lastName}` : 'מקום פנוי - לחץ להקצאה'}>
+                               onDoubleClick={(e)=>handleSeatClick(seat.id, e)}
+                               title={w ? `${w.title} ${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}>
                             <span className="font-bold">{seat.id}</span>
                           </div>
                         );
