@@ -3,6 +3,12 @@ import { query } from '../db.js';
 export default function registerStorageRoutes(app) {
   app.get('/api/storage/:key', async (req, res) => {
     try {
+      const userEmail = req.header('x-user-email');
+      if (req.params.key.includes('-')) {
+        if (!userEmail || !req.params.key.startsWith(`${userEmail}-`)) {
+          return res.status(403).json({ error: 'Forbidden' });
+        }
+      }
       const { rows } = await query('SELECT data FROM storage WHERE key = $1', [req.params.key]);
       res.json(rows[0]?.data ?? null);
     } catch (err) {
@@ -10,9 +16,15 @@ export default function registerStorageRoutes(app) {
       res.status(500).json({ error: 'DB error' });
     }
   });
-  
+
   app.post('/api/storage/:key', async (req, res) => {
     try {
+      const userEmail = req.header('x-user-email');
+      if (req.params.key.includes('-')) {
+        if (!userEmail || !req.params.key.startsWith(`${userEmail}-`)) {
+          return res.status(403).json({ error: 'Forbidden' });
+        }
+      }
       await query(
         `INSERT INTO storage(key, data)
          VALUES ($1, $2::jsonb)
