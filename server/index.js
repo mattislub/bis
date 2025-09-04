@@ -470,9 +470,9 @@ app.post('/api/storage/:key', async (req, res) => {
   try {
     await query(
       `INSERT INTO storage(key, data)
-       VALUES ($1, $2)
+       VALUES ($1, $2::jsonb)
        ON CONFLICT (key) DO UPDATE SET data = EXCLUDED.data`,
-      [req.params.key, req.body ?? {}]
+      [req.params.key, JSON.stringify(req.body ?? {})]
     );
     res.sendStatus(204);
   } catch (err) {
@@ -577,7 +577,7 @@ app.post('/api/zcredit/create-checkout', async (req, res) => {
            description = EXCLUDED.description,
            status = EXCLUDED.status,
            is_paid = EXCLUDED.is_paid`,
-        [clientId, uniqueOrderId, Number(amount).toFixed(2), 'ILS', description || '', 'pending', false]
+        [clientId, uniqueOrderId, Number(finalAmount), 'ILS', description || '', 'pending', false]
       );
     }
 
@@ -599,7 +599,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
 
     // save raw callback payload
     try {
-      await query(`INSERT INTO zcredit_callbacks(payload) VALUES ($1)`, [body]);
+      await query(`INSERT INTO zcredit_callbacks(payload) VALUES ($1::jsonb)`, [JSON.stringify(body)]);
     } catch (e) {
       console.error('Failed to store callback payload', e);
     }
@@ -634,10 +634,10 @@ app.post('/api/zcredit/callback', async (req, res) => {
          SET status = $1,
              transaction_id = $2,
              transaction_date = NOW(),
-             details = $3,
+             details = $3::jsonb,
              is_paid = $4
          WHERE order_id = $5`,
-        [status || '', transactionId || authNumber || '', body, isPaid, orderId]
+        [status || '', transactionId || authNumber || '', JSON.stringify(body), isPaid, orderId]
       );
 
       if (isPaid) {
