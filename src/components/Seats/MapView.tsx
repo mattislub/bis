@@ -3,12 +3,14 @@ import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
+import MapZoomControls from './MapZoomControls';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
+  const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
     const originalPadding = document.body.style.padding;
@@ -61,13 +63,16 @@ const MapView: React.FC = () => {
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100">
       <div ref={containerRef} className="relative h-screen w-full">
+        <div className="absolute top-4 right-4 z-10">
+          <MapZoomControls setZoom={setZoom} orientation="vertical" />
+        </div>
         <div
           className="absolute"
           style={{ width: baseSize.width + mapBounds.left + mapBounds.right, height: baseSize.height + mapBounds.top + mapBounds.bottom }}
         >
           <div
             className="absolute inset-0"
-            style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px)`, transformOrigin: 'top left' }}
+            style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
           >
             {benches.map(bench => (
             <div

@@ -6,14 +6,19 @@ interface MapZoomControlsProps {
   onFit?: () => void;
   min?: number;
   max?: number;
+  orientation?: 'horizontal' | 'vertical';
 }
 
-const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit, min = 0.3, max = 3 }) => {
+const MapZoomControls: React.FC<MapZoomControlsProps> = ({ setZoom, onFit, min = 0.3, max = 3, orientation = 'horizontal' }) => {
   const zoomIn = () => setZoom(prev => Math.min(prev + 0.1, max));
   const zoomOut = () => setZoom(prev => Math.max(prev - 0.1, min));
 
+  const containerClass = orientation === 'vertical'
+    ? 'flex flex-col items-center space-y-2'
+    : 'flex items-center space-x-2 space-x-reverse';
+
   return (
-    <div className="flex items-center space-x-2 space-x-reverse">
+    <div className={containerClass}>
       <button
         onClick={zoomIn}
         className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
