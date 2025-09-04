@@ -53,6 +53,8 @@ export async function exportMapToPDF(opts: {
   mapLayerEl: HTMLElement;
   mode: PdfMode;
   colorMode: ColorMode;
+  /** Desired orientation for the generated PDF pages */
+  orientation?: 'portrait' | 'landscape';
   bwHard?: boolean;
   bwThreshold?: number;
   marginsMm?: number;
@@ -67,6 +69,7 @@ export async function exportMapToPDF(opts: {
     bwThreshold = 128,
     marginsMm = 10,
     fileName = 'map.pdf',
+    orientation,
   } = opts;
 
   mapLayerEl.classList.add('pdf-export');
@@ -80,14 +83,25 @@ export async function exportMapToPDF(opts: {
   if (mode === 'onePage') {
     const pageWmm = pxToMm(canvas.width);
     const pageHmm = pxToMm(canvas.height);
-    const orientation = pageWmm > pageHmm ? 'landscape' : 'portrait';
-    const pdf = new jsPDF({ orientation, unit: 'mm', format: [pageWmm, pageHmm], compress: false });
+    const autoOrientation = pageWmm > pageHmm ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({
+      orientation: orientation || autoOrientation,
+      unit: 'mm',
+      format: [pageWmm, pageHmm],
+      compress: false,
+    });
     pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageWmm, pageHmm);
     pdf.save(fileName);
     return;
   }
 
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: false });
+  const autoOrientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+  const pdf = new jsPDF({
+    orientation: orientation || autoOrientation,
+    unit: 'mm',
+    format: 'a4',
+    compress: false,
+  });
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
   const maxW = pageW - marginsMm * 2;
