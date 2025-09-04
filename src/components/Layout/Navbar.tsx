@@ -4,7 +4,6 @@ import {
   Users,
   Settings,
   Mail,
-  Info,
   HelpCircle,
   CreditCard,
   LogOut,
@@ -30,7 +29,6 @@ const Navbar: React.FC = () => {
     { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus, admin: true },
     { path: '/app/default-map', label: 'מפת ברירת מחדל', icon: Map, admin: true },
     { path: '/app/contact', label: 'צור קשר', icon: Mail },
-    { path: '/app/about', label: 'אודות', icon: Info },
     { path: '/app/pricing', label: 'מחירון', icon: CreditCard },
   ];
   const visibleNavItems = navItems.filter((item) => !item.admin || user?.role === 'manager');

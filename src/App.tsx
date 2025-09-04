@@ -6,7 +6,6 @@ import Layout from './components/Layout/Layout';
 import WorshiperManagement from './components/Worshipers/WorshiperManagement';
 import SeatsManagement from './components/Seats/SeatsManagement';
 import Contact from './components/Contact/Contact';
-import About from './components/About/About';
 import MapManagementGuide from './components/Seats/MapManagementGuide';
 import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
@@ -65,7 +64,6 @@ function App() {
             <Route path="admin-users" element={<RequireManager><UserManagement /></RequireManager>} />
             <Route path="default-map" element={<RequireManager><DefaultMapView /></RequireManager>} />
             <Route path="contact" element={<Contact />} />
-            <Route path="about" element={<About />} />
             <Route path="pricing" element={<Pricing />} />
           </Route>
         </Routes>
