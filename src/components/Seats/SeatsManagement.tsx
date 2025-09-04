@@ -794,11 +794,21 @@ function SeatsManagement(): JSX.Element {
             <h3 className="text-lg font-bold mb-4">הקצה מקום</h3>
             <div className="space-y-3 max-h-60 overflow-y-auto">
               <button onClick={()=>{ setSeats(prev=>prev.map(s=> s.id===selectedSeatForWorshiper ? {...s, userId: undefined} : s)); setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); }} className="w-full p-3 text-right bg-gray-100 hover:bg-gray-200 rounded-lg">פנה מקום</button>
-              {worshipers.map(w => (
-                <button key={w.id} onClick={()=>{ setSeats(prev=>prev.map(s=> s.id===selectedSeatForWorshiper ? {...s, userId: w.id} : s)); setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); }} className="w-full p-3 text-right bg-blue-50 hover:bg-blue-100 rounded-lg">
-                  {w.title} {w.firstName} {w.lastName}
-                </button>
-              ))}
+              {worshipers.map(w => {
+                const assignedSeats = seats.filter(s => s.userId === w.id).length;
+                const isFull = assignedSeats >= w.seatCount;
+                return (
+                  <button
+                    key={w.id}
+                    disabled={isFull}
+                    onClick={()=>{ if (!isFull) { setSeats(prev=>prev.map(s=> s.id===selectedSeatForWorshiper ? {...s, userId: w.id} : s)); setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); } }}
+                    className={`w-full p-3 text-right rounded-lg ${isFull ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 hover:bg-blue-100'}`}
+                  >
+                    {w.title} {w.firstName} {w.lastName}
+                    {isFull && ' (מכסת מקומות מלאה)'}
+                  </button>
+                );
+              })}
             </div>
             <button onClick={()=>{ setShowWorshiperModal(false); setSelectedSeatForWorshiper(null); }} className="mt-4 w-full p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">ביטול</button>
           </div>
