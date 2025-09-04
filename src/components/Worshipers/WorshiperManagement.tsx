@@ -1,29 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import {
-  Plus,
-  Edit2,
-  Trash2,
-  Save,
-  X,
-  User as UserIcon,
-  Upload,
-  Download,
-  MapPin,
-  FileText,
-  Printer,
-} from 'lucide-react';
-import jsPDF from 'jspdf';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
-import WorshiperCommitmentsForm from './WorshiperCommitmentsForm';
+import WorshiperItemsForm from './WorshiperItemsForm';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers, seats, benches } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
-  const [commitmentWorshiper, setCommitmentWorshiper] = useState<Worshiper | null>(null);
+  const [promisesWorshiper, setPromisesWorshiper] = useState<Worshiper | null>(null);
+  const [aliyotWorshiper, setAliyotWorshiper] = useState<Worshiper | null>(null);
+  const [placesWorshiper, setPlacesWorshiper] = useState<Worshiper | null>(null);
   const [formData, setFormData] = useState<Partial<Worshiper>>({
     title: '',
     firstName: '',
@@ -34,7 +23,9 @@ const WorshiperManagement: React.FC = () => {
     secondaryPhone: '',
     email: '',
     seatCount: 1,
-    commitments: [],
+    promises: [],
+    aliyot: [],
+    places: [],
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -146,7 +137,9 @@ const WorshiperManagement: React.FC = () => {
         secondaryPhone: formData.secondaryPhone || '',
         email: formData.email || '',
         seatCount: formData.seatCount || 1,
-        commitments: formData.commitments || [],
+        promises: formData.promises || [],
+        aliyot: formData.aliyot || [],
+        places: formData.places || [],
       };
       setWorshipers(prev => [...prev, newWorshiper]);
       setIsAdding(false);
@@ -162,7 +155,9 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
-      commitments: [],
+      promises: [],
+      aliyot: [],
+      places: [],
     });
   };
 
@@ -191,7 +186,9 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
-      commitments: [],
+      promises: [],
+      aliyot: [],
+      places: [],
     });
   };
 
@@ -208,7 +205,9 @@ const WorshiperManagement: React.FC = () => {
       secondaryPhone: '',
       email: '',
       seatCount: 1,
-      commitments: [],
+      promises: [],
+      aliyot: [],
+      places: [],
     });
   };
 
@@ -420,17 +419,33 @@ const WorshiperManagement: React.FC = () => {
                         onClick={() => setSeatWorshiper(w)}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="מקומות"
+                        title="הקצאת מקומות"
                       >
-                    <MapPin className="h-4 w-4" />
+                        <MapPin className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => setCommitmentWorshiper(w)}
+                        onClick={() => setPromisesWorshiper(w)}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="התחייבויות"
+                        title="הבטחות"
                       >
                         <FileText className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setAliyotWorshiper(w)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="עליות"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setPlacesWorshiper(w)}
+                        disabled={isAdding || editingWorshiper}
+                        className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="מקומות"
+                      >
+                        <CreditCard className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleEditWorshiper(w)}
@@ -469,10 +484,28 @@ const WorshiperManagement: React.FC = () => {
         onClose={() => setSeatWorshiper(null)}
       />
     )}
-    {commitmentWorshiper && (
-      <WorshiperCommitmentsForm
-        worshiper={commitmentWorshiper}
-        onClose={() => setCommitmentWorshiper(null)}
+    {promisesWorshiper && (
+      <WorshiperItemsForm
+        worshiper={promisesWorshiper}
+        field="promises"
+        title="הבטחות"
+        onClose={() => setPromisesWorshiper(null)}
+      />
+    )}
+    {aliyotWorshiper && (
+      <WorshiperItemsForm
+        worshiper={aliyotWorshiper}
+        field="aliyot"
+        title="עליות"
+        onClose={() => setAliyotWorshiper(null)}
+      />
+    )}
+    {placesWorshiper && (
+      <WorshiperItemsForm
+        worshiper={placesWorshiper}
+        field="places"
+        title="מקומות"
+        onClose={() => setPlacesWorshiper(null)}
       />
     )}
     </>
