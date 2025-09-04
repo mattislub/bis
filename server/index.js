@@ -117,7 +117,7 @@ app.post('/api/register', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>ברוכים הבאים ל-SeatFlow</title>
         </head>
-        <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;">
+        <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;direction:rtl;text-align:right;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;">
           <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
             <!-- Header -->
             <div style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:40px 30px;text-align:center;position:relative;">
@@ -273,7 +273,7 @@ app.post('/api/reset', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>איפוס סיסמה ל-SeatFlow</title>
         </head>
-        <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;">
+        <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;direction:rtl;text-align:right;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;">
           <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
             <div style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:40px 30px;text-align:center;position:relative;">
               <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"80\" cy=\"40\" r=\"1.5\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"40\" cy=\"80\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"/></svg>');"></div>
@@ -679,7 +679,7 @@ app.post('/api/zcredit/callback', async (req, res) => {
                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <title>תודה על הרכישה - SeatFlow</title>
                 </head>
-                <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#10b981 0%,#059669 100%);min-height:100vh;">
+                <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;direction:rtl;text-align:right;background:linear-gradient(135deg,#10b981 0%,#059669 100%);min-height:100vh;">
                   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
                     <!-- Header -->
                     <div style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:40px 30px;text-align:center;position:relative;">
