@@ -335,6 +335,32 @@ function SeatsManagement(): JSX.Element {
     setSeats(prev=>[...prev, ...newSeats]);
   }, [benches, seats, setBenches, setSeats]);
 
+  const updateSeatCount = useCallback((benchId: string, newCount: number) => {
+    if (newCount < 0 || !Number.isFinite(newCount)) return;
+    setBenches(prev => prev.map(b => b.id === benchId ? { ...b, seatCount: newCount } : b));
+    setSeats(prev => {
+      const keep: Seat[] = [];
+      const add: Seat[] = [];
+      let maxId = Math.max(0, ...prev.map(s => s.id));
+      // for each bench, if matches benchId adjust; others keep as-is
+      const currentForBench = prev.filter(s => s.benchId === benchId).sort((a,b)=>a.id-b.id);
+      if (newCount <= currentForBench.length) {
+        // keep first newCount seats for that bench
+        keep.push(...currentForBench.slice(0, newCount));
+      } else {
+        keep.push(...currentForBench);
+        const toAdd = newCount - currentForBench.length;
+        for (let i=0;i<toAdd;i++) {
+          add.push({ id: ++maxId, benchId, position:{x:0,y:0}, isOccupied:false });
+        }
+      }
+      // merge others + adjusted for bench
+      const others = prev.filter(s => s.benchId !== benchId);
+      return [...others, ...keep, ...add];
+    });
+  }, [setBenches, setSeats]);
+
+
   const rotateBench = useCallback((benchId: string) => {
     setBenches(prev=>prev.map(b=> b.id===benchId ? {...b, orientation: b.orientation==='horizontal' ? 'vertical' : 'horizontal'} : b));
   }, [setBenches]);
@@ -555,7 +581,22 @@ function SeatsManagement(): JSX.Element {
                 </div>
 
                 <button onClick={deleteSelectedBenches} className="flex items-center justify-center gap-2 p-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 w-full">
-                  <Trash2 className="h-4 w-4" /> מחק ספסל
+                  <Trash2 className="h-4 w-4" /> 
+                {/* Seat count */}
+                <div className="grid grid-cols-3 gap-2 items-center">
+                  <span className="text-sm text-gray-700 col-span-1">מס׳ מקומות</span>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <button onClick={()=>updateSeatCount(selectedOne.id, Math.max(0, (selectedOne.seatCount||0)-1))}
+                            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">-</button>
+                    <input type="number"
+                           className="w-20 px-2 py-1 border rounded-lg"
+                           value={selectedOne.seatCount || 0}
+                           onChange={(e)=>updateSeatCount(selectedOne.id, Math.max(0, parseInt(e.target.value||'0',10)))}/>
+                    <button onClick={()=>updateSeatCount(selectedOne.id, (selectedOne.seatCount||0)+1)}
+                            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">+</button>
+                  </div>
+                </div>
+מחק ספסל
                 </button>
               </div>
             </div>
@@ -623,7 +664,22 @@ function SeatsManagement(): JSX.Element {
                     onContextMenu={(e)=>onContextMenuBench(e, bench.id)}
                     title={bench.name}
                   >
-                    {/* Bench Label */}
+                    {/* Bench options button */}
+                    <button
+                      className="absolute top-1 right-1 p-1 rounded-md bg-white/90 shadow hover:bg-white"
+                      onClick={(e)=>{ e.stopPropagation(); setCtxMenu({ show:true, x: (e as any).clientX, y: (e as any).clientY, targetId: bench.id }); }}
+                      title="אפשרויות">
+                      <MoreVertical className="h-4 w-4 text-gray-700"/>
+                    </button>
+
+                    {/* Bench Label */
+                    {/* Seat count badge (non-special) */}
+                    {bench.type!=='special' && (
+                      <div className="absolute -top-6 right-0 text-xxs text-gray-600 bg-white px-2 py-1 rounded shadow-sm">
+                        {bench.seatCount ?? 0} מקומות
+                      </div>
+                    )}
+}
                     <div className="absolute -top-6 left-0 text-xs font-semibold text-gray-700 bg-white px-2 py-1 rounded shadow-sm">{bench.name}</div>
                     {/* Lock Indicator */}
                     {bench.locked && (<div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"><Lock className="h-3 w-3 text-white"/></div>)}
