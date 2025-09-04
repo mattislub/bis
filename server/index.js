@@ -323,6 +323,26 @@ app.put('/api/users/:email', async (req, res) => {
   }
 });
 
+app.get('/api/users', async (req, res) => {
+  try {
+    const { rows } = await query('SELECT email, gabbai_name AS "gabbaiName" FROM users');
+    res.json(rows);
+  } catch (err) {
+    console.error('list users error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
+app.delete('/api/users/:email', async (req, res) => {
+  try {
+    await query('DELETE FROM users WHERE email=$1', [req.params.email]);
+    res.sendStatus(204);
+  } catch (err) {
+    console.error('delete user error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+});
+
 app.get('/api/storage/:key', async (req, res) => {
   try {
     const { rows } = await query('SELECT data FROM storage WHERE key = $1', [req.params.key]);

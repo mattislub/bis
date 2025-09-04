@@ -2,9 +2,10 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
+import { API_BASE_URL } from '../../api';
 
 const MapView: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id?: string }>();
   const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
@@ -33,6 +34,15 @@ const MapView: React.FC = () => {
   useEffect(() => {
     if (id) {
       loadMap(id);
+    } else {
+      fetch(`${API_BASE_URL}/api/storage/defaultMapId`)
+        .then(res => res.json())
+        .then((mapId) => {
+          if (mapId) {
+            loadMap(mapId);
+          }
+        })
+        .catch(err => console.error('load default map error', err));
     }
   }, [id, loadMap]);
 

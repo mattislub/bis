@@ -17,6 +17,8 @@ import ProPayment from './components/Pricing/ProPayment';
 import PaymentThankYou from './components/Pricing/PaymentThankYou';
 import PaymentCancelled from './components/Pricing/PaymentCancelled';
 import Home from './components/Home/Home';
+import UserManagement from './components/Admin/UserManagement';
+import DefaultMapView from './components/Admin/DefaultMapView';
 
 function App() {
   return (
@@ -39,6 +41,14 @@ function App() {
             }
           />
           <Route
+            path="/view"
+            element={
+              <AppProvider>
+                <MapView />
+              </AppProvider>
+            }
+          />
+          <Route
             path="/app"
             element={
               <RequireAuth>
@@ -51,6 +61,8 @@ function App() {
             <Route index element={<WorshiperManagement />} />
             <Route path="seats-manage" element={<SeatsManagement />} />
             <Route path="map-guide" element={<MapManagementGuide />} />
+            <Route path="admin-users" element={<UserManagement />} />
+            <Route path="default-map" element={<DefaultMapView />} />
             <Route path="contact" element={<Contact />} />
             <Route path="about" element={<About />} />
             <Route path="pricing" element={<Pricing />} />
