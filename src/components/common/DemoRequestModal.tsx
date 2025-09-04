@@ -43,12 +43,31 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" dir="rtl">
       <div className="rounded-xl bg-white p-6 shadow-lg w-full max-w-md">
         {sent ? (
-          <div className="text-center space-y-4">
-            <p>תודה שנרשמת!</p>
+          <div className="space-y-6 text-center">
+            <h2 className="text-2xl font-semibold">תודה שנרשמת!</h2>
             <p>
-              פתחנו עבורך חשבון ושם המשתמש שלך הוא כתובת המייל שהזנת. בדוק את
-              תיבת הדואר שלך כדי לקבל את הסיסמה לחשבון.
+              המערכת פתחה עבורך חשבון באופן אוטומטי.
+              <br />
+              שם המשתמש שלך הוא כתובת המייל שסיפקת, ובתיבת הדואר האלקטרוני שלך
+              מחכה לך סיסמה זמנית לכניסה לחשבון.
             </p>
+            <div className="space-y-2">
+              <p className="text-lg font-medium">✨ מה מחכה לך עכשיו במערכת?</p>
+              <ul className="space-y-1 text-right">
+                <li>
+                  🏛️ עיצוב מפת בית הכנסת – צור והתאם את מפת המושבים בצורה
+                  פשוטה ונוחה.
+                </li>
+                <li>
+                  👥 ניהול רשימת המתפללים – הוסף, עדכן ונהל את כל המתפללים במקום
+                  אחד.
+                </li>
+                <li>
+                  📄 ייצוא מפות לקבצי PDF – הורד את המפות שהכנת לקבצי PDF
+                  לשמירה והדפסה.
+                </li>
+              </ul>
+            </div>
             <button
               onClick={onClose}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white"
