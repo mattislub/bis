@@ -1,9 +1,24 @@
 import React, { useState, useRef } from 'react';
+import { jsPDF } from 'jspdf'; // ← אל תשכח לייבא
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard, Printer } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
+
+// פונקציה עזר להמרת ArrayBuffer ל-base64
+function arrayBufferToBase64(buffer: ArrayBuffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(
+      null,
+      Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
+    );
+  }
+  return btoa(binary);
+}
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers, seats, benches } = useAppContext();
@@ -78,8 +93,20 @@ const WorshiperManagement: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handlePrintLabels = () => {
+  const handlePrintLabels = async () => {
+    // טען את הגופן מתוך /public/fonts
+    const res = await fetch('/fonts/NotoSansHebrew.ttf');
+    const buf = await res.arrayBuffer();
+    const base64 = arrayBufferToBase64(buf);
+
+    // יצירת PDF חדש
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // הוספת הגופן ל־jsPDF
+    pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
+    pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
+    pdf.setFont('NotoHeb');
+
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
     const cols = 3;
@@ -99,6 +126,9 @@ const WorshiperManagement: React.FC = () => {
         return { name, benchName };
       });
 
+    // כדי להבטיח RTL (עברית עם מספרים)
+    const rtl = (s: string) => `\u202B${s}\u202C`;
+
     labels.forEach((label, idx) => {
       if (idx > 0 && idx % (cols * rows) === 0) {
         pdf.addPage();
@@ -108,10 +138,11 @@ const WorshiperManagement: React.FC = () => {
       const row = Math.floor(pos / cols);
       const x = marginX + col * labelW;
       const y = marginY + row * labelH;
+
       pdf.setFontSize(16);
-      pdf.text(label.name, x + labelW / 2, y + labelH / 2 - 4, { align: 'center' });
+      pdf.text(rtl(label.name), x + labelW / 2, y + labelH / 2 - 4, { align: 'center' });
       pdf.setFontSize(10);
-      pdf.text(label.benchName, x + labelW / 2, y + labelH / 2 + 6, { align: 'center' });
+      pdf.text(rtl(label.benchName), x + labelW / 2, y + labelH / 2 + 6, { align: 'center' });
     });
 
     pdf.save('labels.pdf');
