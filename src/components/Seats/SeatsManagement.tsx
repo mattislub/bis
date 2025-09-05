@@ -7,7 +7,7 @@ import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers, Download,
-  Upload, Maximize2, Grid as GridIcon, Target, Printer
+  Upload, Maximize2, Grid as GridIcon, Target, Printer, MoreVertical
 } from 'lucide-react';
 
 /**
