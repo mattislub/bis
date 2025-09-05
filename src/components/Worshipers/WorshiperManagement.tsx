@@ -94,18 +94,23 @@ const WorshiperManagement: React.FC = () => {
   };
 
   const handlePrintLabels = async () => {
-    // טען את הגופן מתוך /public/fonts
-    const res = await fetch('/fonts/NotoSansHebrew.ttf');
-    const buf = await res.arrayBuffer();
-    const base64 = arrayBufferToBase64(buf);
-
     // יצירת PDF חדש
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    // הוספת הגופן ל־jsPDF
-    pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
-    pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
-    pdf.setFont('NotoHeb');
+    // טען את הגופן מתוך /public/fonts
+    try {
+      const res = await fetch('/fonts/NotoSansHebrew.ttf');
+      if (!res.ok) throw new Error('Font request failed');
+      const buf = await res.arrayBuffer();
+      const base64 = arrayBufferToBase64(buf);
+
+      // הוספת הגופן ל־jsPDF
+      pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
+      pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
+      pdf.setFont('NotoHeb');
+    } catch (err) {
+      console.error('Failed to load custom font, using default', err);
+    }
 
     const pageW = pdf.internal.pageSize.getWidth();
     const pageH = pdf.internal.pageSize.getHeight();
