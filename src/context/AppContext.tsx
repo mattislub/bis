@@ -9,7 +9,6 @@ import {
   MapData,
   MapTemplate,
 } from '../types';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useServerStorage } from '../hooks/useServerStorage';
 import { useAuth } from './AuthContext';
 
@@ -268,8 +267,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
     mapOffset: { x: 0, y: 0 },
   };
-  const [benches, setBenches] = useLocalStorage<Bench[]>('benches', initialBenches, userKey);
-  const [seats, setSeats] = useLocalStorage<Seat[]>('seats', initialSeats, userKey);
+  const [benches, setBenches] = useServerStorage<Bench[]>('benches', initialBenches, userKey);
+  const [seats, setSeats] = useServerStorage<Seat[]>('seats', initialSeats, userKey);
 
   const [maps, setMaps] = useServerStorage<MapData[]>('maps', [defaultMap], userKey);
   const [currentMapId, setCurrentMapId] = useServerStorage<string>('currentMapId', defaultMap.id, userKey);
@@ -282,17 +281,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     mapBounds: defaultMap.mapBounds,
     mapOffset: defaultMap.mapOffset,
   };
-  const [mapTemplates, setMapTemplates] = useLocalStorage<MapTemplate[]>('mapTemplates', [defaultTemplate], userKey);
+  const [mapTemplates, setMapTemplates] = useServerStorage<MapTemplate[]>('mapTemplates', [defaultTemplate], userKey);
 
-  const [gridSettings, setGridSettings] = useLocalStorage<GridSettings>('gridSettings', {
+  const [gridSettings, setGridSettings] = useServerStorage<GridSettings>('gridSettings', {
     showGrid: true,
     snapToGrid: true,
     gridSize: 20,
   }, userKey);
 
-  const [mapBounds, setMapBounds] = useLocalStorage<MapBounds>('mapBounds', defaultMap.mapBounds, userKey);
+  const [mapBounds, setMapBounds] = useServerStorage<MapBounds>('mapBounds', defaultMap.mapBounds, userKey);
 
-  const [mapOffset, setMapOffset] = useLocalStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
+  const [mapOffset, setMapOffset] = useServerStorage<MapOffset>('mapOffset', defaultMap.mapOffset, userKey);
 
   const PX_PER_CM = 96 / 2.54;
   const PRINT_MARGIN = 1.5 * PX_PER_CM;
