@@ -764,13 +764,15 @@ function SeatsManagement(): JSX.Element {
                               });
                             }}
                             onDoubleClick={(e)=>handleSeatClick(seat.id, e)}
-                            title={w ? `${w.title} ${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}
+                            title={w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}
                           >
-                            <span className="font-bold">{seat.id}</span>
+                            <span className={`font-bold text-center ${w ? 'p-1 text-[10px] leading-tight' : ''}`}>
+                              {w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : seat.id}
+                            </span>
                           </div>
-                        );
-                      })
-                    )}
+                          );
+                        })
+                      )}
                     {/* Resize handle hint for special */}
                     {bench.type==='special' && selected && (<div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize"><ArrowDownRight className="h-3 w-3 text-white m-0.5"/></div>)}
                   </div>
