@@ -1,7 +1,8 @@
 import { jsPDF } from 'jspdf';
 import { Bench, Seat, Worshiper } from '../types';
 
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
+// Convert an ArrayBuffer font file to a binary string jsPDF can consume
+function arrayBufferToBinaryString(buffer: ArrayBuffer): string {
   let binary = '';
   const bytes = new Uint8Array(buffer);
   const chunk = 0x8000;
@@ -11,7 +12,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
       Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
     );
   }
-  return btoa(binary);
+  return binary;
 }
 
 interface LabelPrintOptions {
@@ -30,10 +31,16 @@ export async function printLabels({ benches, seats, worshipers }: LabelPrintOpti
       throw new Error('Font request failed');
     }
     const buf = await res.arrayBuffer();
-    const base64 = arrayBufferToBase64(buf);
-    pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
+    const fontData = arrayBufferToBinaryString(buf);
+    pdf.addFileToVFS('NotoSansHebrew.ttf', fontData);
     pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
-    pdf.setFont('NotoHeb');
+    // Ensure the font was registered before using it to avoid jsPDF errors
+    if (pdf.getFontList()['NotoHeb']) {
+      pdf.setFont('NotoHeb');
+    } else {
+      console.error('Custom font failed to register, aborting PDF generation');
+      return;
+    }
   } catch (err) {
     console.error('Failed to load custom font, aborting PDF generation', err);
     return;
