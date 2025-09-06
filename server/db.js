@@ -1,16 +1,30 @@
-import pg from 'pg';
+import pkg from 'pg';
+const { Pool } = pkg;
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000
 });
 
 export async function init() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS storage (
       key text PRIMARY KEY,
-      data jsonb
+      data jsonb NOT NULL DEFAULT '{}'::jsonb,
+      updated_at timestamptz NOT NULL DEFAULT NOW()
     )
   `);
+  await pool.query(
+    `ALTER TABLE storage ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT NOW()`
+  );
+  await pool.query(
+    `ALTER TABLE storage ALTER COLUMN data SET DEFAULT '{}'::jsonb`
+  );
+  await pool.query(
+    `ALTER TABLE storage ALTER COLUMN data SET NOT NULL`
+  );
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       email text PRIMARY KEY,
@@ -58,6 +72,17 @@ export async function init() {
   `);
 }
 
-export function query(text, params) {
-  return pool.query(text, params);
+export async function query(text, params) {
+  const start = Date.now();
+  try {
+    const res = await pool.query(text, params);
+    const ms = Date.now() - start;
+    console.log(`[DB] ${text.split('\n')[0].slice(0,120)} (${ms}ms) rows=${res.rowCount}`);
+    return res;
+  } catch (err) {
+    console.error('[DB] ERROR:', err.message);
+    console.error('[DB] SQL:', text);
+    console.error('[DB] PARAMS:', params);
+    throw err;
+  }
 }

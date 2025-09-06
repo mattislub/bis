@@ -13,13 +13,13 @@ import registerZCreditRoutes from './routes/zcredit.js';
 
 const app = express();
 
-// Basic request logging
+// Request/response logging
 app.use((req, res, next) => {
   const start = Date.now();
-  console.log('Incoming request', req.method, req.originalUrl, 'origin:', req.headers.origin);
+  const origin = req.headers.origin || '';
+  console.log(`[REQ] ${req.method} ${req.url} origin:${origin}`);
   res.on('finish', () => {
-    const duration = Date.now() - start;
-    console.log('Handled', req.method, req.originalUrl, '->', res.statusCode, `${duration}ms`);
+    console.log(`[RES] ${req.method} ${req.url} -> ${res.statusCode} ${Date.now() - start}ms`);
   });
   next();
 });
@@ -50,8 +50,21 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173'
 ];
-
-
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error('Not allowed by CORS'), false);
+    },
+    credentials: true,
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'X-User-Email'
+    ]
+  })
+);
 
 // --- Body parsers ---
 // Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
