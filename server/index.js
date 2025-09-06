@@ -51,25 +51,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173'
 ];
 
-const corsConfig = {
-  origin(origin, cb) {
-    console.log('CORS check for', origin);
-    if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) {
-      console.log('CORS allowed:', origin);
-      return cb(null, true);
-    }
-    console.log('CORS denied:', origin);
-    return cb(null, false); // ✅ לא Error
-  },
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-  maxAge: 86400
-};
 
-app.use(cors(corsConfig));
-app.options('*', cors(corsConfig));
 
 // --- Body parsers ---
 // Z-Credit עלול לשלוח callback כ-JSON או כ-form-urlencoded
