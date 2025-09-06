@@ -109,7 +109,8 @@ const WorshiperManagement: React.FC = () => {
       pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
       pdf.setFont('NotoHeb');
     } catch (err) {
-      console.error('Failed to load custom font, using default', err);
+      console.error('Failed to load custom font, aborting PDF generation', err);
+      return;
     }
 
     const pageW = pdf.internal.pageSize.getWidth();
