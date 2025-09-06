@@ -4,6 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard, Printer } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
+import WorshiperCard from './WorshiperCard';
 import { printLabels } from '../../utils/printLabels';
 
 const WorshiperManagement: React.FC = () => {
@@ -14,6 +15,7 @@ const WorshiperManagement: React.FC = () => {
   const [promisesWorshiper, setPromisesWorshiper] = useState<Worshiper | null>(null);
   const [aliyotWorshiper, setAliyotWorshiper] = useState<Worshiper | null>(null);
   const [placesWorshiper, setPlacesWorshiper] = useState<Worshiper | null>(null);
+  const [viewWorshiper, setViewWorshiper] = useState<Worshiper | null>(null);
   const [formData, setFormData] = useState<Partial<Worshiper>>({
     title: '',
     firstName: '',
@@ -366,7 +368,11 @@ const WorshiperManagement: React.FC = () => {
             </thead>
             <tbody>
               {worshipers.map((w) => (
-                <tr key={w.id} className="border-t hover:bg-gray-50">
+                <tr
+                  key={w.id}
+                  className="border-t hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setViewWorshiper(w)}
+                >
                   <td className="px-4 py-2">
                     <div className="flex items-center space-x-2 space-x-reverse">
                       <UserIcon className="h-5 w-5 text-blue-600" />
@@ -382,7 +388,10 @@ const WorshiperManagement: React.FC = () => {
                   <td className="px-4 py-2">
                     <div className="flex space-x-2 space-x-reverse">
                       <button
-                        onClick={() => setSeatWorshiper(w)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSeatWorshiper(w);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="הקצאת מקומות"
@@ -390,7 +399,10 @@ const WorshiperManagement: React.FC = () => {
                         <MapPin className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => setPromisesWorshiper(w)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPromisesWorshiper(w);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="הבטחות"
@@ -398,7 +410,10 @@ const WorshiperManagement: React.FC = () => {
                         <FileText className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => setAliyotWorshiper(w)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAliyotWorshiper(w);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="עליות"
@@ -406,7 +421,10 @@ const WorshiperManagement: React.FC = () => {
                         <ArrowUp className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => setPlacesWorshiper(w)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPlacesWorshiper(w);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="מקומות"
@@ -414,7 +432,10 @@ const WorshiperManagement: React.FC = () => {
                         <CreditCard className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleEditWorshiper(w)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditWorshiper(w);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="עריכה"
@@ -422,7 +443,10 @@ const WorshiperManagement: React.FC = () => {
                         <Edit2 className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteWorshiper(w.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteWorshiper(w.id);
+                        }}
                         disabled={isAdding || editingWorshiper}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="מחיקה"
@@ -472,6 +496,12 @@ const WorshiperManagement: React.FC = () => {
         field="places"
         title="מקומות"
         onClose={() => setPlacesWorshiper(null)}
+      />
+    )}
+    {viewWorshiper && (
+      <WorshiperCard
+        worshiper={viewWorshiper}
+        onClose={() => setViewWorshiper(null)}
       />
     )}
     </>
