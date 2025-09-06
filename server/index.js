@@ -13,6 +13,17 @@ import registerZCreditRoutes from './routes/zcredit.js';
 
 const app = express();
 
+// Basic request logging
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log('Incoming request', req.method, req.originalUrl, 'origin:', req.headers.origin);
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log('Handled', req.method, req.originalUrl, '->', res.statusCode, `${duration}ms`);
+  });
+  next();
+});
+
 const generatePassword = () =>
   crypto.randomInt(0, 1_000_000).toString().padStart(6, '0');
 
@@ -42,8 +53,13 @@ const allowedOrigins = [
 
 const corsConfig = {
   origin(origin, cb) {
+    console.log('CORS check for', origin);
     if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
+    if (allowedOrigins.includes(origin)) {
+      console.log('CORS allowed:', origin);
+      return cb(null, true);
+    }
+    console.log('CORS denied:', origin);
     return cb(null, false); // ✅ לא Error
   },
   credentials: true,
