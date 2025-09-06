@@ -643,23 +643,38 @@ function SeatsManagement(): JSX.Element {
                   )}
                 </div>
 
-                <button onClick={deleteSelectedBenches} className="flex items-center justify-center gap-2 p-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 w-full">
-                  <Trash2 className="h-4 w-4" /> 
                 {/* Seat count */}
                 <div className="grid grid-cols-3 gap-2 items-center">
                   <span className="text-sm text-gray-700 col-span-1">מס׳ מקומות</span>
                   <div className="col-span-2 flex items-center gap-2">
-                    <button onClick={()=>updateSeatCount(selectedOne.id, Math.max(0, (selectedOne.seatCount||0)-1))}
-                            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">-</button>
-                    <input type="number"
-                           className="w-20 px-2 py-1 border rounded-lg"
-                           value={selectedOne.seatCount || 0}
-                           onChange={(e)=>updateSeatCount(selectedOne.id, Math.max(0, parseInt(e.target.value||'0',10)))}/>
-                    <button onClick={()=>updateSeatCount(selectedOne.id, (selectedOne.seatCount||0)+1)}
-                            className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200">+</button>
+                    <button
+                      onClick={() => updateSeatCount(selectedOne.id, Math.max(0, (selectedOne.seatCount || 0) - 1))}
+                      className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      className="w-20 px-2 py-1 border rounded-lg"
+                      value={selectedOne.seatCount || 0}
+                      onChange={(e) =>
+                        updateSeatCount(selectedOne.id, Math.max(0, parseInt(e.target.value || '0', 10)))
+                      }
+                    />
+                    <button
+                      onClick={() => updateSeatCount(selectedOne.id, (selectedOne.seatCount || 0) + 1)}
+                      className="px-2 py-1 rounded-lg bg-gray-100 hover:bg-gray-200"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
-מחק ספסל
+                <button
+                  onClick={deleteSelectedBenches}
+                  className="flex items-center justify-center gap-2 p-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 w-full"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  מחק ספסל
                 </button>
               </div>
             </div>
