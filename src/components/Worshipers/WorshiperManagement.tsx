@@ -1,24 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { jsPDF } from 'jspdf'; // ← אל תשכח לייבא
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard, Printer } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
-
-// פונקציה עזר להמרת ArrayBuffer ל-base64
-function arrayBufferToBase64(buffer: ArrayBuffer) {
-  let binary = '';
-  const bytes = new Uint8Array(buffer);
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    binary += String.fromCharCode.apply(
-      null,
-      Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]
-    );
-  }
-  return btoa(binary);
-}
+import { printLabels } from '../../utils/printLabels';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers, seats, benches } = useAppContext();
@@ -94,64 +80,7 @@ const WorshiperManagement: React.FC = () => {
   };
 
   const handlePrintLabels = async () => {
-    // יצירת PDF חדש
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    // טען את הגופן מתוך /public/fonts
-    try {
-      const res = await fetch('/fonts/NotoSansHebrew.ttf');
-      if (!res.ok) throw new Error('Font request failed');
-      const buf = await res.arrayBuffer();
-      const base64 = arrayBufferToBase64(buf);
-
-      // הוספת הגופן ל־jsPDF
-      pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
-      pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
-      pdf.setFont('NotoHeb');
-    } catch (err) {
-      console.error('Failed to load custom font, aborting PDF generation', err);
-      return;
-    }
-
-    const pageW = pdf.internal.pageSize.getWidth();
-    const pageH = pdf.internal.pageSize.getHeight();
-    const cols = 3;
-    const rows = 8;
-    const marginX = 10;
-    const marginY = 10;
-    const labelW = (pageW - marginX * 2) / cols;
-    const labelH = (pageH - marginY * 2) / rows;
-
-    const labels = seats
-      .filter(s => s.userId)
-      .map(s => {
-        const w = worshipers.find(w => w.id === s.userId);
-        const bench = benches.find(b => b.id === s.benchId);
-        const name = w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : '';
-        const benchName = bench?.name || '';
-        return { name, benchName };
-      });
-
-    // כדי להבטיח RTL (עברית עם מספרים)
-    const rtl = (s: string) => `\u202B${s}\u202C`;
-
-    labels.forEach((label, idx) => {
-      if (idx > 0 && idx % (cols * rows) === 0) {
-        pdf.addPage();
-      }
-      const pos = idx % (cols * rows);
-      const col = pos % cols;
-      const row = Math.floor(pos / cols);
-      const x = marginX + col * labelW;
-      const y = marginY + row * labelH;
-
-      pdf.setFontSize(16);
-      pdf.text(rtl(label.name), x + labelW / 2, y + labelH / 2 - 4, { align: 'center' });
-      pdf.setFontSize(10);
-      pdf.text(rtl(label.benchName), x + labelW / 2, y + labelH / 2 + 6, { align: 'center' });
-    });
-
-    pdf.save('labels.pdf');
+    await printLabels({ benches, seats, worshipers });
   };
 
   const handleSaveWorshiper = () => {

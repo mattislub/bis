@@ -7,8 +7,9 @@ import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers, Download,
-  Upload, Maximize2, Grid as GridIcon, Target, Printer, MoreVertical
+  Upload, Maximize2, Grid as GridIcon, Target, Printer, MoreVertical, FileText
 } from 'lucide-react';
+import { printLabels } from '../../utils/printLabels';
 
 /**
  * SeatsManagement — Full Merge
@@ -517,6 +518,7 @@ function SeatsManagement(): JSX.Element {
                       <button onClick={()=>loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
                       <button onClick={()=>{ const name=window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-2 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
                       <button onClick={()=>PdfToolbar && mapLayerRef.current && wrapperRef.current && (document.querySelector('#pdfExportBtn') as HTMLButtonElement)?.click()} title="הדפס מפה" className="p-2 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
+                      <button onClick={()=>printLabels({ benches: m.benches, seats: m.seats, worshipers })} title="הדפס מדבקות" className="p-2 rounded hover:bg-gray-100"><FileText className="h-4 w-4" /></button>
                     </div>
                   ))}
                 </div>
