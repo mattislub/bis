@@ -7,7 +7,7 @@ import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers, Download,
-  Upload, Maximize2, Grid as GridIcon, Target, Printer, MoreVertical, FileText
+  Upload, Maximize2, Grid as GridIcon, Target, Printer, FileText
 } from 'lucide-react';
 import { printLabels } from '../../utils/printLabels';
 
@@ -80,8 +80,6 @@ function SeatsManagement(): JSX.Element {
   const [showWorshiperModal, setShowWorshiperModal] = useState(false);
   const [selectedSeatsForWorshiper, setSelectedSeatsForWorshiper] = useState<number[]>([]);
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [newMapName, setNewMapName] = useState('');
   const [isToolbarCollapsed] = useState(false);
 
   // Multi‑drag & selection
@@ -490,9 +488,30 @@ function SeatsManagement(): JSX.Element {
   const selectedOne = useMemo(()=> selectedBenches.length===1 ? benches.find(b=>b.id===selectedBenches[0]) : null, [selectedBenches, benches]);
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50" dir="rtl">
-      {/* Header */}
-      <div className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-gray-200 p-4">
+    <div className="h-screen flex bg-gradient-to-br from-gray-50 to-blue-50" dir="rtl">
+      {/* Maps sidebar */}
+      <div className="w-80 bg-white border-l border-gray-200 p-4 overflow-y-auto">
+        <h2 className="text-lg font-bold mb-4">מפות</h2>
+        <div className="space-y-2">
+          {maps.map(m => (
+            <div key={m.id} className="flex items-center gap-2 py-2">
+              <button onClick={()=>loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
+              <button onClick={()=>{ const name=window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-1 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
+              <button onClick={()=>PdfToolbar && mapLayerRef.current && wrapperRef.current && (document.querySelector('#pdfExportBtn') as HTMLButtonElement)?.click()} title="הדפס מפה" className="p-1 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
+              <button onClick={()=>printLabels({ benches: m.benches, seats: m.seats, worshipers })} title="הדפס מדבקות" className="p-1 rounded hover:bg-gray-100"><FileText className="h-4 w-4" /></button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2 pt-4">
+          <button onClick={()=>saveCurrentMap()} className="flex-1 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">שמור</button>
+          <button onClick={()=>{ const name=window.prompt('שם חדש:', 'מפה חדשה'); if (name) saveCurrentMap(name); }} className="flex-1 px-3 py-2 rounded bg-blue-100 text-blue-700 hover:bg-blue-200">שמור בשם…</button>
+        </div>
+      </div>
+
+      {/* Main area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <div className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-gray-200 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
@@ -504,32 +523,9 @@ function SeatsManagement(): JSX.Element {
             </div>
           </div>
 
-          {/* Quick Actions + Maps menu */}
+          {/* Quick Actions */}
           <div className="flex items-center gap-2">
-            {/* Maps dropdown */}
-            <div className="relative group">
-              <button className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-xl hover:bg-gray-200">
-                <MoreVertical className="h-4 w-4" /> מפות
-              </button>
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 p-2 hidden group-hover:block z-40">
-                <div className="max-h-64 overflow-auto divide-y">
-                  {maps.map(m => (
-                    <div key={m.id} className="flex items-center gap-2 py-2">
-                      <button onClick={()=>loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
-                      <button onClick={()=>{ const name=window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-2 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
-                      <button onClick={()=>PdfToolbar && mapLayerRef.current && wrapperRef.current && (document.querySelector('#pdfExportBtn') as HTMLButtonElement)?.click()} title="הדפס מפה" className="p-2 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
-                      <button onClick={()=>printLabels({ benches: m.benches, seats: m.seats, worshipers })} title="הדפס מדבקות" className="p-2 rounded hover:bg-gray-100"><FileText className="h-4 w-4" /></button>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <button onClick={()=>saveCurrentMap()} className="flex-1 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">שמור</button>
-                  <button onClick={()=>{ const name=window.prompt('שם חדש:', 'מפה חדשה'); if (name) saveCurrentMap(name); }} className="flex-1 px-3 py-2 rounded bg-blue-100 text-blue-700 hover:bg-blue-200">שמור בשם…</button>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={()=>setShowSaveDialog(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg">
+            <button onClick={()=>saveCurrentMap()} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg">
               <Save className="h-4 w-4" /> שמור
             </button>
             <button onClick={fitToScreen} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
@@ -892,20 +888,6 @@ function SeatsManagement(): JSX.Element {
         </div>
       </div>
 
-      {/* Save dialog */}
-      {showSaveDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
-            <h3 className="text-lg font-bold mb-4">שמור מפה</h3>
-            <input type="text" value={newMapName} onChange={(e)=>setNewMapName(e.target.value)} placeholder="שם המפה" className="w-full p-3 border border-gray-300 rounded-lg mb-4"/>
-            <div className="flex gap-2">
-              <button onClick={()=>{ if (newMapName.trim()) { saveCurrentMap(newMapName.trim()); setNewMapName(''); setShowSaveDialog(false);} }} disabled={!newMapName.trim()} className="flex-1 p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:opacity-50">שמור</button>
-              <button onClick={()=>{ setShowSaveDialog(false); setNewMapName(''); }} className="flex-1 p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">ביטול</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Assign worshiper modal */}
       {showWorshiperModal && selectedSeatsForWorshiper.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -955,6 +937,7 @@ function SeatsManagement(): JSX.Element {
         </div>
       )}
     </div>
+  </div>
   );
 }
 
