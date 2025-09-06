@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+
 import { Bench, Seat, Worshiper } from '../types';
 
 // Convert an ArrayBuffer font file to a binary string jsPDF can consume
@@ -24,26 +25,37 @@ interface LabelPrintOptions {
 export async function printLabels({ benches, seats, worshipers }: LabelPrintOptions): Promise<void> {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  try {
-    const res = await fetch('/fonts/NotoSansHebrew.ttf');
-    const contentType = res.headers.get('Content-Type') || '';
-    if (!res.ok || !contentType.includes('font')) {
-      throw new Error('Font request failed');
+  // Try to load an available font for Hebrew text. We attempt a list of
+  // candidates, falling back to the built-in font if none can be loaded.
+  const fonts = [
+    { url: '/fonts/NotoSansHebrew.ttf', file: 'NotoSansHebrew.ttf' },
+    { url: '/fonts/DejaVuSans.ttf', file: 'DejaVuSans.ttf' }
+  ];
+  let customFontLoaded = false;
+
+  for (const font of fonts) {
+    try {
+      const res = await fetch(font.url);
+      const contentType = res.headers.get('Content-Type') || '';
+      if (!res.ok || !contentType.includes('font')) {
+        continue;
+      }
+      const buf = await res.arrayBuffer();
+      const fontData = arrayBufferToBinaryString(buf);
+      pdf.addFileToVFS(font.file, fontData);
+      pdf.addFont(font.file, 'HebrewFont', 'normal');
+      if (pdf.getFontList()['HebrewFont']) {
+        pdf.setFont('HebrewFont');
+        customFontLoaded = true;
+        break;
+      }
+    } catch {
+      // Try the next font
     }
-    const buf = await res.arrayBuffer();
-    const fontData = arrayBufferToBinaryString(buf);
-    pdf.addFileToVFS('NotoSansHebrew.ttf', fontData);
-    pdf.addFont('NotoSansHebrew.ttf', 'NotoHeb', 'normal');
-    // Ensure the font was registered before using it to avoid jsPDF errors
-    if (pdf.getFontList()['NotoHeb']) {
-      pdf.setFont('NotoHeb');
-    } else {
-      console.error('Custom font failed to register, aborting PDF generation');
-      return;
-    }
-  } catch (err) {
-    console.error('Failed to load custom font, aborting PDF generation', err);
-    return;
+  }
+
+  if (!customFontLoaded) {
+    console.warn('No custom font found; using built-in font');
   }
 
   const pageW = pdf.internal.pageSize.getWidth();
