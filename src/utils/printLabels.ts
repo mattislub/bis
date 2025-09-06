@@ -25,7 +25,10 @@ export async function printLabels({ benches, seats, worshipers }: LabelPrintOpti
 
   try {
     const res = await fetch('/fonts/NotoSansHebrew.ttf');
-    if (!res.ok) throw new Error('Font request failed');
+    const contentType = res.headers.get('Content-Type') || '';
+    if (!res.ok || !contentType.includes('font')) {
+      throw new Error('Font request failed');
+    }
     const buf = await res.arrayBuffer();
     const base64 = arrayBufferToBase64(buf);
     pdf.addFileToVFS('NotoSansHebrew.ttf', base64);
