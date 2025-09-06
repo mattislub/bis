@@ -32,18 +32,29 @@ const SMTP_PASS = must('SMTP_PASS');
 const SMTP_SECURE = must('SMTP_SECURE') === 'true';
 
 // --- CORS ---
-const allowedOrigins = ['https://seatflow.tech', 'https://www.seatflow.tech'];
+const allowedOrigins = [
+  'https://seatflow.tech',
+  'https://www.seatflow.tech',
+  'https://seatflow.online',
+  'https://www.seatflow.online',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
 
-app.use(cors({
+const corsConfig = {
   origin(origin, cb) {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    return cb(new Error('Not allowed by CORS'));
+    // קריאות פנימיות/בריאות/סרברים בלי Origin
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
+    // לא לזרוק Error — רק לא להוסיף כותרות CORS
+    return cb(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   maxAge: 86400
-}));
+};
+
 
 app.options('*', cors({
   origin(origin, cb) {
