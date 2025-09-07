@@ -70,7 +70,7 @@ function SeatsManagement(): JSX.Element {
     gridSettings, setGridSettings,
     mapBounds, setMapBounds,
     mapOffset, setMapOffset,
-    saveCurrentMap, maps, loadMap, renameMap,
+    saveCurrentMap, maps, loadMap, renameMap, currentMapId,
   } = useAppContext();
 
   // UI State
@@ -103,6 +103,19 @@ function SeatsManagement(): JSX.Element {
 
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
+
+  // Current map info and save state
+  const currentMap = useMemo(() => maps.find(m => m.id === currentMapId), [maps, currentMapId]);
+  const currentMapName = currentMap ? currentMap.name : 'מפה חדשה';
+  const isMapSaved = useMemo(() => {
+    if (!currentMap) return false;
+    return (
+      JSON.stringify(currentMap.benches) === JSON.stringify(benches) &&
+      JSON.stringify(currentMap.seats) === JSON.stringify(seats) &&
+      JSON.stringify(currentMap.mapBounds) === JSON.stringify(mapBounds) &&
+      JSON.stringify(currentMap.mapOffset) === JSON.stringify(mapOffset)
+    );
+  }, [currentMap, benches, seats, mapBounds, mapOffset]);
 
   // Helpers
   const snapToGrid = useCallback((v:number)=> gridSettings.snapToGrid ? Math.round(v / gridSettings.gridSize) * gridSettings.gridSize : v, [gridSettings.snapToGrid,gridSettings.gridSize]);
@@ -517,7 +530,10 @@ function SeatsManagement(): JSX.Element {
           ))}
         </div>
         <div className="flex gap-2 pt-4">
-          <button onClick={()=>saveCurrentMap()} className="flex-1 px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">שמור</button>
+          <button
+            onClick={() => saveCurrentMap()}
+            className={`flex-1 px-3 py-2 rounded text-white ${isMapSaved ? 'bg-blue-600 hover:bg-blue-700' : 'bg-red-600 hover:bg-red-700'}`}
+          >שמור</button>
           <button onClick={()=>{ const name=window.prompt('שם חדש:', 'מפה חדשה'); if (name) saveCurrentMap(name); }} className="flex-1 px-3 py-2 rounded bg-blue-100 text-blue-700 hover:bg-blue-200">שמור בשם…</button>
         </div>
       </div>
@@ -532,14 +548,17 @@ function SeatsManagement(): JSX.Element {
               <GridIcon className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-gray-900">ניהול מפת המושבים</h1>
+              <h1 className="text-2xl font-black text-gray-900">ניהול מפת המושבים - {currentMapName}</h1>
               <p className="text-sm text-gray-600">עצב וארגן את מפת בית הכנסת שלך</p>
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="flex items-center gap-2">
-            <button onClick={()=>saveCurrentMap()} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all shadow-lg">
+            <button
+              onClick={() => saveCurrentMap()}
+              className={`flex items-center gap-2 px-4 py-2 text-white rounded-xl transition-all shadow-lg ${isMapSaved ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'}`}
+            >
               <Save className="h-4 w-4" /> שמור
             </button>
             <button onClick={fitToScreen} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg">
