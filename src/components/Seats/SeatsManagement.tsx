@@ -101,58 +101,12 @@ function SeatsManagement(): JSX.Element {
   const mapLayerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // PDF crop markers
-  const [cropRect, setCropRect] = useState<{x1:number;y1:number;x2:number;y2:number}>({x1:0,y1:0,x2:0,y2:0});
-  const [draggingMarker, setDraggingMarker] = useState<null|'left'|'right'|'top'|'bottom'>(null);
-  const [selectedMarker, setSelectedMarker] = useState<null|'left'|'right'|'top'|'bottom'>(null);
-
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
 
   // Helpers
   const snapToGrid = useCallback((v:number)=> gridSettings.snapToGrid ? Math.round(v / gridSettings.gridSize) * gridSettings.gridSize : v, [gridSettings.snapToGrid,gridSettings.gridSize]);
   const getWorshiperById = useCallback((id:string)=> worshipers.find(w=>w.id===id), [worshipers]);
-
-  // initialize crop rectangle to wrapper size
-  useEffect(() => {
-    if (wrapperRef.current) {
-      const w = wrapperRef.current.clientWidth;
-      const h = wrapperRef.current.clientHeight;
-      setCropRect({ x1: 0, y1: 0, x2: w, y2: h });
-    }
-  }, []);
-
-  // handle marker dragging
-  useEffect(() => {
-    if (!draggingMarker) return;
-    const onMove = (e: MouseEvent) => {
-      if (!wrapperRef.current) return;
-      const rect = wrapperRef.current.getBoundingClientRect();
-      const x = clamp(e.clientX - rect.left, 0, rect.width);
-      const y = clamp(e.clientY - rect.top, 0, rect.height);
-      setCropRect(prev => {
-        switch (draggingMarker) {
-          case 'left':
-            return { ...prev, x1: Math.min(x, prev.x2 - 10) };
-          case 'right':
-            return { ...prev, x2: Math.max(x, prev.x1 + 10) };
-          case 'top':
-            return { ...prev, y1: Math.min(y, prev.y2 - 10) };
-          case 'bottom':
-            return { ...prev, y2: Math.max(y, prev.y1 + 10) };
-          default:
-            return prev;
-        }
-      });
-    };
-    const onUp = () => setDraggingMarker(null);
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-    };
-  }, [draggingMarker]);
 
   // Auto‑fit on first render until user interacts
   const userInteractedRef = useRef(false);
@@ -200,34 +154,11 @@ function SeatsManagement(): JSX.Element {
     });
   }, [benches, mapBounds, setMapOffset]);
 
-  // Keyboard move & delete / marker move
+  // Keyboard move & delete
   useEffect(()=>{
     const onKeyDown = (e: KeyboardEvent)=>{
       const target = e.target as HTMLElement;
       if (target && target.closest('input,textarea,select,[contenteditable="true"]')) return;
-
-      if (selectedMarker && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
-        setCropRect(prev => {
-          const w = wrapperRef.current ? wrapperRef.current.clientWidth : 0;
-          const h = wrapperRef.current ? wrapperRef.current.clientHeight : 0;
-          switch (selectedMarker) {
-            case 'left':
-              return { ...prev, x1: clamp(prev.x1 + (e.key==='ArrowRight'?step:e.key==='ArrowLeft'?-step:0), 0, prev.x2 - 10) };
-            case 'right':
-              return { ...prev, x2: clamp(prev.x2 + (e.key==='ArrowRight'?step:e.key==='ArrowLeft'?-step:0), prev.x1 + 10, w) };
-            case 'top':
-              return { ...prev, y1: clamp(prev.y1 + (e.key==='ArrowDown'?step:e.key==='ArrowUp'?-step:0), 0, prev.y2 - 10) };
-            case 'bottom':
-              return { ...prev, y2: clamp(prev.y2 + (e.key==='ArrowDown'?step:e.key==='ArrowUp'?-step:0), prev.y1 + 10, h) };
-            default:
-              return prev;
-          }
-        });
-        return;
-      }
-
       if (selectedBenches.length && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
         e.preventDefault();
         const dist = gridSettings.snapToGrid ? gridSettings.gridSize : 10;
@@ -249,7 +180,7 @@ function SeatsManagement(): JSX.Element {
     };
     window.addEventListener('keydown', onKeyDown);
     return ()=>window.removeEventListener('keydown', onKeyDown);
-  }, [selectedBenches, setBenches, gridSettings, selectedMarker, setCropRect]);
+  }, [selectedBenches, setBenches, gridSettings]);
 
   // Events
   const handleBenchClick = useCallback((benchId: string, e: React.MouseEvent) => {
@@ -751,7 +682,7 @@ function SeatsManagement(): JSX.Element {
               <Download className="h-5 w-5 text-orange-600" />
               ייצוא PDF
             </h3>
-            <PdfToolbar id="pdfExportBtn" wrapperRef={wrapperRef} mapLayerRef={mapLayerRef} cropRect={cropRect} />
+            <PdfToolbar id="pdfExportBtn" wrapperRef={wrapperRef} mapLayerRef={mapLayerRef} />
           </div>
         </div>
 
@@ -864,37 +795,7 @@ function SeatsManagement(): JSX.Element {
                 <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none"
                      style={{ left: selectionRect.x + mapBounds.left, top: selectionRect.y + mapBounds.top, width: selectionRect.width, height: selectionRect.height }}/>
               )}
-
             </div>
-            {/* crop markers */}
-            {cropRect && (
-              <>
-                <div
-                  className="absolute pointer-events-none border-2 border-red-500"
-                  style={{ left: cropRect.x1, top: cropRect.y1, width: cropRect.x2 - cropRect.x1, height: cropRect.y2 - cropRect.y1 }}
-                />
-                <div
-                  className={`absolute z-50 cursor-ew-resize ${selectedMarker==='left' ? 'bg-blue-500' : 'bg-red-500'}`}
-                  style={{ left: cropRect.x1 - 2, top: cropRect.y1, width: 4, height: cropRect.y2 - cropRect.y1 }}
-                  onMouseDown={(e)=>{e.stopPropagation(); setSelectedMarker('left'); setDraggingMarker('left');}}
-                />
-                <div
-                  className={`absolute z-50 cursor-ew-resize ${selectedMarker==='right' ? 'bg-blue-500' : 'bg-red-500'}`}
-                  style={{ left: cropRect.x2 - 2, top: cropRect.y1, width: 4, height: cropRect.y2 - cropRect.y1 }}
-                  onMouseDown={(e)=>{e.stopPropagation(); setSelectedMarker('right'); setDraggingMarker('right');}}
-                />
-                <div
-                  className={`absolute z-50 cursor-ns-resize ${selectedMarker==='top' ? 'bg-blue-500' : 'bg-red-500'}`}
-                  style={{ top: cropRect.y1 - 2, left: cropRect.x1, height: 4, width: cropRect.x2 - cropRect.x1 }}
-                  onMouseDown={(e)=>{e.stopPropagation(); setSelectedMarker('top'); setDraggingMarker('top');}}
-                />
-                <div
-                  className={`absolute z-50 cursor-ns-resize ${selectedMarker==='bottom' ? 'bg-blue-500' : 'bg-red-500'}`}
-                  style={{ top: cropRect.y2 - 2, left: cropRect.x1, height: 4, width: cropRect.x2 - cropRect.x1 }}
-                  onMouseDown={(e)=>{e.stopPropagation(); setSelectedMarker('bottom'); setDraggingMarker('bottom');}}
-                />
-              </>
-            )}
 
             {/* Status Bar */}
             <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200">

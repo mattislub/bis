@@ -59,8 +59,6 @@ export async function exportMapToPDF(opts: {
   bwThreshold?: number;
   marginsMm?: number;
   fileName?: string;
-  /** Optional clip rectangle (in px, relative to wrapper) */
-  clipRect?: { x: number; y: number; width: number; height: number };
 }) {
   const {
     wrapperEl,
@@ -72,7 +70,6 @@ export async function exportMapToPDF(opts: {
     marginsMm = 10,
     fileName = 'map.pdf',
     orientation,
-    clipRect,
   } = opts;
 
   mapLayerEl.classList.add('pdf-export');
@@ -81,22 +78,6 @@ export async function exportMapToPDF(opts: {
 
   if (colorMode === 'bw') {
     canvas = toGrayscaleCanvas(canvas, bwHard, bwThreshold);
-  }
-
-  if (clipRect) {
-    const scale =
-      canvas.width / (wrapperEl.scrollWidth || wrapperEl.clientWidth || 1);
-    const sx = clipRect.x * scale;
-    const sy = clipRect.y * scale;
-    const sw = clipRect.width * scale;
-    const sh = clipRect.height * scale;
-    const cropped = document.createElement('canvas');
-    cropped.width = sw;
-    cropped.height = sh;
-    cropped
-      .getContext('2d')!
-      .drawImage(canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-    canvas = cropped;
   }
 
   if (mode === 'onePage') {
