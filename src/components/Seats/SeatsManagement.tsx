@@ -991,10 +991,30 @@ function SeatsManagement(): JSX.Element {
               {/* Boundaries */}
               <svg className="absolute inset-0 pointer-events-none">
                 {boundaries.map(b => (
-                  <rect key={b.id} x={b.x + mapBounds.left} y={b.y + mapBounds.top} width={b.width} height={b.height} stroke="#ff0000" fill="none" strokeWidth={2} />
+                  <rect
+                    key={b.id}
+                    x={b.x + mapBounds.left}
+                    y={b.y + mapBounds.top}
+                    width={b.width}
+                    height={b.height}
+                    stroke="#ff0000"
+                    strokeWidth={2}
+                    fill="#ff0000"
+                    fillOpacity={0.2}
+                  />
                 ))}
                 {drawingBoundary && (
-                  <rect x={drawingBoundary.x + mapBounds.left} y={drawingBoundary.y + mapBounds.top} width={drawingBoundary.width} height={drawingBoundary.height} stroke="#ff0000" strokeWidth={2} fill="none" strokeDasharray="4 2" />
+                  <rect
+                    x={drawingBoundary.x + mapBounds.left}
+                    y={drawingBoundary.y + mapBounds.top}
+                    width={drawingBoundary.width}
+                    height={drawingBoundary.height}
+                    stroke="#ff0000"
+                    strokeWidth={2}
+                    fill="#ff0000"
+                    fillOpacity={0.1}
+                    strokeDasharray="4 2"
+                  />
                 )}
               </svg>
 
