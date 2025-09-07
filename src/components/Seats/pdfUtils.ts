@@ -66,6 +66,8 @@ export async function exportMapToPDF(opts: {
   bwHard?: boolean;
   bwThreshold?: number;
   marginsMm?: number;
+  /** Scale factor for the exported map (1 = 100%) */
+  scale?: number;
   fileName?: string;
 }) {
   const {
@@ -76,6 +78,7 @@ export async function exportMapToPDF(opts: {
     bwHard = false,
     bwThreshold = 128,
     marginsMm = 10,
+    scale = 1,
     fileName = 'map.pdf',
     orientation,
   } = opts;
@@ -83,6 +86,14 @@ export async function exportMapToPDF(opts: {
   wrapperEl.classList.add('pdf-exporting');
   mapLayerEl.classList.add('pdf-export');
   let canvas = await renderWrapperToCanvas(wrapperEl, mapLayerEl);
+  if (scale !== 1) {
+    const scaledCanvas = document.createElement('canvas');
+    scaledCanvas.width = canvas.width * scale;
+    scaledCanvas.height = canvas.height * scale;
+    const ctx = scaledCanvas.getContext('2d')!;
+    ctx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+    canvas = scaledCanvas;
+  }
   mapLayerEl.classList.remove('pdf-export');
   wrapperEl.classList.remove('pdf-exporting');
 
