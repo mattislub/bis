@@ -8,7 +8,7 @@ import { Printer, Target } from 'lucide-react';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
-  const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers } = useAppContext();
+  const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers, boundaries } = useAppContext();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
@@ -190,6 +190,13 @@ const MapView: React.FC = () => {
               )}
             </div>
             ))}
+
+            {/* Boundaries */}
+            <svg className="absolute inset-0 pointer-events-none">
+              {boundaries.map(b => (
+                <line key={b.id} x1={b.start.x + mapBounds.left} y1={b.start.y + mapBounds.top} x2={b.end.x + mapBounds.left} y2={b.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} />
+              ))}
+            </svg>
           </div>
         </div>
       </div>
