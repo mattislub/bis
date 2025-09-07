@@ -95,6 +95,9 @@ function SeatsManagement(): JSX.Element {
   const [selectionStart, setSelectionStart] = useState<XY | null>(null);
   const [selectionRect, setSelectionRect] = useState<{x:number;y:number;width:number;height:number}|null>(null);
 
+  // Resizing special elements
+  const [resizing, setResizing] = useState<{id:string; startX:number; startY:number; startW:number; startH:number} | null>(null);
+
   // Right‑click menu
   const [ctxMenu, setCtxMenu] = useState<{show:boolean;x:number;y:number;targetId?:string}>({show:false,x:0,y:0});
 
@@ -305,6 +308,17 @@ function SeatsManagement(): JSX.Element {
     setDraggedBench(null); setDragStartPositions(null); setDragOffset(null);
   };
 
+  // Resize special elements
+  const onResizeStart = (e: React.MouseEvent, benchId: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const bench = benches.find(b => b.id === benchId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!bench || (bench as any).locked) return;
+    const { width, height } = benchDims(bench);
+    setResizing({ id: benchId, startX: e.clientX, startY: e.clientY, startW: width, startH: height });
+  };
+
   // Pan & selection rectangle
   const onMouseDownCanvas = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!wrapperRef.current) return;
@@ -329,6 +343,14 @@ function SeatsManagement(): JSX.Element {
     }
   };
   const onMouseMoveCanvas = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (resizing) {
+      const dx = (e.clientX - resizing.startX) / zoom;
+      const dy = (e.clientY - resizing.startY) / zoom;
+      const newW = Math.max(20, snapToGrid(resizing.startW + dx));
+      const newH = Math.max(20, snapToGrid(resizing.startH + dy));
+      setBenches(prev => prev.map(b => b.id === resizing.id ? { ...b, width: newW, height: newH } : b));
+      return;
+    }
     if (isPanning && panStart) {
       const dx=e.clientX-panStart.x, dy=e.clientY-panStart.y;
       setMapOffset(prev=>({x:prev.x+dx,y:prev.y+dy}));
@@ -353,6 +375,11 @@ function SeatsManagement(): JSX.Element {
     }
   };
   const onMouseUpCanvas = () => {
+    if (resizing) {
+      setBenches(prev => ensureBenchSpacing(prev));
+      setResizing(null);
+      return;
+    }
     if (drawingBoundary) {
       const finalized = drawingBoundary;
       setBoundaries(prev => [...prev, finalized]);
@@ -947,8 +974,16 @@ function SeatsManagement(): JSX.Element {
                           );
                         })
                       )}
-                    {/* Resize handle hint for special */}
-                    {bench.type==='special' && selected && (<div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize"><ArrowDownRight className="h-3 w-3 text-white m-0.5"/></div>)}
+                    {/* Resize handle for special elements */}
+                    {bench.type==='special' && selected && (
+                      <div
+                        onMouseDown={(e)=>onResizeStart(e, bench.id)}
+                        draggable={false}
+                        className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full cursor-se-resize"
+                      >
+                        <ArrowDownRight className="h-3 w-3 text-white m-0.5"/>
+                      </div>
+                    )}
                   </div>
                 );
               })}
