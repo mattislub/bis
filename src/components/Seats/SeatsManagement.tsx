@@ -767,13 +767,6 @@ function SeatsManagement(): JSX.Element {
                   >
                     {/* Bench Label */}
 
-                    {/* Seat count badge (non-special) */}
-                    {bench.type!=='special' && (
-                      <div className="absolute -top-6 right-0 text-xxs text-gray-600 bg-white px-2 py-1 rounded shadow-sm">
-                        {bench.seatCount ?? 0} מקומות
-                      </div>
-                    )}
-
                     <div className="absolute -top-6 left-0 text-xs font-semibold text-gray-700 bg-white px-2 py-1 rounded shadow-sm">{bench.name}</div>
                     {/* Lock Indicator */}
                     {bench.locked && (<div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"><Lock className="h-3 w-3 text-white"/></div>)}
