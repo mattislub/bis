@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
@@ -9,6 +9,7 @@ import { Printer, Target } from 'lucide-react';
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers } = useAppContext();
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const [zoom, setZoom] = useState(1);
@@ -42,12 +43,12 @@ const MapView: React.FC = () => {
         .then(res => res.json())
         .then((mapId) => {
           if (mapId) {
-            loadMap(mapId);
+            navigate(`/view/${mapId}`, { replace: true });
           }
         })
         .catch(err => console.error('load default map error', err));
     }
-  }, [id, loadMap]);
+  }, [id, loadMap, navigate]);
 
   const getWorshiperById = (worshiperId: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === worshiperId);
