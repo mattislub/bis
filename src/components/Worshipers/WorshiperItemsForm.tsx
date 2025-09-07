@@ -17,8 +17,9 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
       return [
         {
           id: Date.now().toString(),
-          description: 'מקום 1',
+          description: 'מקומות בבית הכנסת',
           amount: 0,
+          count: 1,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',
@@ -27,9 +28,13 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
     }
     return worshiper[field] || [];
   });
+  const [descriptionOption, setDescriptionOption] = useState(
+    field === 'places' ? 'מקומות בבית הכנסת' : ''
+  );
   const [newItem, setNewItem] = useState<Partial<WorshiperItem>>({
-    description: field === 'places' ? `מקום ${items.length + 1}` : '',
+    description: field === 'places' ? 'מקומות בבית הכנסת' : '',
     amount: 0,
+    count: field === 'places' ? 1 : undefined,
     paid: false,
     createdAtGregorian: '',
     createdAtHebrew: '',
@@ -42,18 +47,21 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
       id: Date.now().toString(),
       description: newItem.description!,
       amount: Number(newItem.amount) || 0,
+      count: field === 'places' ? Number(newItem.count) || 0 : undefined,
       paid: !!newItem.paid,
       createdAtGregorian: newItem.createdAtGregorian || '',
       createdAtHebrew: newItem.createdAtHebrew || '',
     };
     setItems(prev => [...prev, item]);
     setNewItem({
-      description: field === 'places' ? `מקום ${nextIndex + 1}` : '',
+      description: field === 'places' ? 'מקומות בבית הכנסת' : '',
       amount: 0,
+      count: field === 'places' ? 1 : undefined,
       paid: false,
       createdAtGregorian: '',
       createdAtHebrew: '',
     });
+    setDescriptionOption(field === 'places' ? 'מקומות בבית הכנסת' : '');
   };
 
   const removeItem = (id: string) => {
@@ -84,7 +92,15 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
             <thead>
               <tr className="text-right">
                 <th className="px-2 py-1">תיאור</th>
-                <th className="px-2 py-1">סכום</th>
+                {field === 'places' ? (
+                  <>
+                    <th className="px-2 py-1">סכום למקום</th>
+                    <th className="px-2 py-1">מספר מקומות</th>
+                    <th className="px-2 py-1">סה"כ</th>
+                  </>
+                ) : (
+                  <th className="px-2 py-1">סכום</th>
+                )}
                 <th className="px-2 py-1">שולם</th>
                 <th className="px-2 py-1">תאריך לועזי</th>
                 <th className="px-2 py-1">תאריך עברי</th>
@@ -95,7 +111,15 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
               {items.map(i => (
                 <tr key={i.id} className="border-t">
                   <td className="px-2 py-1">{i.description}</td>
-                  <td className="px-2 py-1 text-center">{i.amount}</td>
+                  {field === 'places' ? (
+                    <>
+                      <td className="px-2 py-1 text-center">{i.amount}</td>
+                      <td className="px-2 py-1 text-center">{i.count ?? 0}</td>
+                      <td className="px-2 py-1 text-center">{(i.amount || 0) * (i.count ?? 0)}</td>
+                    </>
+                  ) : (
+                    <td className="px-2 py-1 text-center">{i.amount}</td>
+                  )}
                   <td className="px-2 py-1 text-center">{i.paid ? 'כן' : 'לא'}</td>
                   <td className="px-2 py-1">{i.createdAtGregorian}</td>
                   <td className="px-2 py-1">{i.createdAtHebrew}</td>
@@ -114,18 +138,44 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
           </table>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+        <div className={`grid grid-cols-1 ${field === 'places' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 mb-4 text-sm`}>
           <div>
             <label className="block mb-1">תיאור</label>
-            <input
-              type="text"
-              value={newItem.description || ''}
-              onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-2 py-1 border rounded"
-            />
+            {field === 'places' ? (
+              <>
+                <select
+                  value={descriptionOption}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setDescriptionOption(val);
+                    setNewItem(prev => ({ ...prev, description: val === 'other' ? '' : val }));
+                  }}
+                  className="w-full px-2 py-1 border rounded"
+                >
+                  <option value="מקומות בבית הכנסת">מקומות בבית הכנסת</option>
+                  <option value="מקומות בעזרת נשים">מקומות בעזרת נשים</option>
+                  <option value="other">אחר</option>
+                </select>
+                {descriptionOption === 'other' && (
+                  <input
+                    type="text"
+                    value={newItem.description || ''}
+                    onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full mt-2 px-2 py-1 border rounded"
+                  />
+                )}
+              </>
+            ) : (
+              <input
+                type="text"
+                value={newItem.description || ''}
+                onChange={e => setNewItem(prev => ({ ...prev, description: e.target.value }))}
+                className="w-full px-2 py-1 border rounded"
+              />
+            )}
           </div>
           <div>
-            <label className="block mb-1">סכום</label>
+            <label className="block mb-1">{field === 'places' ? 'סכום למקום' : 'סכום'}</label>
             <input
               type="number"
               value={newItem.amount || 0}
@@ -133,6 +183,17 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
               className="w-full px-2 py-1 border rounded"
             />
           </div>
+          {field === 'places' && (
+            <div>
+              <label className="block mb-1">מספר מקומות</label>
+              <input
+                type="number"
+                value={newItem.count || 0}
+                onChange={e => setNewItem(prev => ({ ...prev, count: Number(e.target.value) }))}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+          )}
           <div className="flex items-center space-x-2 space-x-reverse">
             <input
               type="checkbox"

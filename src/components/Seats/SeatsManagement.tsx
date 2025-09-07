@@ -1147,7 +1147,7 @@ function SeatsManagement(): JSX.Element {
               >פנה מקום</button>
               {worshipers.map(w => {
                 const assignedSeats = seats.filter(s => s.userId === w.id).length;
-                const seatCount = w.places?.reduce((sum, i) => sum + i.amount, 0) ?? 0;
+                const seatCount = w.places?.reduce((sum, i) => sum + (i.count ?? 0), 0) ?? 0;
                 const isFull = assignedSeats + selectedSeatsForWorshiper.length > seatCount;
                 return (
                   <button

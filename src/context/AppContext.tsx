@@ -233,8 +233,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       places: [
         {
           id: 'p1',
-          description: 'מקום',
-          amount: 1,
+          description: 'מקומות בבית הכנסת',
+          amount: 0,
+          count: 1,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',
@@ -253,8 +254,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       places: [
         {
           id: 'p2',
-          description: 'מקום',
-          amount: 2,
+          description: 'מקומות בבית הכנסת',
+          amount: 0,
+          count: 2,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',
@@ -273,8 +275,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       places: [
         {
           id: 'p3',
-          description: 'מקום',
-          amount: 1,
+          description: 'מקומות בבית הכנסת',
+          amount: 0,
+          count: 1,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',
@@ -293,8 +296,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       places: [
         {
           id: 'p4',
-          description: 'מקום',
-          amount: 3,
+          description: 'מקומות בבית הכנסת',
+          amount: 0,
+          count: 3,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',
@@ -313,8 +317,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       places: [
         {
           id: 'p5',
-          description: 'מקום',
-          amount: 1,
+          description: 'מקומות בבית הכנסת',
+          amount: 0,
+          count: 1,
           paid: false,
           createdAtGregorian: '',
           createdAtHebrew: '',

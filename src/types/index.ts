@@ -19,6 +19,7 @@ export interface WorshiperItem {
   id: string;
   description: string;
   amount: number;
+  count?: number;
   paid: boolean;
   createdAtGregorian: string;
   createdAtHebrew: string;

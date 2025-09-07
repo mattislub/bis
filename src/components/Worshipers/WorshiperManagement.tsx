@@ -51,8 +51,9 @@ const WorshiperManagement: React.FC = () => {
         const places = seatCount
           ? [{
               id: (Date.now() + index).toString(),
-              description: 'מקום',
-              amount: seatCount,
+              description: 'מקומות בבית הכנסת',
+              amount: 0,
+              count: seatCount,
               paid: false,
               createdAtGregorian: '',
               createdAtHebrew: '',
@@ -368,7 +369,7 @@ const WorshiperManagement: React.FC = () => {
                   <td className="px-4 py-2">{w.secondaryPhone}</td>
                   <td className="px-4 py-2">{w.address}</td>
                   <td className="px-4 py-2">{w.city}</td>
-                  <td className="px-4 py-2 text-center">{w.places?.reduce((sum, i) => sum + i.amount, 0) ?? 0}</td>
+                  <td className="px-4 py-2 text-center">{w.places?.reduce((sum, i) => sum + (i.count ?? 0), 0) ?? 0}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2 space-x-reverse">
                       <button
