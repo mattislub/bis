@@ -11,6 +11,7 @@ import Login from './components/Auth/Login';
 import RequireAuth from './components/Auth/RequireAuth';
 import ProfileSetup from './components/Auth/ProfileSetup';
 import MapView from './components/Seats/MapView';
+import StickerPrint from './components/Seats/StickerPrint';
 import Pricing from './components/Pricing/Pricing';
 import ProPayment from './components/Pricing/ProPayment';
 import PaymentThankYou from './components/Pricing/PaymentThankYou';
@@ -32,6 +33,14 @@ function App() {
           <Route path="/thank-you" element={<PaymentThankYou />} />
           <Route path="/payment-cancelled" element={<PaymentCancelled />} />
           <Route path="/setup" element={<RequireAuth><ProfileSetup /></RequireAuth>} />
+          <Route
+            path="/view/:id/labels"
+            element={
+              <AppProvider>
+                <StickerPrint />
+              </AppProvider>
+            }
+          />
           <Route
             path="/view/:id"
             element={

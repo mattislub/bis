@@ -4,15 +4,16 @@ import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
 import MapZoomControls from './MapZoomControls';
-import { Printer, Target } from 'lucide-react';
+import { Printer, Target, Tags } from 'lucide-react';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
-  const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers } = useAppContext();
+  const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers, currentMapId } = useAppContext();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const [zoom, setZoom] = useState(1);
+  const mapId = id || currentMapId;
 
   useEffect(() => {
     const originalPadding = document.body.style.padding;
@@ -121,6 +122,13 @@ const MapView: React.FC = () => {
             aria-label="הדפס מפה"
           >
             <Printer className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => mapId && navigate(`/view/${mapId}/labels`)}
+            className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            aria-label="הדפס מדבקות"
+          >
+            <Tags className="h-4 w-4" />
           </button>
         </div>
         <div
