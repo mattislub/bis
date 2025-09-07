@@ -48,6 +48,21 @@ function toGrayscaleCanvas(src: HTMLCanvasElement, pureBW = false, threshold = 1
   return dst;
 }
 
+function isCanvasBlank(canvas: HTMLCanvasElement) {
+  const ctx = canvas.getContext('2d');
+  const { width, height } = canvas;
+  const data = ctx!.getImageData(0, 0, width, height).data;
+  for (let i = 0; i < data.length; i += 4) {
+    if (
+      data[i + 3] !== 0 &&
+      (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function exportMapToPDF(opts: {
   wrapperEl: HTMLElement;
   mapLayerEl: HTMLElement;
@@ -99,6 +114,14 @@ export async function exportMapToPDF(opts: {
     canvas = cropped;
   }
 
+  const scaled = document.createElement('canvas');
+  scaled.width = Math.floor(canvas.width / 2);
+  scaled.height = Math.floor(canvas.height / 2);
+  scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height);
+  canvas = scaled;
+
+  if (isCanvasBlank(canvas)) return;
+
   if (mode === 'onePage') {
     const pageWmm = pxToMm(canvas.width);
     const pageHmm = pxToMm(canvas.height);
@@ -132,10 +155,9 @@ export async function exportMapToPDF(opts: {
   const pxPerMm = DPI_FOR_MM / MM_PER_INCH;
   const sliceWidthPx = Math.floor(maxW * pxPerMm);
   const sliceHeightPx = Math.floor(maxH * pxPerMm);
-
+  let firstPage = true;
   for (let yPx = 0; yPx < imgHpx; yPx += sliceHeightPx) {
     for (let xPx = 0; xPx < imgWpx; xPx += sliceWidthPx) {
-      if (xPx > 0 || yPx > 0) pdf.addPage();
       const sliceCanvas = document.createElement('canvas');
       sliceCanvas.width = Math.min(sliceWidthPx, imgWpx - xPx);
       sliceCanvas.height = Math.min(sliceHeightPx, imgHpx - yPx);
@@ -150,6 +172,8 @@ export async function exportMapToPDF(opts: {
         sliceCanvas.width,
         sliceCanvas.height
       );
+      if (isCanvasBlank(sliceCanvas)) continue;
+      if (!firstPage) pdf.addPage();
       const sliceWmm = sliceCanvas.width / pxPerMm;
       const sliceHmm = sliceCanvas.height / pxPerMm;
       pdf.addImage(
@@ -160,8 +184,10 @@ export async function exportMapToPDF(opts: {
         sliceWmm,
         sliceHmm
       );
+      firstPage = false;
     }
   }
 
+  if (firstPage) return;
   pdf.save(fileName);
 }
