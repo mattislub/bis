@@ -6,9 +6,10 @@ interface PdfToolbarProps {
   mapLayerRef: React.RefObject<HTMLDivElement>;
   /** optional id for the export button */
   id?: string;
+  cropRect?: { x1: number; y1: number; x2: number; y2: number };
 }
 
-const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef, id }) => {
+const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef, id, cropRect }) => {
   const [pdfMode, setPdfMode] = React.useState<PdfMode>('a4');
   const [colorMode, setColorMode] = React.useState<ColorMode>('color');
   const [hardBW, setHardBW] = React.useState(false);
@@ -26,6 +27,14 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef, id }) 
       bwThreshold: threshold,
       marginsMm: 10,
       orientation,
+      clipRect: cropRect
+        ? {
+            x: cropRect.x1,
+            y: cropRect.y1,
+            width: cropRect.x2 - cropRect.x1,
+            height: cropRect.y2 - cropRect.y1,
+          }
+        : undefined,
       fileName:
         (colorMode === 'bw' ? 'map-bw-' : 'map-color-') +
         (pdfMode === 'a4' ? 'a4.pdf' : 'onepage.pdf'),
