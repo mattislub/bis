@@ -163,6 +163,12 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             >
               הוסף חיוב מקומות חדשה
             </button>
+            <button
+              onClick={onClose}
+              className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            >
+              צא
+            </button>
           </div>
         </div>
         {editingField && (
