@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Phone, Mail, MapPin, User as UserIcon, Users } from 'lucide-react';
 import { Worshiper, WorshiperItem } from '../../types';
+import WorshiperItemsForm from './WorshiperItemsForm';
 
 interface Props {
   worshiper: Worshiper;
@@ -9,6 +10,7 @@ interface Props {
 
 const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
   const [activeTab, setActiveTab] = useState<'promises' | 'aliyot' | 'places'>('promises');
+  const [editingField, setEditingField] = useState<null | 'promises' | 'aliyot' | 'places'>(null);
 
   const renderItems = (items?: WorshiperItem[]) => {
     if (!items || items.length === 0) {
@@ -114,7 +116,46 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             ))}
           </div>
           {renderItems(tabs.find(t => t.key === activeTab)?.items)}
+          {activeTab === 'places' && worshiper.places && worshiper.places.length > 1 && (
+            <div className="text-right font-semibold mt-2">
+              סה"כ: {worshiper.places.reduce((sum, i) => sum + i.amount, 0)}
+            </div>
+          )}
+          <div className="flex justify-end space-x-2 space-x-reverse mt-4">
+            <button
+              onClick={() => setEditingField('promises')}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              הוסף התחייבות חדש
+            </button>
+            <button
+              onClick={() => setEditingField('aliyot')}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              הוסף עליה חדשה
+            </button>
+            <button
+              onClick={() => setEditingField('places')}
+              className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              הוסף חיוב מקומות חדשה
+            </button>
+          </div>
         </div>
+        {editingField && (
+          <WorshiperItemsForm
+            worshiper={worshiper}
+            field={editingField}
+            title={
+              editingField === 'promises'
+                ? 'הבטחות'
+                : editingField === 'aliyot'
+                  ? 'עליות'
+                  : 'מקומות'
+            }
+            onClose={() => setEditingField(null)}
+          />
+        )}
       </div>
     </div>
   );

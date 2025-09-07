@@ -12,9 +12,23 @@ interface Props {
 
 const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose }) => {
   const { setWorshipers } = useAppContext();
-  const [items, setItems] = useState<WorshiperItem[]>(worshiper[field] || []);
+  const [items, setItems] = useState<WorshiperItem[]>(() => {
+    if (field === 'places' && (!worshiper.places || worshiper.places.length === 0)) {
+      return [
+        {
+          id: Date.now().toString(),
+          description: 'מקום 1',
+          amount: 0,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ];
+    }
+    return worshiper[field] || [];
+  });
   const [newItem, setNewItem] = useState<Partial<WorshiperItem>>({
-    description: '',
+    description: field === 'places' ? `מקום ${items.length + 1}` : '',
     amount: 0,
     paid: false,
     createdAtGregorian: '',
@@ -23,6 +37,7 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
 
   const addItem = () => {
     if (!newItem.description) return;
+    const nextIndex = items.length + 1;
     const item: WorshiperItem = {
       id: Date.now().toString(),
       description: newItem.description!,
@@ -33,7 +48,7 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
     };
     setItems(prev => [...prev, item]);
     setNewItem({
-      description: '',
+      description: field === 'places' ? `מקום ${nextIndex + 1}` : '',
       amount: 0,
       paid: false,
       createdAtGregorian: '',
