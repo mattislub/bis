@@ -1,14 +1,14 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
 import MapZoomControls from './MapZoomControls';
+import { Printer, Target } from 'lucide-react';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
-  const location = useLocation();
-  const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
+  const { benches, seats, loadMap, mapBounds, mapOffset, setMapOffset, worshipers } = useAppContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const [zoom, setZoom] = useState(1);
@@ -49,14 +49,6 @@ const MapView: React.FC = () => {
     }
   }, [id, loadMap]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('print')) {
-      const timer = setTimeout(() => window.print(), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
-
   const getWorshiperById = (worshiperId: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === worshiperId);
   };
@@ -69,11 +61,66 @@ const MapView: React.FC = () => {
     return { worshiper: null, color: 'bg-gray-300' };
   };
 
+  const centerMap = useCallback(() => {
+    let minX = benches.length ? Infinity : 0;
+    let minY = benches.length ? Infinity : 0;
+    let maxX = benches.length ? -Infinity : 0;
+    let maxY = benches.length ? -Infinity : 0;
+
+    benches.forEach(b => {
+      const width =
+        b.type === 'special'
+          ? b.width || 0
+          : b.orientation === 'horizontal'
+            ? b.seatCount * 60 + 20
+            : 80;
+      const height =
+        b.type === 'special'
+          ? b.height || 0
+          : b.orientation === 'horizontal'
+            ? 80
+            : b.seatCount * 60 + 20;
+      minX = Math.min(minX, b.position.x);
+      minY = Math.min(minY, b.position.y);
+      maxX = Math.max(maxX, b.position.x + width);
+      maxY = Math.max(maxY, b.position.y + height);
+    });
+
+    minX -= mapBounds.left;
+    minY -= mapBounds.top;
+    maxX += mapBounds.right;
+    maxY += mapBounds.bottom;
+
+    const contentW = Math.max(1, maxX - minX);
+    const contentH = Math.max(1, maxY - minY);
+    const W = baseSize.width;
+    const H = baseSize.height;
+
+    setMapOffset({
+      x: Math.round(W / 2 - (minX + contentW / 2) * zoom),
+      y: Math.round(H / 2 - (minY + contentH / 2) * zoom),
+    });
+  }, [benches, mapBounds, baseSize, zoom, setMapOffset]);
+
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100">
       <div ref={containerRef} className="relative h-screen w-full">
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 flex flex-col items-center space-y-2">
           <MapZoomControls setZoom={setZoom} orientation="vertical" />
+          <button
+            onClick={centerMap}
+            className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            aria-label="מרכז מפה"
+          >
+            <Target className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            aria-label="הדפס מפה"
+          >
+            <Printer className="h-4 w-4" />
+          </button>
         </div>
         <div
           className="absolute"

@@ -118,7 +118,7 @@ function SeatsManagement(): JSX.Element {
   }, [currentMap, benches, seats, mapBounds, mapOffset]);
 
   const printMap = useCallback((mapId: string) => {
-    const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}?print=1`;
+    const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}`;
     window.open(url, '_blank');
   }, []);
 
