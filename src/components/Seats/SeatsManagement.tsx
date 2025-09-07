@@ -437,40 +437,58 @@ function SeatsManagement(): JSX.Element {
     setBenches(prev=>prev.map(b=> b.id===benchId ? {...b, orientation: b.orientation==='horizontal' ? 'vertical' : 'horizontal'} : b));
   }, [setBenches]);
 
-  const alignSelectedBenches = useCallback((type: 'left' | 'right' | 'top' | 'bottom' | 'centerX' | 'centerY') => {
-    setBenches(prev => {
-      const selected = prev.filter(b => selectedBenches.includes(b.id) && !b.locked);
-      if (!selected.length) return prev;
-      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      selected.forEach(b => {
-        const { width, height } = benchDims(b);
-        minX = Math.min(minX, b.position.x);
-        minY = Math.min(minY, b.position.y);
-        maxX = Math.max(maxX, b.position.x + width);
-        maxY = Math.max(maxY, b.position.y + height);
+  const alignSelectedBenches = useCallback(
+    (type: 'left' | 'right' | 'top' | 'bottom' | 'centerX' | 'centerY') => {
+      setBenches(prev => {
+        const selected = prev.filter(b => selectedBenches.includes(b.id) && !b.locked);
+        if (!selected.length) return prev;
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+        selected.forEach(b => {
+          const { width, height } = benchDims(b);
+          minX = Math.min(minX, b.position.x);
+          minY = Math.min(minY, b.position.y);
+          maxX = Math.max(maxX, b.position.x + width);
+          maxY = Math.max(maxY, b.position.y + height);
+        });
+        const aligned = prev.map(b => {
+          if (!selectedBenches.includes(b.id) || b.locked) return b;
+          const { width, height } = benchDims(b);
+          switch (type) {
+            case 'left':
+              return { ...b, position: { ...b.position, x: minX } };
+            case 'right':
+              return { ...b, position: { ...b.position, x: maxX - width } };
+            case 'centerX':
+              return {
+                ...b,
+                position: { ...b.position, x: (minX + maxX) / 2 - width / 2 },
+              };
+            case 'top':
+              return { ...b, position: { ...b.position, y: minY } };
+            case 'bottom':
+              return { ...b, position: { ...b.position, y: maxY - height } };
+            case 'centerY':
+              return {
+                ...b,
+                position: { ...b.position, y: (minY + maxY) / 2 - height / 2 },
+              };
+            default:
+              return b;
+          }
+        });
+        const spacedSelected = ensureBenchSpacing(
+          aligned.filter(b => selectedBenches.includes(b.id) && !b.locked)
+        );
+        return aligned.map(b =>
+          spacedSelected.find(s => s.id === b.id) ?? b
+        );
       });
-      return prev.map(b => {
-        if (!selectedBenches.includes(b.id) || b.locked) return b;
-        const { width, height } = benchDims(b);
-        switch (type) {
-          case 'left':
-            return { ...b, position: { ...b.position, x: minX } };
-          case 'right':
-            return { ...b, position: { ...b.position, x: maxX - width } };
-          case 'centerX':
-            return { ...b, position: { ...b.position, x: (minX + maxX) / 2 - width / 2 } };
-          case 'top':
-            return { ...b, position: { ...b.position, y: minY } };
-          case 'bottom':
-            return { ...b, position: { ...b.position, y: maxY - height } };
-          case 'centerY':
-            return { ...b, position: { ...b.position, y: (minY + maxY) / 2 - height / 2 } };
-          default:
-            return b;
-        }
-      });
-    });
-  }, [selectedBenches, setBenches]);
+    },
+    [selectedBenches, setBenches]
+  );
 
   const toggleBenchLock = useCallback((benchId: string) => {
     setBenches(prev=>prev.map(b=> b.id===benchId ? {...b, locked: !b.locked} : b));
