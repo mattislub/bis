@@ -11,9 +11,12 @@ interface Props {
 const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
   const [activeTab, setActiveTab] = useState<'promises' | 'aliyot' | 'places'>('promises');
   const [editingField, setEditingField] = useState<null | 'promises' | 'aliyot' | 'places'>(null);
-  const totalSeats = worshiper.places?.reduce((sum, i) => sum + i.amount, 0) ?? 0;
+  const totalSeats = worshiper.places?.reduce((sum, i) => sum + (i.count ?? 0), 0) ?? 0;
 
-  const renderItems = (items?: WorshiperItem[]) => {
+  const renderItems = (
+    field: 'promises' | 'aliyot' | 'places',
+    items?: WorshiperItem[]
+  ) => {
     if (!items || items.length === 0) {
       return <p className="text-center text-gray-500 text-sm">אין פריטים</p>;
     }
@@ -23,7 +26,15 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
           <thead>
             <tr className="text-right">
               <th className="px-2 py-1">תיאור</th>
-              <th className="px-2 py-1">סכום</th>
+              {field === 'places' ? (
+                <>
+                  <th className="px-2 py-1">סכום למקום</th>
+                  <th className="px-2 py-1">מספר מקומות</th>
+                  <th className="px-2 py-1">סה"כ</th>
+                </>
+              ) : (
+                <th className="px-2 py-1">סכום</th>
+              )}
               <th className="px-2 py-1">שולם</th>
               <th className="px-2 py-1">תאריך לועזי</th>
               <th className="px-2 py-1">תאריך עברי</th>
@@ -33,7 +44,15 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             {items.map(i => (
               <tr key={i.id} className="border-t">
                 <td className="px-2 py-1">{i.description}</td>
-                <td className="px-2 py-1 text-center">{i.amount}</td>
+                {field === 'places' ? (
+                  <>
+                    <td className="px-2 py-1 text-center">{i.amount}</td>
+                    <td className="px-2 py-1 text-center">{i.count ?? 0}</td>
+                    <td className="px-2 py-1 text-center">{(i.amount || 0) * (i.count ?? 0)}</td>
+                  </>
+                ) : (
+                  <td className="px-2 py-1 text-center">{i.amount}</td>
+                )}
                 <td className="px-2 py-1 text-center">{i.paid ? 'כן' : 'לא'}</td>
                 <td className="px-2 py-1">{i.createdAtGregorian}</td>
                 <td className="px-2 py-1">{i.createdAtHebrew}</td>
@@ -116,10 +135,13 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
               </button>
             ))}
           </div>
-          {renderItems(tabs.find(t => t.key === activeTab)?.items)}
+          {renderItems(
+            activeTab,
+            tabs.find(t => t.key === activeTab)?.items
+          )}
           {activeTab === 'places' && worshiper.places && worshiper.places.length > 1 && (
             <div className="text-right font-semibold mt-2">
-              סה"כ: {worshiper.places.reduce((sum, i) => sum + i.amount, 0)}
+              סה"כ: {worshiper.places.reduce((sum, i) => sum + (i.amount || 0) * (i.count ?? 0), 0)}
             </div>
           )}
           <div className="flex justify-end space-x-2 space-x-reverse mt-4">
