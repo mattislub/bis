@@ -8,6 +8,7 @@ import {
   MapOffset,
   MapData,
   MapTemplate,
+  Boundary,
   Sticker,
 } from '../types';
 import { useServerStorage } from '../hooks/useServerStorage';
@@ -26,6 +27,8 @@ interface AppContextType {
   setMapBounds: (bounds: MapBounds | ((prev: MapBounds) => MapBounds)) => void;
   mapOffset: MapOffset;
   setMapOffset: (offset: MapOffset | ((prev: MapOffset) => MapOffset)) => void;
+  boundaries: Boundary[];
+  setBoundaries: (boundaries: Boundary[] | ((prev: Boundary[]) => Boundary[])) => void;
   maps: MapData[];
   setMaps: (maps: MapData[] | ((prev: MapData[]) => MapData[])) => void;
   currentMapId: string;
@@ -283,10 +286,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     seats: initialSeats,
     mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
     mapOffset: { x: 0, y: 0 },
+    boundaries: [],
     stickers: [],
   };
   const [benches, setBenches] = useServerStorage<Bench[]>('benches', initialBenches, userKey);
   const [seats, setSeats] = useServerStorage<Seat[]>('seats', initialSeats, userKey);
+  const [boundaries, setBoundaries] = useServerStorage<Boundary[]>('boundaries', [], userKey);
 
   const [maps, setMaps] = useServerStorage<MapData[]>('maps', [defaultMap], userKey);
   const [currentMapId, setCurrentMapId] = useServerStorage<string>('currentMapId', defaultMap.id, userKey);
@@ -298,6 +303,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     seats: initialSeats.map(s => ({ ...s })),
     mapBounds: defaultMap.mapBounds,
     mapOffset: defaultMap.mapOffset,
+     boundaries: [],
   };
   const [mapTemplates, setMapTemplates] = useServerStorage<MapTemplate[]>('mapTemplates', [defaultTemplate], userKey);
 
@@ -355,6 +361,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         benches,
         seats,
         mapBounds: { top: PRINT_MARGIN, right: PRINT_MARGIN, bottom: PRINT_MARGIN, left: PRINT_MARGIN },
+        boundaries,
       };
     }
 
@@ -371,6 +378,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       position: { x: s.position.x - shiftX, y: s.position.y - shiftY },
     })) : seats;
 
+    const adjustedBoundaries = shiftX || shiftY ? boundaries.map(b => ({
+      ...b,
+      start: { x: b.start.x - shiftX, y: b.start.y - shiftY },
+      end: { x: b.end.x - shiftX, y: b.end.y - shiftY },
+    })) : boundaries;
+
     const maxXShifted = maxX - shiftX;
     const maxYShifted = maxY - shiftY;
 
@@ -381,13 +394,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       bottom: Math.max(PRINT_MARGIN, maxYShifted + PRINT_MARGIN > 800 ? maxYShifted + PRINT_MARGIN - 800 : PRINT_MARGIN),
     };
 
-    return { benches: adjustedBenches, seats: adjustedSeats, mapBounds: newBounds };
+    return { benches: adjustedBenches, seats: adjustedSeats, mapBounds: newBounds, boundaries: adjustedBoundaries };
   };
 
   const trimMap = () => {
     const trimmed = calculateTrimmedMap();
     if (trimmed.benches !== benches) setBenches(trimmed.benches);
     if (trimmed.seats !== seats) setSeats(trimmed.seats);
+    if (trimmed.boundaries !== boundaries) setBoundaries(trimmed.boundaries);
     const boundsChanged =
       trimmed.mapBounds.top !== mapBounds.top ||
       trimmed.mapBounds.right !== mapBounds.right ||
@@ -398,7 +412,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const saveCurrentMap = (name?: string) => {
-    const { benches: b, seats: s, mapBounds: bounds } = trimMap();
+    const { benches: b, seats: s, mapBounds: bounds, boundaries: br } = trimMap();
     const stickers = generateStickers(b, s, worshipers);
     if (name) {
       const id = Date.now().toString();
@@ -409,6 +423,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         seats: s,
         mapBounds: bounds,
         mapOffset,
+        boundaries: br,
         stickers,
       };
       setMaps(prev => [...prev, map]);
@@ -417,7 +432,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMaps(prev =>
         prev.map(m =>
           m.id === currentMapId
-            ? { ...m, benches: b, seats: s, mapBounds: bounds, mapOffset, stickers }
+            ? { ...m, benches: b, seats: s, mapBounds: bounds, mapOffset, stickers, boundaries: br }
             : m
         )
       );
@@ -431,6 +446,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setSeats(map.seats);
       setMapBounds(map.mapBounds);
       setMapOffset(map.mapOffset);
+      setBoundaries(map.boundaries || []);
       setCurrentMapId(id);
     }
   };
@@ -455,12 +471,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     if (template) {
       const id = Date.now().toString();
       const stickers = template.stickers ?? generateStickers(template.benches, template.seats, worshipers);
-      const newMap: MapData = { ...template, id, name, stickers };
+      const newMap: MapData = { ...template, id, name, stickers, boundaries: template.boundaries };
       setMaps(prev => [...prev, newMap]);
       setBenches(template.benches);
       setSeats(template.seats);
       setMapBounds(template.mapBounds);
       setMapOffset(template.mapOffset);
+      setBoundaries(template.boundaries);
       setCurrentMapId(id);
     }
   };
@@ -479,6 +496,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMapBounds,
       mapOffset,
       setMapOffset,
+      boundaries,
+      setBoundaries,
       maps,
       setMaps,
       currentMapId,

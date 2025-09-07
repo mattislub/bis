@@ -79,6 +79,12 @@ export interface MapOffset {
   y: number;
 }
 
+export interface Boundary {
+  id: string;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+}
+
 export interface Sticker {
   name: string;
   benchName: string;
@@ -91,6 +97,7 @@ export interface MapData {
   seats: Seat[];
   mapBounds: MapBounds;
   mapOffset: MapOffset;
+  boundaries: Boundary[];
   stickers: Sticker[];
 }
 
@@ -101,5 +108,6 @@ export interface MapTemplate {
   seats: Seat[];
   mapBounds: MapBounds;
   mapOffset: MapOffset;
+  boundaries: Boundary[];
   stickers?: Sticker[];
 }

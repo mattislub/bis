@@ -15,7 +15,8 @@ import {
   Copy,
   ArrowRight,
   ArrowDown,
-  ArrowDownRight
+  ArrowDownRight,
+  Scissors
 } from 'lucide-react';
 
 type IconType = React.ComponentType<{ className?: string }>;
@@ -34,6 +35,7 @@ const mainTools: Tool[] = [
   { icon: Settings, title: 'הצמד לרשת', description: 'הצמדת ספסלים לרשת בעת גרירה.' },
   { icon: BoxSelect, title: 'בחירה מרובה', description: 'אפשרות לבחירת מספר ספסלים יחד.' },
   { icon: Hand, title: 'הזזת המפה', description: 'הזזת כל המפה באמצעות גרירה.' },
+  { icon: Scissors, title: 'צייר גבול', description: 'שרטוט קו גבול לפיצול המפה לאזורים.' },
   { icon: ListOrdered, title: 'סדר מחדש מספרי מקומות', description: 'ממספר מחדש את מקומות הישיבה.' },
   { icon: Save, title: 'שמור שינויים', description: 'שמירת מצב המפה הנוכחי.' },
   { icon: Trash2, title: 'נקה מפה', description: 'מחיקת כל הספסלים והאלמנטים מהמפה.' }

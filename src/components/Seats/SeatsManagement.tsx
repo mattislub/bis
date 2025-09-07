@@ -1,13 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { Bench, Seat } from '../../types';
+import { Bench, Seat, Boundary } from '../../types';
 import { specialElements } from './specialElements';
 import MapZoomControls from './MapZoomControls';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
   Maximize2, Grid as GridIcon, Target, AlignLeft, AlignCenter, AlignRight,
-  AlignStartVertical, AlignCenterVertical, AlignEndVertical
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors
 } from 'lucide-react';
 
 /**
@@ -18,7 +18,7 @@ import {
  * ייבוא/ייצוא JSON, Snap/Grid/Fit, מספור מחדש, אלמנטים מיוחדים.
  */
 
-type Tool = 'select' | 'add' | 'multiSelect' | 'pan';
+type Tool = 'select' | 'add' | 'multiSelect' | 'pan' | 'boundary';
 type XY = { x: number; y: number };
 
 const clamp = (v:number,min:number,max:number)=>Math.max(min,Math.min(max,v));
@@ -69,6 +69,7 @@ function SeatsManagement(): JSX.Element {
     gridSettings, setGridSettings,
     mapBounds,
     mapOffset, setMapOffset,
+    boundaries, setBoundaries,
     saveCurrentMap, maps, loadMap, renameMap, currentMapId,
   } = useAppContext();
 
@@ -80,6 +81,7 @@ function SeatsManagement(): JSX.Element {
   const [selectedSeatsForWorshiper, setSelectedSeatsForWorshiper] = useState<number[]>([]);
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [isToolbarCollapsed] = useState(false);
+  const [drawingBoundary, setDrawingBoundary] = useState<Boundary | null>(null);
 
   // Multi‑drag & selection
   const [selectedBenches, setSelectedBenches] = useState<string[]>([]);
@@ -114,9 +116,10 @@ function SeatsManagement(): JSX.Element {
       JSON.stringify(currentMap.benches) === JSON.stringify(benches) &&
       JSON.stringify(currentMap.seats) === JSON.stringify(seats) &&
       JSON.stringify(currentMap.mapBounds) === JSON.stringify(mapBounds) &&
-      JSON.stringify(currentMap.mapOffset) === JSON.stringify(mapOffset)
+      JSON.stringify(currentMap.mapOffset) === JSON.stringify(mapOffset) &&
+      JSON.stringify(currentMap.boundaries || []) === JSON.stringify(boundaries)
     );
-  }, [currentMap, benches, seats, mapBounds, mapOffset]);
+  }, [currentMap, benches, seats, mapBounds, mapOffset, boundaries]);
 
   const printMap = useCallback((mapId: string) => {
     const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}`;
@@ -302,6 +305,12 @@ function SeatsManagement(): JSX.Element {
     const rect = wrapperRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
     const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
+    if (activeTool==='boundary') {
+      e.preventDefault();
+      setDrawingBoundary({ id: `boundary-${Date.now()}`, start: { x, y }, end: { x, y } });
+      setCtxMenu(s=>({...s,show:false}));
+      return;
+    }
     if (activeTool==='pan') {
       e.preventDefault(); setIsPanning(true); setPanStart({x:e.clientX,y:e.clientY});
       setSelectedBenches([]); setSelectedSeats(new Set()); setCtxMenu(s=>({...s,show:false})); return;
@@ -318,6 +327,13 @@ function SeatsManagement(): JSX.Element {
       setMapOffset(prev=>({x:prev.x+dx,y:prev.y+dy}));
       setPanStart({x:e.clientX,y:e.clientY}); return;
     }
+    if (activeTool==='boundary' && drawingBoundary && wrapperRef.current) {
+      const rect = wrapperRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
+      const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
+      setDrawingBoundary(prev => prev ? { ...prev, end: { x, y } } : null);
+      return;
+    }
     if (isSelecting && selectionStart && wrapperRef.current) {
       const rect = wrapperRef.current.getBoundingClientRect();
       const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
@@ -326,6 +342,10 @@ function SeatsManagement(): JSX.Element {
     }
   };
   const onMouseUpCanvas = () => {
+    if (drawingBoundary) {
+      setBoundaries(prev => [...prev, drawingBoundary]);
+      setDrawingBoundary(null);
+    }
     if (isPanning) { setIsPanning(false); setPanStart(null); }
     if (isSelecting && selectionRect) {
       const selected = benches.filter(b=>{
@@ -459,10 +479,10 @@ function SeatsManagement(): JSX.Element {
   // Map ops
   const clearMap = useCallback(()=>{
     if (window.confirm('לנקות את המפה?')) {
-      setBenches([]); setSeats([]);
+      setBenches([]); setSeats([]); setBoundaries([]);
       setSelectedBenches([]); setSelectedSeats(new Set());
     }
-  }, []);
+  }, [setBenches, setSeats, setBoundaries]);
 
   const renumberSeats = useCallback(()=>{
     let id = 1;
@@ -623,8 +643,9 @@ function SeatsManagement(): JSX.Element {
             <button onClick={()=>setActiveTool('select')} className={`p-2 rounded-lg transition-all ${activeTool==='select' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה"><MousePointer className="h-4 w-4" /></button>
               <button onClick={()=>setActiveTool('add')} className={`p-2 rounded-lg transition-all ${activeTool==='add' ? 'bg-green-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הוסף ספסל"><Plus className="h-4 w-4" /></button>
               <button onClick={addMultipleBenches} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף ספסלים מרובים"><Layers className="h-4 w-4" /></button>
-              <button onClick={()=>setActiveTool('multiSelect')} className={`p-2 rounded-lg transition-all ${activeTool==='multiSelect' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה מרובה"><BoxSelect className="h-4 w-4" /></button>
+            <button onClick={()=>setActiveTool('multiSelect')} className={`p-2 rounded-lg transition-all ${activeTool==='multiSelect' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה מרובה"><BoxSelect className="h-4 w-4" /></button>
             <button onClick={()=>setActiveTool('pan')} className={`p-2 rounded-lg transition-all ${activeTool==='pan' ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הזזת מפה"><Hand className="h-4 w-4" /></button>
+            <button onClick={()=>setActiveTool('boundary')} className={`p-2 rounded-lg transition-all ${activeTool==='boundary' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="צייר גבול"><Scissors className="h-4 w-4" /></button>
           </div>
 
           {/* Map Actions */}
@@ -863,6 +884,16 @@ function SeatsManagement(): JSX.Element {
                 );
               })}
 
+              {/* Boundaries */}
+              <svg className="absolute inset-0 pointer-events-none">
+                {boundaries.map(b => (
+                  <line key={b.id} x1={b.start.x + mapBounds.left} y1={b.start.y + mapBounds.top} x2={b.end.x + mapBounds.left} y2={b.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} />
+                ))}
+                {drawingBoundary && (
+                  <line x1={drawingBoundary.start.x + mapBounds.left} y1={drawingBoundary.start.y + mapBounds.top} x2={drawingBoundary.end.x + mapBounds.left} y2={drawingBoundary.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} strokeDasharray="4 2" />
+                )}
+              </svg>
+
               {/* selection rectangle */}
               {isSelecting && selectionRect && (
                 <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none"
@@ -876,7 +907,7 @@ function SeatsManagement(): JSX.Element {
                 <span>זום: {Math.round(zoom*100)}%</span>
                 <span>ספסלים: {benchCount}</span>
                 <span>מקומות: {seats.length}</span>
-                <span>כלי פעיל: {activeTool==='select'?'בחירה':activeTool==='add'?'הוספה':activeTool==='multiSelect'?'בחירה מרובה':'הזזה'}</span>
+                <span>כלי פעיל: {activeTool==='select'?'בחירה':activeTool==='add'?'הוספה':activeTool==='multiSelect'?'בחירה מרובה':activeTool==='pan'?'הזזה':'גבול'}</span>
               </div>
             </div>
 
