@@ -538,7 +538,16 @@ function SeatsManagement(): JSX.Element {
                     benches: m.benches,
                     seats: m.seats,
                     worshipers,
-                    stickers: m.stickers,
+                    stickers: m.seats.map((seat) => {
+                      const w = worshipers.find((w) => w.id === seat.userId);
+                      const bench = m.benches.find((b) => b.id === seat.benchId);
+                      return {
+                        name: w
+                          ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}`
+                          : 'פנוי',
+                        benchName: bench?.name || '',
+                      };
+                    }),
                     fileName: `labels-${m.name.replace(/\s+/g, '-')}.pdf`,
                   })
                 }
