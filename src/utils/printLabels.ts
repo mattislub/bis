@@ -21,9 +21,13 @@ interface LabelPrintOptions {
   seats?: Seat[];
   worshipers?: Worshiper[];
   stickers?: Sticker[];
+  /**
+   * Optional file name for the generated PDF. Defaults to `labels.pdf`.
+   */
+  fileName?: string;
 }
 
-export async function printLabels({ benches = [], seats = [], worshipers = [], stickers }: LabelPrintOptions): Promise<void> {
+export async function printLabels({ benches = [], seats = [], worshipers = [], stickers, fileName = 'labels.pdf' }: LabelPrintOptions): Promise<void> {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   // Try to load an available font for Hebrew text. We attempt a list of
@@ -100,7 +104,7 @@ export async function printLabels({ benches = [], seats = [], worshipers = [], s
     pdf.text(rtl(label.benchName), x + labelW / 2, y + labelH / 2 + 6, { align: 'center' });
   });
 
-  pdf.save('labels.pdf');
+  pdf.save(fileName);
 }
 
 export default printLabels;

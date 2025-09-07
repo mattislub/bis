@@ -8,7 +8,7 @@ import WorshiperCard from './WorshiperCard';
 import { printLabels } from '../../utils/printLabels';
 
 const WorshiperManagement: React.FC = () => {
-  const { worshipers, setWorshipers, seats, benches } = useAppContext();
+  const { worshipers, setWorshipers, maps } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
@@ -82,7 +82,15 @@ const WorshiperManagement: React.FC = () => {
   };
 
   const handlePrintLabels = async () => {
-    await printLabels({ benches, seats, worshipers });
+    for (const map of maps) {
+      await printLabels({
+        benches: map.benches,
+        seats: map.seats,
+        worshipers,
+        stickers: map.stickers,
+        fileName: `labels-${map.name.replace(/\s+/g, '-')}.pdf`,
+      });
+    }
   };
 
   const handleSaveWorshiper = () => {
