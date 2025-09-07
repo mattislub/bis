@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Phone, Mail, MapPin, User as UserIcon, Users } from 'lucide-react';
-import { Worshiper } from '../../types';
+import { Worshiper, WorshiperItem } from '../../types';
 
 interface Props {
   worshiper: Worshiper;
@@ -8,9 +8,49 @@ interface Props {
 }
 
 const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
+  const [activeTab, setActiveTab] = useState<'promises' | 'aliyot' | 'places'>('promises');
+
+  const renderItems = (items?: WorshiperItem[]) => {
+    if (!items || items.length === 0) {
+      return <p className="text-center text-gray-500 text-sm">אין פריטים</p>;
+    }
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-right">
+              <th className="px-2 py-1">תיאור</th>
+              <th className="px-2 py-1">סכום</th>
+              <th className="px-2 py-1">שולם</th>
+              <th className="px-2 py-1">תאריך לועזי</th>
+              <th className="px-2 py-1">תאריך עברי</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(i => (
+              <tr key={i.id} className="border-t">
+                <td className="px-2 py-1">{i.description}</td>
+                <td className="px-2 py-1 text-center">{i.amount}</td>
+                <td className="px-2 py-1 text-center">{i.paid ? 'כן' : 'לא'}</td>
+                <td className="px-2 py-1">{i.createdAtGregorian}</td>
+                <td className="px-2 py-1">{i.createdAtHebrew}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const tabs = [
+    { key: 'promises', label: 'הבטחות', items: worshiper.promises },
+    { key: 'aliyot', label: 'עליות', items: worshiper.aliyot },
+    { key: 'places', label: 'מקומות', items: worshiper.places },
+  ] as const;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-3xl p-6">
         <button
           onClick={onClose}
           className="absolute top-3 left-3 text-gray-400 hover:text-gray-600"
@@ -55,6 +95,25 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             <Users className="h-4 w-4 ml-2 text-gray-500" />
             <span>כמות מקומות: {worshiper.seatCount}</span>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="flex border-b mb-4">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 text-sm focus:outline-none ${
+                  activeTab === tab.key
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          {renderItems(tabs.find(t => t.key === activeTab)?.items)}
         </div>
       </div>
     </div>
