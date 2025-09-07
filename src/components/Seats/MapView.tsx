@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
 import MapZoomControls from './MapZoomControls';
@@ -20,6 +21,7 @@ const MapView: React.FC = () => {
     currentMapId,
     boundaries,
   } = useAppContext();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
@@ -51,7 +53,10 @@ const MapView: React.FC = () => {
     if (id) {
       loadMap(id);
     } else {
-      fetch(`${API_BASE_URL}/api/storage/defaultMapId`)
+      const storageKey = user ? `${user.email}-defaultMapId` : 'defaultMapId';
+      fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
+        headers: user ? { 'X-User-Email': user.email } : undefined,
+      })
         .then(res => res.json())
         .then((mapId) => {
           if (mapId) {
@@ -60,7 +65,7 @@ const MapView: React.FC = () => {
         })
         .catch(err => console.error('load default map error', err));
     }
-  }, [id, loadMap, navigate]);
+  }, [id, loadMap, navigate, user]);
 
   const getWorshiperById = (worshiperId: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === worshiperId);
