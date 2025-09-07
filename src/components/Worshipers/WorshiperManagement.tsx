@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
@@ -30,6 +30,15 @@ const WorshiperManagement: React.FC = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (viewWorshiper) {
+      const updated = worshipers.find(w => w.id === viewWorshiper.id);
+      if (updated && updated !== viewWorshiper) {
+        setViewWorshiper(updated);
+      }
+    }
+  }, [worshipers, viewWorshiper]);
 
   const handleCsvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
