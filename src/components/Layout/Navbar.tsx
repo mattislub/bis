@@ -14,13 +14,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.title = user?.role === 'demo' ? 'SeatFlow - חשבון דמו' : 'SeatFlow';
+  }, [user]);
 
   const navItems = [
     { path: '/app', label: 'ניהול מתפללים', icon: Users },
@@ -43,8 +47,13 @@ const Navbar: React.FC = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-2">
             <Logo />
+            {user?.role === 'demo' && (
+              <span className="px-2 py-1 text-xs font-bold text-yellow-800 bg-yellow-100 rounded-full">
+                חשבון דמו
+              </span>
+            )}
           </div>
           
           {/* Desktop Navigation */}
@@ -75,6 +84,15 @@ const Navbar: React.FC = () => {
               <div className="text-sm text-gray-600">
                 <span className="font-medium">{user.synagogueName || user.email}</span>
               </div>
+            )}
+            {user?.role === 'demo' && (
+              <button
+                onClick={() => navigate('/pro-payment')}
+                className="flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+              >
+                <CreditCard className="h-4 w-4 ml-2" />
+                שדרג לפרו
+              </button>
             )}
             <button
               onClick={handleLogout}
@@ -128,7 +146,20 @@ const Navbar: React.FC = () => {
                   <span className="font-medium">{user.synagogueName || user.email}</span>
                 </div>
               )}
-              
+
+              {user?.role === 'demo' && (
+                <button
+                  onClick={() => {
+                    navigate('/pro-payment');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-all duration-200"
+                >
+                  <CreditCard className="h-4 w-4 ml-2" />
+                  שדרג לפרו
+                </button>
+              )}
+
               {/* Mobile Logout */}
               <button
                 onClick={() => {
