@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 
-import { Bench, Seat, Worshiper } from '../types';
+import { Bench, Seat, Sticker, Worshiper } from '../types';
 
 // Convert an ArrayBuffer font file to a binary string jsPDF can consume
 function arrayBufferToBinaryString(buffer: ArrayBuffer): string {
@@ -17,12 +17,13 @@ function arrayBufferToBinaryString(buffer: ArrayBuffer): string {
 }
 
 interface LabelPrintOptions {
-  benches: Bench[];
-  seats: Seat[];
-  worshipers: Worshiper[];
+  benches?: Bench[];
+  seats?: Seat[];
+  worshipers?: Worshiper[];
+  stickers?: Sticker[];
 }
 
-export async function printLabels({ benches, seats, worshipers }: LabelPrintOptions): Promise<void> {
+export async function printLabels({ benches = [], seats = [], worshipers = [], stickers }: LabelPrintOptions): Promise<void> {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   // Try to load an available font for Hebrew text. We attempt a list of
@@ -67,15 +68,17 @@ export async function printLabels({ benches, seats, worshipers }: LabelPrintOpti
   const labelW = (pageW - marginX * 2) / cols;
   const labelH = (pageH - marginY * 2) / rows;
 
-  const labels = seats
-    .filter(s => s.userId)
-    .map(s => {
-      const w = worshipers.find(w => w.id === s.userId);
-      const bench = benches.find(b => b.id === s.benchId);
-      const name = w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : '';
-      const benchName = bench?.name || '';
-      return { name, benchName };
-    });
+  const labels = stickers
+    ? stickers
+    : seats
+        .filter(s => s.userId)
+        .map(s => {
+          const w = worshipers.find(w => w.id === s.userId);
+          const bench = benches.find(b => b.id === s.benchId);
+          const name = w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : '';
+          const benchName = bench?.name || '';
+          return { name, benchName };
+        });
 
   const rtl = (s: string) => `\u202B${s}\u202C`;
 

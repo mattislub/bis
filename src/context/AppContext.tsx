@@ -8,6 +8,7 @@ import {
   MapOffset,
   MapData,
   MapTemplate,
+  Sticker,
 } from '../types';
 import { useServerStorage } from '../hooks/useServerStorage';
 import { useAuth } from './AuthContext';
@@ -197,6 +198,22 @@ const generateSeatsFromBenches = (benches: Bench[]): Seat[] => {
   return seats;
 };
 
+const generateStickers = (
+  benches: Bench[],
+  seats: Seat[],
+  worshipers: Worshiper[]
+): Sticker[] => {
+  return seats
+    .filter(s => s.userId)
+    .map(s => {
+      const w = worshipers.find(w => w.id === s.userId);
+      const bench = benches.find(b => b.id === s.benchId);
+      const name = w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : '';
+      const benchName = bench?.name || '';
+      return { name, benchName };
+    });
+};
+
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const userKey = user?.email ?? 'guest';
@@ -266,6 +283,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     seats: initialSeats,
     mapBounds: { top: 20, right: 20, bottom: 20, left: 20 },
     mapOffset: { x: 0, y: 0 },
+    stickers: [],
   };
   const [benches, setBenches] = useServerStorage<Bench[]>('benches', initialBenches, userKey);
   const [seats, setSeats] = useServerStorage<Seat[]>('seats', initialSeats, userKey);
@@ -381,6 +399,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const saveCurrentMap = (name?: string) => {
     const { benches: b, seats: s, mapBounds: bounds } = trimMap();
+    const stickers = generateStickers(b, s, worshipers);
     if (name) {
       const id = Date.now().toString();
       const map: MapData = {
@@ -390,6 +409,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         seats: s,
         mapBounds: bounds,
         mapOffset,
+        stickers,
       };
       setMaps(prev => [...prev, map]);
       setCurrentMapId(id);
@@ -397,7 +417,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       setMaps(prev =>
         prev.map(m =>
           m.id === currentMapId
-            ? { ...m, benches: b, seats: s, mapBounds: bounds, mapOffset }
+            ? { ...m, benches: b, seats: s, mapBounds: bounds, mapOffset, stickers }
             : m
         )
       );
@@ -434,7 +454,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const template = mapTemplates.find(t => t.id === templateId);
     if (template) {
       const id = Date.now().toString();
-      const newMap: MapData = { ...template, id, name };
+      const stickers = template.stickers ?? generateStickers(template.benches, template.seats, worshipers);
+      const newMap: MapData = { ...template, id, name, stickers };
       setMaps(prev => [...prev, newMap]);
       setBenches(template.benches);
       setSeats(template.seats);
