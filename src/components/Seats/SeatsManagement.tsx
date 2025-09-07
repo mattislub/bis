@@ -6,8 +6,8 @@ import MapZoomControls from './MapZoomControls';
 import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
-  ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers, Download,
-  Upload, Maximize2, Grid as GridIcon, Target, Printer, FileText
+  ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
+  Download, Maximize2, Grid as GridIcon, Target, Printer, FileText
 } from 'lucide-react';
 import { printLabels } from '../../utils/printLabels';
 
@@ -68,7 +68,7 @@ function SeatsManagement(): JSX.Element {
   const {
     benches, setBenches, seats, setSeats, worshipers,
     gridSettings, setGridSettings,
-    mapBounds, setMapBounds,
+    mapBounds,
     mapOffset, setMapOffset,
     saveCurrentMap, maps, loadMap, renameMap,
   } = useAppContext();
@@ -99,7 +99,6 @@ function SeatsManagement(): JSX.Element {
   // Refs
   const wrapperRef = useRef<HTMLDivElement>(null);
   const mapLayerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
@@ -421,32 +420,54 @@ function SeatsManagement(): JSX.Element {
     setSeats(updated);
   }, [benches, seats, setSeats]);
 
-  // File ops (JSON)
-  const exportMap = useCallback(()=>{
-    const mapData = { benches, seats, mapBounds, mapOffset, gridSettings };
-    const dataStr = JSON.stringify(mapData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'map-export.json'; a.click();
-    URL.revokeObjectURL(url);
-  }, [benches,seats,mapBounds,mapOffset,gridSettings]);
+  const addMultipleBenches = useCallback(() => {
+    const count = parseInt(prompt('כמה ספסלים להוסיף?') || '0', 10);
+    if (!count || count < 1) return;
+    const newBenches: Bench[] = [];
+    const newSeats: Seat[] = [];
+    let maxSeatId = Math.max(0, ...seats.map(s => s.id));
+    let x = 100;
+    const y = 100;
+    for (let i = 0; i < count; i++) {
+      const b: Bench = {
+        id: `bench-${Date.now()}-${i}`,
+        name: `ספסל ${benches.length + newBenches.length + 1}`,
+        seatCount: 4,
+        position: { x, y },
+        orientation: 'horizontal',
+        color: benchColors[(benches.length + newBenches.length) % benchColors.length],
+        locked: false,
+        temporary: false,
+      };
+      newBenches.push(b);
+      for (let j = 0; j < b.seatCount; j++) {
+        maxSeatId += 1;
+        newSeats.push({ id: maxSeatId, benchId: b.id, position: { x: 0, y: 0 }, isOccupied: false });
+      }
+      x += benchDims(b).width + MIN_BENCH_SPACING;
+    }
+    setBenches(prev => ensureBenchSpacing([...prev, ...newBenches]));
+    setSeats(prev => [...prev, ...newSeats]);
+  }, [benches, seats, setBenches, setSeats]);
 
-  const importMap = useCallback((e: React.ChangeEvent<HTMLInputElement>)=>{
-    const file = e.target.files?.[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev)=>{
-      try {
-        const mapData = JSON.parse(ev.target?.result as string);
-        setBenches(mapData.benches || []);
-        setSeats(mapData.seats || []);
-        setMapBounds(mapData.mapBounds || { top: 20, right: 20, bottom: 20, left: 20 });
-        setMapOffset(mapData.mapOffset || { x: 0, y: 0 });
-        if (mapData.gridSettings) setGridSettings(mapData.gridSettings);
-      } catch { alert('שגיאה בקריאת הקובץ'); }
+  const addCustomElement = useCallback(() => {
+    const name = prompt('שם האלמנט?');
+    if (!name) return;
+    const el: Bench = {
+      id: `element-${Date.now()}`,
+      name,
+      seatCount: 0,
+      position: { x: 400, y: 300 },
+      orientation: 'horizontal',
+      color: '#9CA3AF',
+      type: 'special',
+      width: 80,
+      height: 80,
+      locked: false,
+      temporary: false,
     };
-    reader.readAsText(file);
-    e.target.value='';
-  }, [setBenches,setSeats,setMapBounds,setMapOffset,setGridSettings]);
+    setBenches(prev => ensureBenchSpacing([...prev, el]));
+  }, [setBenches]);
 
   // Fit to screen
   const fitToScreen = useCallback(() => {
@@ -554,8 +575,9 @@ function SeatsManagement(): JSX.Element {
           <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
             <span className="text-xs font-semibold text-gray-600 px-2">כלים:</span>
             <button onClick={()=>setActiveTool('select')} className={`p-2 rounded-lg transition-all ${activeTool==='select' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה"><MousePointer className="h-4 w-4" /></button>
-            <button onClick={()=>setActiveTool('add')} className={`p-2 rounded-lg transition-all ${activeTool==='add' ? 'bg-green-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הוסף ספסל"><Plus className="h-4 w-4" /></button>
-            <button onClick={()=>setActiveTool('multiSelect')} className={`p-2 rounded-lg transition-all ${activeTool==='multiSelect' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה מרובה"><BoxSelect className="h-4 w-4" /></button>
+              <button onClick={()=>setActiveTool('add')} className={`p-2 rounded-lg transition-all ${activeTool==='add' ? 'bg-green-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הוסף ספסל"><Plus className="h-4 w-4" /></button>
+              <button onClick={addMultipleBenches} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף ספסלים מרובים"><Layers className="h-4 w-4" /></button>
+              <button onClick={()=>setActiveTool('multiSelect')} className={`p-2 rounded-lg transition-all ${activeTool==='multiSelect' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה מרובה"><BoxSelect className="h-4 w-4" /></button>
             <button onClick={()=>setActiveTool('pan')} className={`p-2 rounded-lg transition-all ${activeTool==='pan' ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הזזת מפה"><Hand className="h-4 w-4" /></button>
           </div>
 
@@ -569,23 +591,15 @@ function SeatsManagement(): JSX.Element {
             <button onClick={clearMap} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50" title="נקה מפה"><Trash2 className="h-4 w-4" /></button>
           </div>
 
-          {/* File Ops */}
-          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
-            <span className="text-xs font-semibold text-gray-600 px-2">קבצים:</span>
-            <input type="file" accept=".json" ref={fileInputRef} onChange={importMap} className="hidden"/>
-            <button onClick={()=>fileInputRef.current?.click()} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="ייבא מפה"><Upload className="h-4 w-4" /></button>
-            <button onClick={exportMap} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="ייצא מפה"><Download className="h-4 w-4" /></button>
-          </div>
-
-          {/* Special Elements quick add */}
-          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
-            <span className="text-xs font-semibold text-gray-600 px-2">אלמנטים:</span>
-            {specialElements.slice(0, 3).map(el => (
-              <button
-                key={el.id}
-                onClick={() => {
-                  const b = {
-                    ...el,
+            {/* Special Elements quick add */}
+            <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
+              <span className="text-xs font-semibold text-gray-600 px-2">אלמנטים:</span>
+              {specialElements.map(el => (
+                <button
+                  key={el.id}
+                  onClick={() => {
+                    const b = {
+                      ...el,
                     id: `${el.id}-${Date.now()}`,
                     type: 'special',
                     locked: false,
@@ -597,11 +611,14 @@ function SeatsManagement(): JSX.Element {
                 }}
                 className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 text-sm"
                 title={el.name}
-              >
-                {el.icon}
+                  >
+                    {el.icon}
+                  </button>
+                ))}
+              <button onClick={addCustomElement} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף אלמנט">
+                <Plus className="h-4 w-4" />
               </button>
-            ))}
-          </div>
+            </div>
 
           {/* Zoom */}
           <div className="mr-auto pdf-hide"><MapZoomControls setZoom={setZoom} onFit={fitToScreen} /></div>
