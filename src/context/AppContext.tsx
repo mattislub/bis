@@ -230,7 +230,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       city: 'תל אביב',
       phone: '050-1234567',
       email: 'yossi@example.com',
-      seatCount: 1,
+      places: [
+        {
+          id: 'p1',
+          description: 'מקום',
+          amount: 1,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ],
     },
     {
       id: '2',
@@ -241,7 +250,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       city: 'ירושלים',
       phone: '052-9876543',
       email: 'dana@example.com',
-      seatCount: 2,
+      places: [
+        {
+          id: 'p2',
+          description: 'מקום',
+          amount: 2,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ],
     },
     {
       id: '3',
@@ -252,7 +270,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       city: 'חיפה',
       phone: '054-5555555',
       email: 'michael@example.com',
-      seatCount: 1,
+      places: [
+        {
+          id: 'p3',
+          description: 'מקום',
+          amount: 1,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ],
     },
     {
       id: '4',
@@ -263,7 +290,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       city: 'באר שבע',
       phone: '053-1111111',
       email: 'sarah@example.com',
-      seatCount: 3,
+      places: [
+        {
+          id: 'p4',
+          description: 'מקום',
+          amount: 3,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ],
     },
     {
       id: '5',
@@ -274,7 +310,16 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       city: 'נתניה',
       phone: '052-2222222',
       email: 'avi@example.com',
-      seatCount: 1,
+      places: [
+        {
+          id: 'p5',
+          description: 'מקום',
+          amount: 1,
+          paid: false,
+          createdAtGregorian: '',
+          createdAtHebrew: '',
+        },
+      ],
     },
   ], userKey);
   const initialBenches = generateInitialBenches();

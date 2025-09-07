@@ -11,6 +11,7 @@ interface Props {
 const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
   const [activeTab, setActiveTab] = useState<'promises' | 'aliyot' | 'places'>('promises');
   const [editingField, setEditingField] = useState<null | 'promises' | 'aliyot' | 'places'>(null);
+  const totalSeats = worshiper.places?.reduce((sum, i) => sum + i.amount, 0) ?? 0;
 
   const renderItems = (items?: WorshiperItem[]) => {
     if (!items || items.length === 0) {
@@ -95,7 +96,7 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
           )}
           <div className="flex items-center">
             <Users className="h-4 w-4 ml-2 text-gray-500" />
-            <span>כמות מקומות: {worshiper.seatCount}</span>
+            <span>כמות מקומות: {totalSeats}</span>
           </div>
         </div>
 
