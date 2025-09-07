@@ -24,8 +24,8 @@ const PdfToolbar: React.FC<PdfToolbarProps> = ({ wrapperRef, mapLayerRef, id }) 
       colorMode,
       bwHard: hardBW,
       bwThreshold: threshold,
-      marginsMm: 0,
-      scale: 0.5,
+      marginsMm: 5,
+      scale: pdfMode === 'onePage' ? 1 : undefined,
       orientation,
       fileName:
         (colorMode === 'bw' ? 'map-bw-' : 'map-color-') +
