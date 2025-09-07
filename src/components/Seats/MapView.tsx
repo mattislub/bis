@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
@@ -7,6 +7,7 @@ import MapZoomControls from './MapZoomControls';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
+  const location = useLocation();
   const { benches, seats, loadMap, mapBounds, mapOffset, worshipers } = useAppContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
@@ -47,6 +48,14 @@ const MapView: React.FC = () => {
         .catch(err => console.error('load default map error', err));
     }
   }, [id, loadMap]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('print')) {
+      const timer = setTimeout(() => window.print(), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   const getWorshiperById = (worshiperId: string): Worshiper | undefined => {
     return worshipers.find(w => w.id === worshiperId);
