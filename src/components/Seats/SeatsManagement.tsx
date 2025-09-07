@@ -792,7 +792,7 @@ function SeatsManagement(): JSX.Element {
                             title={w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : 'מקום פנוי - לחיצה כפולה להקצאה'}
                           >
                             <span className={`font-bold text-center ${w ? 'p-1 text-[10px] leading-tight' : ''}`}>
-                              {w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : seat.id}
+                              {w ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}` : ''}
                             </span>
                           </div>
                           );
