@@ -86,7 +86,7 @@ const MapView: React.FC = () => {
             {benches.map(bench => (
             <div
               key={bench.id}
-              className="absolute rounded-lg border-2"
+              className="absolute rounded-lg border-2 print:border-black print:bg-white"
               style={{
                 left: bench.position.x + mapBounds.left,
                 top: bench.position.y + mapBounds.top,
@@ -114,7 +114,7 @@ const MapView: React.FC = () => {
                     return (
                       <div
                         key={seat.id}
-                        className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-[10px] text-white border-2 border-white ${status.color}`}
+                        className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-[10px] text-white border-2 border-white ${status.color} p-1 print:text-black print:bg-white print:border-black`}
                         style={{
                           left: bench.orientation === 'horizontal' ? index * 60 + 10 : 10,
                           top: bench.orientation === 'horizontal' ? 10 : index * 60 + 10,
