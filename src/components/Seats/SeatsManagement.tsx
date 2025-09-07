@@ -101,6 +101,9 @@ function SeatsManagement(): JSX.Element {
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
 
+  // Count only real benches (exclude special elements)
+  const benchCount = useMemo(() => benches.filter(b => b.type !== 'special').length, [benches]);
+
   // Current map info and save state
   const currentMap = useMemo(() => maps.find(m => m.id === currentMapId), [maps, currentMapId]);
   const currentMapName = currentMap ? currentMap.name : 'מפה חדשה';
@@ -221,11 +224,11 @@ function SeatsManagement(): JSX.Element {
       const y = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
       const newBench: Bench = {
         id: `bench-${Date.now()}`,
-        name: `ספסל ${benches.length + 1}`,
+        name: `ספסל ${benchCount + 1}`,
         seatCount: 4,
         position: { x, y },
         orientation: 'horizontal',
-        color: benchColors[benches.length % benchColors.length],
+        color: benchColors[benchCount % benchColors.length],
         locked: false,
         temporary: false,
       };
@@ -241,7 +244,7 @@ function SeatsManagement(): JSX.Element {
       setSelectedSeats(new Set());
     }
     setCtxMenu(s=>({...s, show:false}));
-  }, [activeTool, zoom, mapBounds, mapOffset, snapToGrid, benches, seats, setBenches, setSeats]);
+  }, [activeTool, zoom, mapBounds, mapOffset, snapToGrid, benches, benchCount, seats, setBenches, setSeats]);
 
   // Drag & drop (multi)
   const onDragStartBench = (e: React.DragEvent<HTMLDivElement>, benchId: string) => {
@@ -442,11 +445,11 @@ function SeatsManagement(): JSX.Element {
     for (let i = 0; i < count; i++) {
       const b: Bench = {
         id: `bench-${Date.now()}-${i}`,
-        name: `ספסל ${benches.length + newBenches.length + 1}`,
+        name: `ספסל ${benchCount + newBenches.length + 1}`,
         seatCount: 4,
         position: { x, y },
         orientation: 'horizontal',
-        color: benchColors[(benches.length + newBenches.length) % benchColors.length],
+        color: benchColors[(benchCount + newBenches.length) % benchColors.length],
         locked: false,
         temporary: false,
       };
@@ -459,7 +462,7 @@ function SeatsManagement(): JSX.Element {
     }
     setBenches(prev => ensureBenchSpacing([...prev, ...newBenches]));
     setSeats(prev => [...prev, ...newSeats]);
-  }, [benches, seats, setBenches, setSeats]);
+  }, [benchCount, benches, seats, setBenches, setSeats]);
 
   const addCustomElement = useCallback(() => {
     const name = prompt('שם האלמנט?');
@@ -825,7 +828,7 @@ function SeatsManagement(): JSX.Element {
             <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200">
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>זום: {Math.round(zoom*100)}%</span>
-                <span>ספסלים: {benches.length}</span>
+                <span>ספסלים: {benchCount}</span>
                 <span>מקומות: {seats.length}</span>
                 <span>כלי פעיל: {activeTool==='select'?'בחירה':activeTool==='add'?'הוספה':activeTool==='multiSelect'?'בחירה מרובה':'הזזה'}</span>
               </div>
