@@ -73,6 +73,9 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <p className="text-center text-gray-700">
+              הכניסו את כתובת המייל שלכם, ונשלח אליכם במייל פרטי חשבון ה-דמו שלכם
+            </p>
             <label className="block">
               <span className="text-gray-700">כתובת מייל</span>
               <input
