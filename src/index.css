@@ -31,6 +31,11 @@ body {
   transform: none !important;
 }
 
+/* Hide UI elements during PDF export */
+.pdf-exporting .pdf-hide {
+  display: none !important;
+}
+
 @layer utilities {
   @keyframes fade-in-up {
     0% {

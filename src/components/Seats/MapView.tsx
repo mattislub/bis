@@ -63,7 +63,7 @@ const MapView: React.FC = () => {
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100">
       <div ref={containerRef} className="relative h-screen w-full">
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-10 pdf-hide">
           <MapZoomControls setZoom={setZoom} orientation="vertical" />
         </div>
         <div
