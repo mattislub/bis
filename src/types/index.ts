@@ -9,7 +9,6 @@ export interface Worshiper {
   phone: string;
   secondaryPhone?: string;
   email: string;
-  seatCount: number;
   avatar?: string;
   promises?: WorshiperItem[];
   aliyot?: WorshiperItem[];
