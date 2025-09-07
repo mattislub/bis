@@ -82,6 +82,7 @@ function SeatsManagement(): JSX.Element {
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [isToolbarCollapsed] = useState(false);
   const [drawingBoundary, setDrawingBoundary] = useState<Boundary | null>(null);
+  const [boundaryStart, setBoundaryStart] = useState<XY | null>(null);
 
   // Multi‑drag & selection
   const [selectedBenches, setSelectedBenches] = useState<string[]>([]);
@@ -250,7 +251,7 @@ function SeatsManagement(): JSX.Element {
       setBenches(updated);
       const maxSeatId = Math.max(0, ...seats.map(s=>s.id));
       const newSeats: Seat[] = Array.from({length:newBench.seatCount}).map((_,i)=>({
-        id: maxSeatId + i + 1, benchId: newBench.id, position:{x:0,y:0}, isOccupied:false
+        id: maxSeatId + i + 1, benchId: newBench.id, position:{x:0,y:0}, isOccupied:false, area:1
       }));
       setSeats(prev=>[...prev, ...newSeats]);
     } else {
@@ -312,7 +313,8 @@ function SeatsManagement(): JSX.Element {
     const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
     if (activeTool==='boundary') {
       e.preventDefault();
-      setDrawingBoundary({ id: `boundary-${Date.now()}`, start: { x, y }, end: { x, y } });
+      setBoundaryStart({ x, y });
+      setDrawingBoundary({ id: `boundary-${Date.now()}`, x, y, width: 0, height: 0 });
       setCtxMenu(s=>({...s,show:false}));
       return;
     }
@@ -332,11 +334,15 @@ function SeatsManagement(): JSX.Element {
       setMapOffset(prev=>({x:prev.x+dx,y:prev.y+dy}));
       setPanStart({x:e.clientX,y:e.clientY}); return;
     }
-    if (activeTool==='boundary' && drawingBoundary && wrapperRef.current) {
+    if (activeTool==='boundary' && boundaryStart && wrapperRef.current && drawingBoundary) {
       const rect = wrapperRef.current.getBoundingClientRect();
-      const x = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
-      const y = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
-      setDrawingBoundary(prev => prev ? { ...prev, end: { x, y } } : null);
+      const x2 = (e.clientX - rect.left - mapOffset.x - mapBounds.left) / zoom;
+      const y2 = (e.clientY - rect.top - mapOffset.y - mapBounds.top) / zoom;
+      const newX = Math.min(boundaryStart.x, x2);
+      const newY = Math.min(boundaryStart.y, y2);
+      const width = Math.abs(x2 - boundaryStart.x);
+      const height = Math.abs(y2 - boundaryStart.y);
+      setDrawingBoundary(prev => (prev ? { ...prev, x: newX, y: newY, width, height } : null));
       return;
     }
     if (isSelecting && selectionStart && wrapperRef.current) {
@@ -348,8 +354,29 @@ function SeatsManagement(): JSX.Element {
   };
   const onMouseUpCanvas = () => {
     if (drawingBoundary) {
-      setBoundaries(prev => [...prev, drawingBoundary]);
+      const finalized = drawingBoundary;
+      setBoundaries(prev => [...prev, finalized]);
+      setSeats(prev => {
+        const benchSeatMap = new Map<string, Seat[]>();
+        benches.forEach(b => {
+          benchSeatMap.set(b.id, prev.filter(s => s.benchId === b.id).sort((a,b)=>a.id-b.id));
+        });
+        return prev.map(seat => {
+          const bench = benches.find(b => b.id === seat.benchId);
+          if (!bench) return seat;
+          const seatsForBench = benchSeatMap.get(bench.id);
+          if (!seatsForBench) return seat;
+          const idx = seatsForBench.findIndex(s => s.id === seat.id);
+          const seatX = bench.position.x + (bench.orientation === 'horizontal' ? idx * 60 + 34 : 34);
+          const seatY = bench.position.y + (bench.orientation === 'horizontal' ? 34 : idx * 60 + 34);
+          if (seatX >= finalized.x && seatX <= finalized.x + finalized.width && seatY >= finalized.y && seatY <= finalized.y + finalized.height) {
+            return { ...seat, area: 2 };
+          }
+          return seat;
+        });
+      });
       setDrawingBoundary(null);
+      setBoundaryStart(null);
     }
     if (isPanning) { setIsPanning(false); setPanStart(null); }
     if (isSelecting && selectionRect) {
@@ -423,7 +450,7 @@ function SeatsManagement(): JSX.Element {
         keep.push(...currentForBench);
         const toAdd = newCount - currentForBench.length;
         for (let i=0;i<toAdd;i++) {
-          add.push({ id: ++maxId, benchId, position:{x:0,y:0}, isOccupied:false });
+          add.push({ id: ++maxId, benchId, position:{x:0,y:0}, isOccupied:false, area:1 });
         }
       }
       // merge others + adjusted for bench
@@ -540,7 +567,7 @@ function SeatsManagement(): JSX.Element {
       newBenches.push(b);
       for (let j = 0; j < b.seatCount; j++) {
         maxSeatId += 1;
-        newSeats.push({ id: maxSeatId, benchId: b.id, position: { x: 0, y: 0 }, isOccupied: false });
+        newSeats.push({ id: maxSeatId, benchId: b.id, position: { x: 0, y: 0 }, isOccupied: false, area:1 });
       }
       x += benchDims(b).width + MIN_BENCH_SPACING;
     }
@@ -675,7 +702,7 @@ function SeatsManagement(): JSX.Element {
           {/* Map Actions */}
           <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
             <span className="text-xs font-semibold text-gray-600 px-2">מפה:</span>
-              <button onClick={()=>{ if (selectedOne) { const nb: Bench={...selectedOne,id:`bench-${Date.now()}`,name:`${selectedOne.name} (שורה)`,position:{x:selectedOne.position.x,y:selectedOne.position.y+100}}; setBenches(prev=>ensureBenchSpacing([...prev, nb])); const maxSeatId = Math.max(0, ...seats.map(s=>s.id)); const newSeats: Seat[] = Array.from({length:nb.seatCount}).map((_,i)=>({ id:maxSeatId+i+1, benchId: nb.id, position:{x:0,y:0}, isOccupied:false })); setSeats(prev=>[...prev, ...newSeats]); }}} disabled={!selectedOne} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="צור שורה"><Grid3X3 className="h-4 w-4" /></button>
+              <button onClick={()=>{ if (selectedOne) { const nb: Bench={...selectedOne,id:`bench-${Date.now()}`,name:`${selectedOne.name} (שורה)`,position:{x:selectedOne.position.x,y:selectedOne.position.y+100}}; setBenches(prev=>ensureBenchSpacing([...prev, nb])); const maxSeatId = Math.max(0, ...seats.map(s=>s.id)); const newSeats: Seat[] = Array.from({length:nb.seatCount}).map((_,i)=>({ id:maxSeatId+i+1, benchId: nb.id, position:{x:0,y:0}, isOccupied:false, area:1 })); setSeats(prev=>[...prev, ...newSeats]); }}} disabled={!selectedOne} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="צור שורה"><Grid3X3 className="h-4 w-4" /></button>
             <button onClick={()=>setGridSettings(p=>({...p, showGrid:!p.showGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.showGrid ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצג/הסתר רשת">{gridSettings.showGrid ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button onClick={()=>setGridSettings(p=>({...p, snapToGrid:!p.snapToGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.snapToGrid ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצמד לרשת"><Target className="h-4 w-4" /></button>
             <button onClick={renumberSeats} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="מספר מחדש"><ListOrdered className="h-4 w-4" /></button>
@@ -878,10 +905,11 @@ function SeatsManagement(): JSX.Element {
                     ) : (
                       seats.filter(s=>s.benchId===bench.id).map((seat, idx)=>{
                         const w = seat.userId ? getWorshiperById(seat.userId) : undefined;
+                        const seatColor = w ? 'bg-blue-500' : seat.area === 2 ? 'bg-red-300' : 'bg-gray-300';
                         return (
                           <div
                             key={seat.id}
-                            className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-xs text-white border-2 border-white cursor-pointer transition-all hover:scale-105 ${w ? 'bg-blue-500' : 'bg-gray-300'} ${selectedSeats.has(seat.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                            className={`absolute w-12 h-12 rounded-lg flex items-center justify-center text-xs text-white border-2 border-white cursor-pointer transition-all hover:scale-105 ${seatColor} ${selectedSeats.has(seat.id) ? 'ring-2 ring-yellow-400' : ''}`}
                             style={{ left: bench.orientation==='horizontal' ? idx*60+10 : 10, top: bench.orientation==='horizontal' ? 10 : idx*60+10 }}
                             onClick={(e)=>{
                               e.stopPropagation();
@@ -912,10 +940,10 @@ function SeatsManagement(): JSX.Element {
               {/* Boundaries */}
               <svg className="absolute inset-0 pointer-events-none">
                 {boundaries.map(b => (
-                  <line key={b.id} x1={b.start.x + mapBounds.left} y1={b.start.y + mapBounds.top} x2={b.end.x + mapBounds.left} y2={b.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} />
+                  <rect key={b.id} x={b.x + mapBounds.left} y={b.y + mapBounds.top} width={b.width} height={b.height} stroke="#ff0000" fill="none" strokeWidth={2} />
                 ))}
                 {drawingBoundary && (
-                  <line x1={drawingBoundary.start.x + mapBounds.left} y1={drawingBoundary.start.y + mapBounds.top} x2={drawingBoundary.end.x + mapBounds.left} y2={drawingBoundary.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} strokeDasharray="4 2" />
+                  <rect x={drawingBoundary.x + mapBounds.left} y={drawingBoundary.y + mapBounds.top} width={drawingBoundary.width} height={drawingBoundary.height} stroke="#ff0000" strokeWidth={2} fill="none" strokeDasharray="4 2" />
                 )}
               </svg>
 

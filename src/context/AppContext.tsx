@@ -380,8 +380,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const adjustedBoundaries = shiftX || shiftY ? boundaries.map(b => ({
       ...b,
-      start: { x: b.start.x - shiftX, y: b.start.y - shiftY },
-      end: { x: b.end.x - shiftX, y: b.end.y - shiftY },
+      x: b.x - shiftX,
+      y: b.y - shiftY,
     })) : boundaries;
 
     const maxXShifted = maxX - shiftX;
