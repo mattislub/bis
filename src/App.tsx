@@ -20,10 +20,12 @@ import Home from './components/Home/Home';
 import UserManagement from './components/Admin/UserManagement';
 import DefaultMapView from './components/Admin/DefaultMapView';
 import RequireManager from './components/Auth/RequireManager';
+import CouponPopup from './components/common/CouponPopup';
 
 function App() {
   return (
     <AuthProvider>
+      <CouponPopup />
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
