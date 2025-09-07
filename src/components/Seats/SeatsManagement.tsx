@@ -6,7 +6,8 @@ import MapZoomControls from './MapZoomControls';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
-  Maximize2, Grid as GridIcon, Target
+  Maximize2, Grid as GridIcon, Target, AlignLeft, AlignCenter, AlignRight,
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical
 } from 'lucide-react';
 
 /**
@@ -411,6 +412,41 @@ function SeatsManagement(): JSX.Element {
     setBenches(prev=>prev.map(b=> b.id===benchId ? {...b, orientation: b.orientation==='horizontal' ? 'vertical' : 'horizontal'} : b));
   }, [setBenches]);
 
+  const alignSelectedBenches = useCallback((type: 'left' | 'right' | 'top' | 'bottom' | 'centerX' | 'centerY') => {
+    setBenches(prev => {
+      const selected = prev.filter(b => selectedBenches.includes(b.id) && !b.locked);
+      if (!selected.length) return prev;
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      selected.forEach(b => {
+        const { width, height } = benchDims(b);
+        minX = Math.min(minX, b.position.x);
+        minY = Math.min(minY, b.position.y);
+        maxX = Math.max(maxX, b.position.x + width);
+        maxY = Math.max(maxY, b.position.y + height);
+      });
+      return prev.map(b => {
+        if (!selectedBenches.includes(b.id) || b.locked) return b;
+        const { width, height } = benchDims(b);
+        switch (type) {
+          case 'left':
+            return { ...b, position: { ...b.position, x: minX } };
+          case 'right':
+            return { ...b, position: { ...b.position, x: maxX - width } };
+          case 'centerX':
+            return { ...b, position: { ...b.position, x: (minX + maxX) / 2 - width / 2 } };
+          case 'top':
+            return { ...b, position: { ...b.position, y: minY } };
+          case 'bottom':
+            return { ...b, position: { ...b.position, y: maxY - height } };
+          case 'centerY':
+            return { ...b, position: { ...b.position, y: (minY + maxY) / 2 - height / 2 } };
+          default:
+            return b;
+        }
+      });
+    });
+  }, [selectedBenches, setBenches]);
+
   const toggleBenchLock = useCallback((benchId: string) => {
     setBenches(prev=>prev.map(b=> b.id===benchId ? {...b, locked: !b.locked} : b));
   }, [setBenches]);
@@ -601,12 +637,22 @@ function SeatsManagement(): JSX.Element {
             <button onClick={() => { if (currentMapId) printMap(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מפה"><Printer className="h-4 w-4" /></button>
             <button onClick={clearMap} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50" title="נקה מפה"><Trash2 className="h-4 w-4" /></button>
           </div>
+          {/* Alignment */}
+          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
+            <span className="text-xs font-semibold text-gray-600 px-2">יישור:</span>
+            <button onClick={()=>alignSelectedBenches('left')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="יישר שמאלה"><AlignLeft className="h-4 w-4" /></button>
+            <button onClick={()=>alignSelectedBenches('centerX')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="מירכוז אופקי"><AlignCenter className="h-4 w-4" /></button>
+            <button onClick={()=>alignSelectedBenches('right')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="יישר ימינה"><AlignRight className="h-4 w-4" /></button>
+            <button onClick={()=>alignSelectedBenches('top')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="יישר למעלה"><AlignStartVertical className="h-4 w-4" /></button>
+            <button onClick={()=>alignSelectedBenches('centerY')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="מירכוז אנכי"><AlignCenterVertical className="h-4 w-4" /></button>
+            <button onClick={()=>alignSelectedBenches('bottom')} disabled={!selectedBenches.length} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="יישר למטה"><AlignEndVertical className="h-4 w-4" /></button>
+          </div>
 
-            {/* Special Elements quick add */}
-            <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
-              <span className="text-xs font-semibold text-gray-600 px-2">אלמנטים:</span>
-              {specialElements.map(el => (
-                <button
+          {/* Special Elements quick add */}
+          <div className="flex items-center gap-2 p-2 bg-gray-100 rounded-xl">
+            <span className="text-xs font-semibold text-gray-600 px-2">אלמנטים:</span>
+            {specialElements.map(el => (
+              <button
                   key={el.id}
                   onClick={() => {
                     const b = {
