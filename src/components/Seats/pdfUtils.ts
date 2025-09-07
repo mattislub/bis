@@ -110,40 +110,38 @@ export async function exportMapToPDF(opts: {
   const imgWpx = canvas.width;
   const imgHpx = canvas.height;
 
-  let renderW = maxW;
-  let renderH = (imgHpx * renderW) / imgWpx;
-  if (renderH > maxH) {
-    renderH = maxH;
-    renderW = (imgWpx * renderH) / imgHpx;
-  }
-  const pxPerMm = imgWpx / renderW;
+  const pxPerMm = DPI_FOR_MM / MM_PER_INCH;
+  const sliceWidthPx = Math.floor(maxW * pxPerMm);
   const sliceHeightPx = Math.floor(maxH * pxPerMm);
 
   for (let yPx = 0; yPx < imgHpx; yPx += sliceHeightPx) {
-    if (yPx > 0) pdf.addPage();
-    const sliceCanvas = document.createElement('canvas');
-    sliceCanvas.width = imgWpx;
-    sliceCanvas.height = Math.min(sliceHeightPx, imgHpx - yPx);
-    sliceCanvas.getContext('2d')!.drawImage(
-      canvas,
-      0,
-      yPx,
-      imgWpx,
-      sliceCanvas.height,
-      0,
-      0,
-      imgWpx,
-      sliceCanvas.height
-    );
-    const sliceHmm = sliceCanvas.height / pxPerMm;
-    pdf.addImage(
-      sliceCanvas.toDataURL('image/png'),
-      'PNG',
-      (pageW - renderW) / 2,
-      marginsMm,
-      renderW,
-      Math.min(sliceHmm, maxH)
-    );
+    for (let xPx = 0; xPx < imgWpx; xPx += sliceWidthPx) {
+      if (xPx > 0 || yPx > 0) pdf.addPage();
+      const sliceCanvas = document.createElement('canvas');
+      sliceCanvas.width = Math.min(sliceWidthPx, imgWpx - xPx);
+      sliceCanvas.height = Math.min(sliceHeightPx, imgHpx - yPx);
+      sliceCanvas.getContext('2d')!.drawImage(
+        canvas,
+        xPx,
+        yPx,
+        sliceCanvas.width,
+        sliceCanvas.height,
+        0,
+        0,
+        sliceCanvas.width,
+        sliceCanvas.height
+      );
+      const sliceWmm = sliceCanvas.width / pxPerMm;
+      const sliceHmm = sliceCanvas.height / pxPerMm;
+      pdf.addImage(
+        sliceCanvas.toDataURL('image/png'),
+        'PNG',
+        marginsMm,
+        marginsMm,
+        sliceWmm,
+        sliceHmm
+      );
+    }
   }
 
   pdf.save(fileName);
