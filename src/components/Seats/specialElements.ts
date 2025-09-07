@@ -52,5 +52,14 @@ export const specialElements = [
     height: 100,
     color: '#DDA0DD',
     icon: '👥'
+  },
+  {
+    id: 'mekom-harav',
+    name: 'מקום הרב',
+    type: 'special',
+    width: 60,
+    height: 60,
+    color: '#1E90FF',
+    icon: '👨‍⚖️'
   }
 ];
