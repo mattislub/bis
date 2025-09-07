@@ -12,16 +12,20 @@ function pxToMm(px: number, dpi = DPI_FOR_MM) {
 }
 
 async function renderWrapperToCanvas(wrapperEl: HTMLElement, mapLayerEl: HTMLElement) {
-  const fullWidth = Math.max(
-    wrapperEl.scrollWidth || wrapperEl.clientWidth,
-    mapLayerEl.scrollWidth || mapLayerEl.clientWidth
-  );
-  const fullHeight = Math.max(
-    wrapperEl.scrollHeight || wrapperEl.clientHeight,
-    mapLayerEl.scrollHeight || mapLayerEl.clientHeight
-  );
+  const wrapperRect = wrapperEl.getBoundingClientRect();
+  const mapRect = mapLayerEl.getBoundingClientRect();
 
-  return await html2canvas(wrapperEl, {
+  const left = Math.min(wrapperRect.left, mapRect.left);
+  const top = Math.min(wrapperRect.top, mapRect.top);
+  const right = Math.max(wrapperRect.right, mapRect.right);
+  const bottom = Math.max(wrapperRect.bottom, mapRect.bottom);
+
+  const fullWidth = right - left;
+  const fullHeight = bottom - top;
+
+  const canvas = await html2canvas(wrapperEl, {
+    x: left - wrapperRect.left,
+    y: top - wrapperRect.top,
     width: fullWidth,
     height: fullHeight,
     windowWidth: fullWidth,
@@ -32,6 +36,13 @@ async function renderWrapperToCanvas(wrapperEl: HTMLElement, mapLayerEl: HTMLEle
     useCORS: true,
     backgroundColor: '#ffffff',
   });
+
+  const scaledCanvas = document.createElement('canvas');
+  scaledCanvas.width = canvas.width / 2;
+  scaledCanvas.height = canvas.height / 2;
+  scaledCanvas.getContext('2d')!.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
+  return scaledCanvas;
 }
 
 function toGrayscaleCanvas(src: HTMLCanvasElement, pureBW = false, threshold = 128) {
