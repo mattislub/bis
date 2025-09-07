@@ -4,7 +4,7 @@ import { Bench, Seat } from '../../types';
 import { specialElements } from './specialElements';
 import MapZoomControls from './MapZoomControls';
 import {
-  Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
+  Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
   Maximize2, Grid as GridIcon, Target
 } from 'lucide-react';
@@ -116,6 +116,11 @@ function SeatsManagement(): JSX.Element {
       JSON.stringify(currentMap.mapOffset) === JSON.stringify(mapOffset)
     );
   }, [currentMap, benches, seats, mapBounds, mapOffset]);
+
+  const printMap = useCallback((mapId: string) => {
+    const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}?print=1`;
+    window.open(url, '_blank');
+  }, []);
 
   // Helpers
   const snapToGrid = useCallback((v:number)=> gridSettings.snapToGrid ? Math.round(v / gridSettings.gridSize) * gridSettings.gridSize : v, [gridSettings.snapToGrid,gridSettings.gridSize]);
@@ -530,8 +535,9 @@ function SeatsManagement(): JSX.Element {
         <div className="space-y-2">
           {maps.map(m => (
             <div key={m.id} className="flex items-center gap-2 py-2">
-              <button onClick={()=>loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
-              <button onClick={()=>{ const name=window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-1 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
+              <button onClick={() => loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
+              <button onClick={() => printMap(m.id)} title="הדפס מפה" className="p-1 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
+              <button onClick={() => { const name = window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-1 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
             </div>
           ))}
         </div>
@@ -592,6 +598,7 @@ function SeatsManagement(): JSX.Element {
             <button onClick={()=>setGridSettings(p=>({...p, showGrid:!p.showGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.showGrid ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצג/הסתר רשת">{gridSettings.showGrid ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button onClick={()=>setGridSettings(p=>({...p, snapToGrid:!p.snapToGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.snapToGrid ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצמד לרשת"><Target className="h-4 w-4" /></button>
             <button onClick={renumberSeats} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="מספר מחדש"><ListOrdered className="h-4 w-4" /></button>
+            <button onClick={() => { if (currentMapId) printMap(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מפה"><Printer className="h-4 w-4" /></button>
             <button onClick={clearMap} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50" title="נקה מפה"><Trash2 className="h-4 w-4" /></button>
           </div>
 
