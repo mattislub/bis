@@ -37,8 +37,9 @@ export async function printLabels({ benches = [], seats = [], worshipers = [], s
   for (const font of fonts) {
     try {
       const res = await fetch(font.url);
-      const contentType = res.headers.get('Content-Type') || '';
-      if (!res.ok || !contentType.includes('font')) {
+      // Some servers might not set a specific font content-type.
+      // As long as the request succeeds, assume the response is a font file.
+      if (!res.ok) {
         continue;
       }
       const buf = await res.arrayBuffer();
@@ -50,7 +51,8 @@ export async function printLabels({ benches = [], seats = [], worshipers = [], s
         customFontLoaded = true;
         break;
       }
-    } catch {
+    } catch (err) {
+      console.warn('Failed to load font', font.url, err);
       // Try the next font
     }
   }
