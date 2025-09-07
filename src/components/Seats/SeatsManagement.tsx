@@ -590,7 +590,7 @@ function SeatsManagement(): JSX.Element {
           </div>
 
           {/* Zoom */}
-          <div className="mr-auto"><MapZoomControls setZoom={setZoom} onFit={fitToScreen} /></div>
+          <div className="mr-auto pdf-hide"><MapZoomControls setZoom={setZoom} onFit={fitToScreen} /></div>
         </div>
       </div>
 
@@ -703,7 +703,7 @@ function SeatsManagement(): JSX.Element {
             {/* Grid */}
             {gridSettings.showGrid && (
               <div
-                className="absolute inset-0 opacity-20 pointer-events-none"
+                className="absolute inset-0 opacity-20 pointer-events-none pdf-hide"
                 style={{
                   backgroundImage: `linear-gradient(to right, #3B82F6 1px, transparent 1px), linear-gradient(to bottom, #3B82F6 1px, transparent 1px)`,
                   backgroundSize: `${gridSettings.gridSize * zoom}px ${gridSettings.gridSize * zoom}px`,
@@ -792,13 +792,13 @@ function SeatsManagement(): JSX.Element {
 
               {/* selection rectangle */}
               {isSelecting && selectionRect && (
-                <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none"
+                <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none pdf-hide"
                      style={{ left: selectionRect.x + mapBounds.left, top: selectionRect.y + mapBounds.top, width: selectionRect.width, height: selectionRect.height }}/>
               )}
             </div>
 
             {/* Status Bar */}
-            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200">
+            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200 pdf-hide">
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>זום: {Math.round(zoom*100)}%</span>
                 <span>ספסלים: {benches.length}</span>

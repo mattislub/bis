@@ -11,15 +11,23 @@ function pxToMm(px: number, dpi = DPI_FOR_MM) {
   return (px / dpi) * MM_PER_INCH;
 }
 
-async function renderWrapperToCanvas(wrapperEl: HTMLElement) {
-  const fullWidth = wrapperEl.scrollWidth || wrapperEl.clientWidth;
-  const fullHeight = wrapperEl.scrollHeight || wrapperEl.clientHeight;
+async function renderWrapperToCanvas(wrapperEl: HTMLElement, mapLayerEl: HTMLElement) {
+  const fullWidth = Math.max(
+    wrapperEl.scrollWidth || wrapperEl.clientWidth,
+    mapLayerEl.scrollWidth || mapLayerEl.clientWidth
+  );
+  const fullHeight = Math.max(
+    wrapperEl.scrollHeight || wrapperEl.clientHeight,
+    mapLayerEl.scrollHeight || mapLayerEl.clientHeight
+  );
 
   return await html2canvas(wrapperEl, {
     width: fullWidth,
     height: fullHeight,
     windowWidth: fullWidth,
     windowHeight: fullHeight,
+    scrollX: 0,
+    scrollY: 0,
     scale: 3,
     useCORS: true,
     backgroundColor: '#ffffff',
@@ -72,9 +80,11 @@ export async function exportMapToPDF(opts: {
     orientation,
   } = opts;
 
+  wrapperEl.classList.add('pdf-exporting');
   mapLayerEl.classList.add('pdf-export');
-  let canvas = await renderWrapperToCanvas(wrapperEl);
+  let canvas = await renderWrapperToCanvas(wrapperEl, mapLayerEl);
   mapLayerEl.classList.remove('pdf-export');
+  wrapperEl.classList.remove('pdf-exporting');
 
   if (colorMode === 'bw') {
     canvas = toGrayscaleCanvas(canvas, bwHard, bwThreshold);
