@@ -1,10 +1,12 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { useServerStorage } from '../../hooks/useServerStorage';
 
 const DefaultMapView: React.FC = () => {
   const { maps } = useAppContext();
-  const [defaultMapId, setDefaultMapId] = useServerStorage<string>('defaultMapId', '');
+  const { user } = useAuth();
+  const [defaultMapId, setDefaultMapId] = useServerStorage<string>('defaultMapId', '', user?.email);
 
   return (
     <div>
