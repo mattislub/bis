@@ -62,10 +62,6 @@ const DemoRequestModal: React.FC<DemoRequestModalProps> = ({ isOpen, onClose }) 
                   👥 ניהול רשימת המתפללים – הוסף, עדכן ונהל את כל המתפללים במקום
                   אחד.
                 </li>
-                <li>
-                  📄 ייצוא מפות לקבצי PDF – הורד את המפות שהכנת לקבצי PDF
-                  לשמירה והדפסה.
-                </li>
               </ul>
             </div>
             <button

@@ -1,14 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
-import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard, Printer } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
 import WorshiperCard from './WorshiperCard';
-import { printLabels } from '../../utils/printLabels';
 
 const WorshiperManagement: React.FC = () => {
-  const { worshipers, setWorshipers, maps } = useAppContext();
+  const { worshipers, setWorshipers } = useAppContext();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
@@ -79,18 +78,6 @@ const WorshiperManagement: React.FC = () => {
     link.download = 'worshipers_template.csv';
     link.click();
     URL.revokeObjectURL(url);
-  };
-
-  const handlePrintLabels = async () => {
-    for (const map of maps) {
-      await printLabels({
-        benches: map.benches,
-        seats: map.seats,
-        worshipers,
-        stickers: map.stickers,
-        fileName: `labels-${map.name.replace(/\s+/g, '-')}.pdf`,
-      });
-    }
   };
 
   const handleSaveWorshiper = () => {
@@ -200,13 +187,6 @@ const WorshiperManagement: React.FC = () => {
             onChange={handleCsvUpload}
             className="hidden"
           />
-          <button
-            onClick={handlePrintLabels}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <Printer className="h-4 w-4 ml-2" />
-            הדפס מדבקות
-          </button>
           <button
             onClick={downloadSampleCsv}
             className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

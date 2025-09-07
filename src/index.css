@@ -26,16 +26,6 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Removes transforms during PDF export */
-.pdf-export {
-  transform: none !important;
-}
-
-/* Hide UI elements during PDF export */
-.pdf-exporting .pdf-hide {
-  display: none !important;
-}
-
 @layer utilities {
   @keyframes fade-in-up {
     0% {

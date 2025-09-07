@@ -3,19 +3,17 @@ import { useAppContext } from '../../context/AppContext';
 import { Bench, Seat } from '../../types';
 import { specialElements } from './specialElements';
 import MapZoomControls from './MapZoomControls';
-import PdfToolbar from './PdfToolbar';
 import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
-  Download, Maximize2, Grid as GridIcon, Target, Printer, FileText
+  Maximize2, Grid as GridIcon, Target
 } from 'lucide-react';
-import { printLabels } from '../../utils/printLabels';
 
 /**
  * SeatsManagement — Full Merge
  * עיצוב = לפי הקובץ שלך (Header + Toolbars + Sidebar)
  * פיצ'רים = מלאים מהגרסה הוותיקה: גרירה, בחירה מרובה עם מלבן, חיצי מקלדת להזזה, תפריט קליק־ימני,
- * שכפול ימינה/למטה, סיבוב, נעילה/שחרור, "שמור", "שמור בשם", טעינה, הדפסה ל‑PDF (באמצעות PdfToolbar),
+ * שכפול ימינה/למטה, סיבוב, נעילה/שחרור, "שמור", "שמור בשם", טעינה,
  * ייבוא/ייצוא JSON, Snap/Grid/Fit, מספור מחדש, אלמנטים מיוחדים.
  */
 
@@ -531,31 +529,6 @@ function SeatsManagement(): JSX.Element {
             <div key={m.id} className="flex items-center gap-2 py-2">
               <button onClick={()=>loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
               <button onClick={()=>{ const name=window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-1 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
-              <button onClick={()=>PdfToolbar && mapLayerRef.current && wrapperRef.current && (document.querySelector('#pdfExportBtn') as HTMLButtonElement)?.click()} title="הדפס מפה" className="p-1 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
-              <button
-                onClick={() =>
-                  printLabels({
-                    benches: m.benches,
-                    seats: m.seats,
-                    worshipers,
-                    stickers: m.seats.map((seat) => {
-                      const w = worshipers.find((w) => w.id === seat.userId);
-                      const bench = m.benches.find((b) => b.id === seat.benchId);
-                      return {
-                        name: w
-                          ? `${w.title ? w.title + ' ' : ''}${w.firstName} ${w.lastName}`
-                          : 'פנוי',
-                        benchName: bench?.name || '',
-                      };
-                    }),
-                    fileName: `labels-${m.name.replace(/\s+/g, '-')}.pdf`,
-                  })
-                }
-                title="הדפס מדבקות"
-                className="p-1 rounded hover:bg-gray-100"
-              >
-                <FileText className="h-4 w-4" />
-              </button>
             </div>
           ))}
         </div>
@@ -649,7 +622,7 @@ function SeatsManagement(): JSX.Element {
             </div>
 
           {/* Zoom */}
-          <div className="mr-auto pdf-hide"><MapZoomControls setZoom={setZoom} onFit={fitToScreen} /></div>
+          <div className="mr-auto"><MapZoomControls setZoom={setZoom} onFit={fitToScreen} /></div>
         </div>
       </div>
 
@@ -735,14 +708,6 @@ function SeatsManagement(): JSX.Element {
             </div>
           )}
 
-          {/* PDF Export */}
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-yellow-100 rounded-xl border border-orange-200">
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <Download className="h-5 w-5 text-orange-600" />
-              ייצוא PDF
-            </h3>
-            <PdfToolbar id="pdfExportBtn" wrapperRef={wrapperRef} mapLayerRef={mapLayerRef} />
-          </div>
         </div>
 
         {/* Map Canvas */}
@@ -762,7 +727,7 @@ function SeatsManagement(): JSX.Element {
             {/* Grid */}
             {gridSettings.showGrid && (
               <div
-                className="absolute inset-0 opacity-20 pointer-events-none pdf-hide"
+                className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
                   backgroundImage: `linear-gradient(to right, #3B82F6 1px, transparent 1px), linear-gradient(to bottom, #3B82F6 1px, transparent 1px)`,
                   backgroundSize: `${gridSettings.gridSize * zoom}px ${gridSettings.gridSize * zoom}px`,
@@ -851,13 +816,13 @@ function SeatsManagement(): JSX.Element {
 
               {/* selection rectangle */}
               {isSelecting && selectionRect && (
-                <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none pdf-hide"
+                <div className="absolute border-2 border-blue-400 bg-blue-200/20 pointer-events-none"
                      style={{ left: selectionRect.x + mapBounds.left, top: selectionRect.y + mapBounds.top, width: selectionRect.width, height: selectionRect.height }}/>
               )}
             </div>
 
             {/* Status Bar */}
-            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200 pdf-hide">
+            <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg border border-gray-200">
               <div className="flex items-center gap-4 text-sm text-gray-600">
                 <span>זום: {Math.round(zoom*100)}%</span>
                 <span>ספסלים: {benches.length}</span>

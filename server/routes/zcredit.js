@@ -252,14 +252,6 @@ export default function registerZCreditRoutes(app, { transporter, generatePasswo
                               <span style="color:#374151;font-weight:600;">עיצוב מפות ללא הגבלה</span>
                             </div>
                             <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
-                              <span style="font-size:20px;margin-left:15px;">📄</span>
-                              <span style="color:#374151;font-weight:600;">ייצוא PDF באיכות הדפסה</span>
-                            </div>
-                            <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
-                              <span style="font-size:20px;margin-left:15px;">🏷️</span>
-                              <span style="color:#374151;font-weight:600;">מדבקות למקומות ישיבה</span>
-                            </div>
-                            <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
                               <span style="font-size:20px;margin-left:15px;">📺</span>
                               <span style="color:#374151;font-weight:600;">קישור למסך תצוגה</span>
                             </div>

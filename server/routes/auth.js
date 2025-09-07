@@ -116,10 +116,6 @@ export default function registerAuthRoutes(app, { transporter, generatePassword,
                       <span style="font-size:20px;margin-left:15px;">👥</span>
                       <span style="color:#374151;font-weight:600;">ניהול רשימת המתפללים</span>
                     </div>
-                    <div style="display:flex;align-items:center;padding:15px;background:#f8fafc;border-radius:10px;border-right:4px solid #f59e0b;">
-                      <span style="font-size:20px;margin-left:15px;">📄</span>
-                      <span style="color:#374151;font-weight:600;">ייצוא מפות לקבצי PDF</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -259,10 +255,6 @@ export default function registerAuthRoutes(app, { transporter, generatePassword,
                     <div style="display:flex;align-items:center;padding:15px;background:#f8fafc;border-radius:10px;border-right:4px solid #3b82f6;">
                       <span style="font-size:20px;margin-left:15px;">👥</span>
                       <span style="color:#374151;font-weight:600;">ניהול רשימת המתפללים</span>
-                    </div>
-                    <div style="display:flex;align-items:center;padding:15px;background:#f8fafc;border-radius:10px;border-right:4px solid #f59e0b;">
-                      <span style="font-size:20px;margin-left:15px;">📄</span>
-                      <span style="color:#374151;font-weight:600;">ייצוא מפות לקבצי PDF</span>
                     </div>
                   </div>
                 </div>
