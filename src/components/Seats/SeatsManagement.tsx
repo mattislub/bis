@@ -7,7 +7,7 @@ import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
   Maximize2, Grid as GridIcon, Target, AlignLeft, AlignCenter, AlignRight,
-  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors, Tags
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors, Tags, Pencil
 } from 'lucide-react';
 
 /**
@@ -526,6 +526,10 @@ function SeatsManagement(): JSX.Element {
     setShowColorPicker(null);
   }, [setBenches]);
 
+  const renameBench = useCallback((benchId: string, name: string) => {
+    setBenches(prev => prev.map(b => b.id === benchId ? { ...b, name } : b));
+  }, [setBenches]);
+
   // Map ops
   const clearMap = useCallback(()=>{
     if (window.confirm('לנקות את המפה?')) {
@@ -767,7 +771,19 @@ function SeatsManagement(): JSX.Element {
                 ספסל נבחר
               </h3>
               <div className="space-y-3">
-                <div className="text-sm text-gray-700"><strong>{selectedOne.name}</strong></div>
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <strong className="flex-1">{selectedOne.name}</strong>
+                  <button
+                    onClick={() => {
+                      const name = prompt('שם ספסל חדש:', selectedOne.name);
+                      if (name) renameBench(selectedOne.id, name);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100"
+                    title="שנה שם"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button onClick={()=>toggleBenchLock(selectedOne.id)} className={`flex items-center justify-center gap-1 p-2 rounded-lg text-xs ${selectedOne.locked ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
                     {selectedOne.locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
@@ -980,6 +996,20 @@ function SeatsManagement(): JSX.Element {
                   }}
                 >
                   מחק
+                </button>
+                <button
+                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                  disabled={selectedBenches.length !== 1}
+                  onClick={() => {
+                    if (selectedBenches.length === 1) {
+                      const current = benches.find(b => b.id === selectedBenches[0])?.name ?? '';
+                      const result = prompt('שם ספסל חדש', current);
+                      if (result) renameBench(selectedBenches[0], result);
+                    }
+                    setCtxMenu(s => ({ ...s, show: false }));
+                  }}
+                >
+                  שנה שם
                 </button>
                 <button
                   className="block w-full text-right px-4 py-2 hover:bg-gray-50"
