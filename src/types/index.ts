@@ -34,6 +34,7 @@ export interface Seat {
     y: number;
   };
   isOccupied: boolean;
+  area?: number;
 }
 
 export interface Bench {
@@ -81,8 +82,10 @@ export interface MapOffset {
 
 export interface Boundary {
   id: string;
-  start: { x: number; y: number };
-  end: { x: number; y: number };
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface Sticker {

@@ -61,6 +61,9 @@ const MapView: React.FC = () => {
       const worshiper = getWorshiperById(seat.userId);
       return { worshiper, color: 'bg-blue-500' };
     }
+    if (seat.area === 2) {
+      return { worshiper: null, color: 'bg-red-300' };
+    }
     return { worshiper: null, color: 'bg-gray-300' };
   };
 
@@ -203,7 +206,7 @@ const MapView: React.FC = () => {
             {/* Boundaries */}
             <svg className="absolute inset-0 pointer-events-none">
               {boundaries.map(b => (
-                <line key={b.id} x1={b.start.x + mapBounds.left} y1={b.start.y + mapBounds.top} x2={b.end.x + mapBounds.left} y2={b.end.y + mapBounds.top} stroke="#ff0000" strokeWidth={2} />
+                <rect key={b.id} x={b.x + mapBounds.left} y={b.y + mapBounds.top} width={b.width} height={b.height} stroke="#ff0000" fill="none" strokeWidth={2} />
               ))}
             </svg>
           </div>
