@@ -7,7 +7,7 @@ import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
   Maximize2, Grid as GridIcon, Target, AlignLeft, AlignCenter, AlignRight,
-  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors, Tags
 } from 'lucide-react';
 
 /**
@@ -123,6 +123,11 @@ function SeatsManagement(): JSX.Element {
 
   const printMap = useCallback((mapId: string) => {
     const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}`;
+    window.open(url, '_blank');
+  }, []);
+
+  const printLabels = useCallback((mapId: string) => {
+    const url = `${window.location.origin}${window.location.pathname}#/view/${mapId}/labels`;
     window.open(url, '_blank');
   }, []);
 
@@ -593,6 +598,7 @@ function SeatsManagement(): JSX.Element {
             <div key={m.id} className="flex items-center gap-2 py-2">
               <button onClick={() => loadMap(m.id)} className="flex-1 text-right hover:underline">{m.name}</button>
               <button onClick={() => printMap(m.id)} title="הדפס מפה" className="p-1 rounded hover:bg-gray-100"><Printer className="h-4 w-4" /></button>
+              <button onClick={() => printLabels(m.id)} title="הדפס מדבקות" className="p-1 rounded hover:bg-gray-100"><Tags className="h-4 w-4" /></button>
               <button onClick={() => { const name = window.prompt('שנה שם מפה:', m.name); if (name) renameMap(m.id, name); }} title="שנה שם" className="p-1 rounded hover:bg-gray-100"><span className="text-xs">שם</span></button>
             </div>
           ))}
@@ -656,6 +662,7 @@ function SeatsManagement(): JSX.Element {
             <button onClick={()=>setGridSettings(p=>({...p, snapToGrid:!p.snapToGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.snapToGrid ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצמד לרשת"><Target className="h-4 w-4" /></button>
             <button onClick={renumberSeats} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="מספר מחדש"><ListOrdered className="h-4 w-4" /></button>
             <button onClick={() => { if (currentMapId) printMap(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מפה"><Printer className="h-4 w-4" /></button>
+            <button onClick={() => { if (currentMapId) printLabels(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מדבקות"><Tags className="h-4 w-4" /></button>
             <button onClick={clearMap} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50" title="נקה מפה"><Trash2 className="h-4 w-4" /></button>
           </div>
           {/* Alignment */}
