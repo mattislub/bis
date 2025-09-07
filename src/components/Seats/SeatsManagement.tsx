@@ -7,7 +7,7 @@ import {
   Plus, Grid3X3, BoxSelect, Hand, ListOrdered, Save, Trash2, Printer, Lock, Unlock, RotateCw, Copy,
   ArrowRight, ArrowDown, ArrowDownRight, Eye, EyeOff, Palette, MousePointer, Layers,
   Maximize2, Grid as GridIcon, Target, AlignLeft, AlignCenter, AlignRight,
-  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors, Tags, Pencil
+  AlignStartVertical, AlignCenterVertical, AlignEndVertical, Scissors, Tags, Pencil, User
 } from 'lucide-react';
 
 /**
@@ -79,6 +79,7 @@ function SeatsManagement(): JSX.Element {
   const [zoom, setZoom] = useState(1);
   const [showWorshiperModal, setShowWorshiperModal] = useState(false);
   const [selectedSeatsForWorshiper, setSelectedSeatsForWorshiper] = useState<number[]>([]);
+  const [worshiperSearch, setWorshiperSearch] = useState('');
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null);
   const [isToolbarCollapsed] = useState(false);
   const [drawingBoundary, setDrawingBoundary] = useState<Boundary | null>(null);
@@ -231,8 +232,9 @@ function SeatsManagement(): JSX.Element {
       ? (selectedSeats.has(seatId) ? Array.from(selectedSeats) : [seatId])
       : [seatId];
     setSelectedSeatsForWorshiper(seatsToAssign);
+    setWorshiperSearch('');
     setShowWorshiperModal(true);
-  }, [selectedSeats]);
+  }, [selectedSeats, setWorshiperSearch]);
 
   const handleMapClick = useCallback((e: React.MouseEvent) => {
     if (activeTool === 'add') {
@@ -737,6 +739,20 @@ function SeatsManagement(): JSX.Element {
             <button onClick={()=>setGridSettings(p=>({...p, showGrid:!p.showGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.showGrid ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצג/הסתר רשת">{gridSettings.showGrid ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
             <button onClick={()=>setGridSettings(p=>({...p, snapToGrid:!p.snapToGrid}))} className={`p-2 rounded-lg transition-all ${gridSettings.snapToGrid ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הצמד לרשת"><Target className="h-4 w-4" /></button>
             <button onClick={renumberSeats} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="מספר מחדש"><ListOrdered className="h-4 w-4" /></button>
+            <button
+              onClick={() => {
+                if (selectedSeats.size) {
+                  setSelectedSeatsForWorshiper(Array.from(selectedSeats));
+                  setWorshiperSearch('');
+                  setShowWorshiperModal(true);
+                }
+              }}
+              disabled={selectedSeats.size === 0}
+              className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              title="שיוך מתפלל"
+            >
+              <User className="h-4 w-4" />
+            </button>
             <button onClick={() => { if (currentMapId) printMap(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מפה"><Printer className="h-4 w-4" /></button>
             <button onClick={() => { if (currentMapId) printLabels(currentMapId); }} disabled={!currentMapId} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50" title="הדפס מדבקות"><Tags className="h-4 w-4" /></button>
             <button onClick={clearMap} className="p-2 rounded-lg bg-white text-red-600 hover:bg-red-50" title="נקה מפה"><Trash2 className="h-4 w-4" /></button>
@@ -1117,6 +1133,7 @@ function SeatsManagement(): JSX.Element {
                   onClick={() => {
                     if (selectedSeats.size) {
                       setSelectedSeatsForWorshiper(Array.from(selectedSeats));
+                      setWorshiperSearch('');
                       setShowWorshiperModal(true);
                     }
                     setCtxMenu(s => ({ ...s, show: false }));
@@ -1135,6 +1152,13 @@ function SeatsManagement(): JSX.Element {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
             <h3 className="text-lg font-bold mb-4">{selectedSeatsForWorshiper.length > 1 ? 'הקצה מקומות' : 'הקצה מקום'}</h3>
+            <input
+              type="text"
+              placeholder="חפש מתפלל..."
+              value={worshiperSearch}
+              onChange={e => setWorshiperSearch(e.target.value)}
+              className="w-full p-2 border rounded-lg mb-2"
+            />
             <div className="space-y-3 max-h-60 overflow-y-auto">
               <button
                 onClick={()=>{
@@ -1142,10 +1166,13 @@ function SeatsManagement(): JSX.Element {
                   setShowWorshiperModal(false);
                   setSelectedSeatsForWorshiper([]);
                   setSelectedSeats(new Set());
+                  setWorshiperSearch('');
                 }}
                 className="w-full p-3 text-right bg-gray-100 hover:bg-gray-200 rounded-lg"
               >פנה מקום</button>
-              {worshipers.map(w => {
+              {worshipers
+                .filter(w => (`${w.title} ${w.firstName} ${w.lastName}`).toLowerCase().includes(worshiperSearch.toLowerCase()))
+                .map(w => {
                 const assignedSeats = seats.filter(s => s.userId === w.id).length;
                 const seatCount = w.places?.reduce((sum, i) => sum + i.amount, 0) ?? 0;
                 const isFull = assignedSeats + selectedSeatsForWorshiper.length > seatCount;
@@ -1159,6 +1186,7 @@ function SeatsManagement(): JSX.Element {
                         setShowWorshiperModal(false);
                         setSelectedSeatsForWorshiper([]);
                         setSelectedSeats(new Set());
+                        setWorshiperSearch('');
                       }
                     }}
                     className={`w-full p-3 text-right rounded-lg ${isFull ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 hover:bg-blue-100'}`}
@@ -1173,6 +1201,7 @@ function SeatsManagement(): JSX.Element {
               onClick={()=>{
                 setShowWorshiperModal(false);
                 setSelectedSeatsForWorshiper([]);
+                setWorshiperSearch('');
               }}
               className="mt-4 w-full p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
             >ביטול</button>
