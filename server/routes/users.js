@@ -17,7 +17,33 @@ export default function registerUserRoutes(app) {
       res.status(500).json({ error: 'DB error' });
     }
   });
-  
+
+  app.get('/api/users/:email', async (req, res) => {
+    try {
+      const { rows } = await query(
+        `SELECT
+          email,
+          gabbai_name AS "gabbaiName",
+          phone,
+          synagogue_name AS "synagogueName",
+          address,
+          city,
+          contact_phone AS "contactPhone",
+          role
+        FROM users
+        WHERE email = $1`,
+        [req.params.email]
+      );
+      if (!rows.length) {
+        return res.sendStatus(404);
+      }
+      res.json(rows[0]);
+    } catch (err) {
+      console.error('get user error:', err);
+      res.status(500).json({ error: 'DB error' });
+    }
+  });
+
   app.get('/api/users', async (req, res) => {
     try {
       const { rows } = await query(`
