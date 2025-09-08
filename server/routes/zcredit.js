@@ -2,7 +2,10 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { query } from '../db.js';
 
-export default function registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, PUBLIC_BASE_URL_API, ZCREDIT_KEY, SMTP_USER }) {
+export default function registerZCreditRoutes(
+  app,
+  { PUBLIC_BASE_URL, PUBLIC_BASE_URL_API, ZCREDIT_KEY, transporter, generatePassword, SMTP_USER }
+) {
   app.post('/api/zcredit/create-checkout', async (req, res) => {
     try {
       const { amount, description, customerName, customerEmail, orderId, coupon, installments } = req.body || {};
@@ -165,7 +168,7 @@ export default function registerZCreditRoutes(app, { transporter, generatePasswo
            WHERE order_id = $5`,
           [status || '', transactionId || authNumber || '', JSON.stringify(body), isPaid, orderId]
         );
-  
+
         if (isPaid) {
           try {
             const { rows } = await query(
@@ -174,141 +177,82 @@ export default function registerZCreditRoutes(app, { transporter, generatePasswo
             );
             const email = rows?.[0]?.email;
             if (email) {
-              const password = generatePassword();
-              await query(
-                `INSERT INTO users(email, password, role)
-                 VALUES ($1, $2, 'pro')
-                 ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password, role = 'pro'`,
-                [email, password]
-              );
-              const info = await transporter.sendMail({
-                from: SMTP_USER,
-                to: email,
-                subject: 'SeatFlow - פרטי התחברות',
-                text: `סיסמתך היא: ${password}. להתחברות: https://seatflow.tech/#/login`,
-                html: `
-                  <!DOCTYPE html>
-                  <html dir="rtl" lang="he">
-                  <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>תודה על הרכישה - SeatFlow</title>
-                  </head>
-                  <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;direction:rtl;text-align:right;background:linear-gradient(135deg,#10b981 0%,#059669 100%);min-height:100vh;">
-                    <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
-                      <!-- Header -->
-                      <div style="background:linear-gradient(135deg,#059669 0%,#10b981 100%);padding:40px 30px;text-align:center;position:relative;">
-                        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"20\" cy=\"20\" r=\"2\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"80\" cy=\"40\" r=\"1.5\" fill=\"%23ffffff\" opacity=\"0.1\"/><circle cx=\"40\" cy=\"80\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"/></svg>');"></div>
-                        <div style="position:relative;z-index:1;">
-                          <div style="background:#ffffff;border-radius:50%;width:100px;height:100px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 20px rgba(0,0,0,0.1);">
-                            <span style="font-size:40px;">🎉</span>
-                          </div>
-                          <h1 style="color:#ffffff;font-size:32px;font-weight:900;margin:0;text-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                            תודה על הרכישה!
-                          </h1>
-                          <p style="color:#d1fae5;font-size:16px;margin:10px 0 0 0;opacity:0.9;">
-                            החבילה הפרו שלך מופעלת ומוכנה לשימוש
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <!-- Content -->
-                      <div style="padding:40px 30px;">
-                        <div style="text-align:center;margin-bottom:30px;">
-                          <h2 style="color:#1f2937;font-size:24px;font-weight:700;margin:0 0 15px 0;">
-                            החשבון הפרו שלך מוכן!
-                          </h2>
-                          <p style="color:#6b7280;font-size:16px;line-height:1.6;margin:0;">
-                            תודה שרכשת את החבילה הפרו שלנו. עכשיו יש לך גישה לכל התכונות המתקדמות של המערכת.
-                          </p>
-                        </div>
-                        
-                        <!-- Password Box -->
-                        <div style="background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%);border-radius:15px;padding:25px;margin:30px 0;text-align:center;border:2px solid #10b981;">
-                          <p style="color:#065f46;font-size:14px;margin:0 0 10px 0;font-weight:600;">
-                            הסיסמה שלך:
-                          </p>
-                          <div style="background:#ffffff;border-radius:10px;padding:15px;border:2px dashed #10b981;margin:10px 0;">
-                            <span style="font-size:28px;font-weight:900;color:#059669;font-family:monospace;letter-spacing:2px;">
-                              ${password}
-                            </span>
-                          </div>
-                          <p style="color:#047857;font-size:12px;margin:10px 0 0 0;">
-                            🔐 שמור את הסיסמה במקום בטוח
-                          </p>
-                        </div>
-                        
-                        <!-- CTA Button -->
-                        <div style="text-align:center;margin:30px 0;">
-                          <a href="https://seatflow.tech/#/login" style="display:inline-block;background:linear-gradient(135deg,#059669 0%,#10b981 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(16,185,129,0.3);transition:all 0.3s ease;">
-                            ✨ התחבר לחשבון הפרו שלך
-                          </a>
-                        </div>
-                        
-                        <!-- Pro Features -->
-                        <div style="margin:40px 0;">
-                          <h3 style="color:#1f2937;font-size:18px;font-weight:700;margin:0 0 20px 0;text-align:center;">
-                            התכונות הפרו שלך:
-                          </h3>
-                          <div style="display:grid;gap:15px;">
-                            <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
-                              <span style="font-size:20px;margin-left:15px;">🏛️</span>
-                              <span style="color:#374151;font-weight:600;">עיצוב מפות ללא הגבלה</span>
-                            </div>
-                            <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
-                              <span style="font-size:20px;margin-left:15px;">📺</span>
-                              <span style="color:#374151;font-weight:600;">קישור למסך תצוגה</span>
-                            </div>
-                            <div style="display:flex;align-items:center;padding:15px;background:#f0fdf4;border-radius:10px;border-right:4px solid #10b981;">
-                              <span style="font-size:20px;margin-left:15px;">👥</span>
-                              <span style="color:#374151;font-weight:600;">ניהול מתפללים מתקדם</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <!-- Support -->
-                        <div style="background:#f8fafc;border-radius:15px;padding:25px;margin:30px 0;text-align:center;">
-                          <h4 style="color:#1f2937;font-size:16px;font-weight:700;margin:0 0 10px 0;">
-                            🎯 תמיכה פרמיום
-                          </h4>
-                          <p style="color:#6b7280;font-size:14px;margin:0;">
-                            כלקוח פרו, אתה זכאי לתמיכה מהירה ומקצועית. אנחנו כאן לעזור לך להפיק את המקסימום מהמערכת.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <!-- Footer -->
-                      <div style="background:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb;">
-                        <p style="color:#6b7280;font-size:14px;margin:0 0 15px 0;">
-                          צריך עזרה? התמיכה הפרו שלנו זמינה עבורך!
-                        </p>
-                        <div style="margin:15px 0;">
-                          <a href="mailto:info@seatflow.online" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
-                            📧 info@seatflow.online
-                          </a>
-                          <span style="color:#d1d5db;">|</span>
-                          <a href="tel:052-718-6026" style="color:#10b981;text-decoration:none;font-weight:600;margin:0 15px;">
-                            📞 052-718-6026
-                          </a>
-                        </div>
-                        <div style="margin:20px 0;padding:20px 0;border-top:1px solid #e5e7eb;">
-                          <p style="color:#9ca3af;font-size:12px;margin:0;">
-                            © 2025 SeatFlow.tech - כל הזכויות שמורות<br>
-                            ניהול מושבים חכם, פשוט וזורם
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </body>
-                  </html>
-                `
-              });
-              if (info.rejected?.length || !info.accepted?.length) {
-                console.error('Thank you email failed', info);
+              try {
+                const userRes = await query('SELECT password FROM users WHERE email=$1', [email]);
+                let password;
+                if (userRes.rowCount) {
+                  password = userRes.rows[0].password;
+                  await query(`UPDATE users SET role = 'pro' WHERE email = $1`, [email]);
+                } else {
+                  password = generatePassword();
+                  await query(
+                    `INSERT INTO users(email, password, role) VALUES ($1, $2, 'pro')`,
+                    [email, password]
+                  );
+                }
+
+                const info = await transporter.sendMail({
+                  from: SMTP_USER,
+                  to: email,
+                  subject: 'SeatFlow - תודה על התשלום',
+                  text: `תודה על התשלום!\nהאימייל שלך: ${email}\nסיסמתך: ${password}. להתחברות: https://seatflow.tech/#/login`,
+                  html: `
+          <!DOCTYPE html>
+          <html dir="rtl" lang="he">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>SeatFlow - תודה על התשלום</title>
+          </head>
+          <body style="margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;direction:rtl;text-align:right;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;">
+            <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.1);">
+              <div style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:40px 30px;text-align:center;color:#ffffff;">
+                <img src="https://seatflow.tech/logo.svg" alt="SeatFlow logo" style="max-width:80px;height:80px;margin-bottom:20px;filter:brightness(0) invert(1);" />
+                <h1 style="margin:0;font-size:32px;font-weight:900;">תודה על התשלום!</h1>
+                <p style="margin:10px 0 0 0;font-size:16px;opacity:0.9;">החשבון שלך מוכן. הנה הפרטים שלך:</p>
+              </div>
+              <div style="padding:40px 30px;">
+                <div style="background:linear-gradient(135deg,#f3f4f6 0%,#e5e7eb 100%);border-radius:15px;padding:25px;margin:30px 0;text-align:center;border:2px solid #e5e7eb;">
+                  <p style="color:#374151;font-size:14px;margin:0 0 10px 0;font-weight:600;">כתובת המייל שלך:</p>
+                  <div style="background:#ffffff;border-radius:10px;padding:15px;border:2px dashed #3b82f6;margin:10px 0;">
+                    <span style="font-size:20px;font-weight:700;color:#1e40af;font-family:monospace;direction:ltr;">${email}</span>
+                  </div>
+                  <p style="color:#374151;font-size:14px;margin:20px 0 10px 0;font-weight:600;">הסיסמה שלך:</p>
+                  <div style="background:#ffffff;border-radius:10px;padding:15px;border:2px dashed #3b82f6;margin:10px 0;">
+                    <span style="font-size:28px;font-weight:900;color:#1e40af;font-family:monospace;letter-spacing:2px;">${password}</span>
+                  </div>
+                  <p style="color:#6b7280;font-size:12px;margin:10px 0 0 0;">💡 שמור את הסיסמה במקום בטוח</p>
+                </div>
+                <div style="text-align:center;margin:30px 0;">
+                  <a href="https://seatflow.tech/#/login" style="display:inline-block;background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);color:#ffffff;text-decoration:none;padding:15px 40px;border-radius:50px;font-weight:700;font-size:16px;box-shadow:0 10px 20px rgba(59,130,246,0.3);transition:all 0.3s ease;">🚀 התחבר למערכת עכשיו</a>
+                </div>
+              </div>
+              <div style="background:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb;">
+                <p style="color:#6b7280;font-size:14px;margin:0 0 15px 0;">צריך עזרה? אנחנו כאן בשבילך!</p>
+                <div style="margin:15px 0;">
+                  <a href="mailto:info@seatflow.online" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">📧 info@seatflow.online</a>
+                  <span style="color:#d1d5db;">|</span>
+                  <a href="tel:052-718-6026" style="color:#3b82f6;text-decoration:none;font-weight:600;margin:0 15px;">📞 052-718-6026</a>
+                </div>
+                <p style="color:#9ca3af;font-size:12px;margin:0;">© 2025 SeatFlow.tech - כל הזכויות שמורות<br>ניהול מושבים חכם, פשוט וזורם</p>
+              </div>
+            </div>
+          </body>
+          </html>
+                  `,
+                });
+                if (info.rejected?.length) {
+                  console.error('Email rejected by server', info.rejected);
+                }
+                if (!info.accepted?.length) {
+                  console.error('No recipients accepted the email');
+                }
+              } catch (e) {
+                console.error('Error sending thank-you email', e);
               }
             }
           } catch (e) {
-            console.error('Error sending thank you email', e);
+            console.error('Error updating user', e);
           }
         }
       }
