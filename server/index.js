@@ -11,6 +11,7 @@ import registerUserRoutes from './routes/users.js';
 import registerStorageRoutes from './routes/storage.js';
 import registerZCreditRoutes from './routes/zcredit.js';
 import registerContactRoutes from './routes/contact.js';
+import registerCreditChargeRoutes from './routes/creditCharges.js';
 
 const app = express();
 
@@ -81,6 +82,7 @@ registerUserRoutes(app);
 registerStorageRoutes(app);
 registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, ZCREDIT_KEY, SMTP_USER });
 registerContactRoutes(app, { transporter, SMTP_USER });
+registerCreditChargeRoutes(app);
 
 const PORT = Number(process.env.PORT || 4001);
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
