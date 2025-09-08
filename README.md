@@ -36,3 +36,16 @@ The server exposes two endpoints:
 - `POST /api/zcredit/callback` – receives the server-to-server notification from ZCredit after payment.
 
 Adjust endpoint URLs and payload fields according to your ZCredit documentation.
+
+### Contact form
+
+Provide SMTP credentials and a `CONTACT_EMAIL` environment variable so the `/api/contact` endpoint can forward submissions to your inbox:
+
+```
+SMTP_HOST=smtp.mailserver.com
+SMTP_PORT=587
+SMTP_USER=your-mail-username
+SMTP_PASS=your-mail-password
+SMTP_SECURE=false
+CONTACT_EMAIL=info@seatflow.online
+```

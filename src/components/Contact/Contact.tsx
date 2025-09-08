@@ -20,6 +20,7 @@ import {
 import Align from '../common/Align';
 import { ContactForm } from '../../types';
 import Header from '../common/Header';
+import { API_BASE_URL } from '../../api';
 
 // Dimensions for the map modal
 const MAP_MODAL_WIDTH = 600;
@@ -70,7 +71,7 @@ const Contact: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/contact', {
+      const res = await fetch(`${API_BASE_URL}/api/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
