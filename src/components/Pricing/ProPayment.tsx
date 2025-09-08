@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProPayment() {
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [status, setStatus] = useState<"idle" | "processing" | "error">("idle");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [coupon, setCoupon] = useState(searchParams.get("coupon") || "");
   const [installments, setInstallments] = useState(1);
+
+  useEffect(() => {
+    if (user?.email) {
+      setCustomerEmail(user.email);
+    }
+  }, [user]);
 
   const baseAmount = 1099;
   const coupons: Record<string, number> = {
@@ -56,7 +64,7 @@ export default function ProPayment() {
         <h1 className="mb-4 text-center text-2xl font-bold">תשלום עבור פרו</h1>
 
         <div>
-          <label className="mb-1 block text-sm font-medium">שם לקוח</label>
+          <label className="mb-1 block text-sm font-medium">חשבונית על שם</label>
           <input
             className="w-full rounded border px-3 py-2"
             placeholder="ישראל ישראלי"
