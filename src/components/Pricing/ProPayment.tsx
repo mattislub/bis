@@ -1,17 +1,20 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { API_BASE_URL } from "../../api";
 
 export default function ProPayment() {
+  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<"idle" | "processing" | "error">("idle");
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [coupon, setCoupon] = useState("");
+  const [coupon, setCoupon] = useState(searchParams.get("coupon") || "");
   const [installments, setInstallments] = useState(1);
 
   const baseAmount = 1099;
   const coupons: Record<string, number> = {
     SEAT10: 0.9, // 10% הנחה
-    SEAT20: 0.8 // 20% הנחה
+    SEAT20: 0.8, // 20% הנחה
+    UPGRADE25: 0.75 // 25% הנחה
   };
   const finalAmount = Math.round(baseAmount * (coupons[coupon] ?? 1));
   const monthlyAmount = (finalAmount / installments).toFixed(2);
