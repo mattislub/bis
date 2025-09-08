@@ -1,4 +1,4 @@
-export default function registerContactRoutes(app, { transporter, SMTP_USER }) {
+export default function registerContactRoutes(app, { transporter, SMTP_USER, CONTACT_EMAIL }) {
   app.post('/api/contact', async (req, res) => {
     const { name, email, subject, message } = req.body || {};
     if (!name || !email || !message) {
@@ -16,7 +16,7 @@ export default function registerContactRoutes(app, { transporter, SMTP_USER }) {
 
       const info = await transporter.sendMail({
         from: SMTP_USER,
-        to: '0121718aaa@gmail.com',
+        to: CONTACT_EMAIL,
         replyTo: email,
         subject: subject || `Contact form submission from ${name}`,
         text: `Name: ${name}\nEmail: ${email}\n\n${message}`

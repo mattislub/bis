@@ -44,6 +44,7 @@ const SMTP_PORT = must('SMTP_PORT');
 const SMTP_USER = must('SMTP_USER');
 const SMTP_PASS = must('SMTP_PASS');
 const SMTP_SECURE = must('SMTP_SECURE') === 'true';
+const CONTACT_EMAIL = must('CONTACT_EMAIL');
 
 const allowedOrigins = [
   'https://seatflow.tech',
@@ -82,7 +83,7 @@ registerAuthRoutes(app, { transporter, generatePassword, SMTP_USER });
 registerUserRoutes(app);
 registerStorageRoutes(app);
 registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, PUBLIC_BASE_URL_API, ZCREDIT_KEY, SMTP_USER });
-registerContactRoutes(app, { transporter, SMTP_USER });
+registerContactRoutes(app, { transporter, SMTP_USER, CONTACT_EMAIL });
 registerCreditChargeRoutes(app);
 
 const PORT = Number(process.env.PORT || 4001);

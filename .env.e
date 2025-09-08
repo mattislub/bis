@@ -4,11 +4,12 @@ PORT=5001
 DATABASE_URL=postgres://seating_user:**********@seatflow.tech:5432/seating_db
 
 # mail server
-MAIL_HOST=smtp.mailserver.com
-MAIL_PORT=587
-MAIL_USERNAME=your-mail-username
-MAIL_PASSWORD=your-mail-password
-MAIL_FROM="ניהול מושבים חכם<no-reply@seatflow.tech>"
+SMTP_HOST=smtp.mailserver.com
+SMTP_PORT=587
+SMTP_USER=your-mail-username
+SMTP_PASS=your-mail-password
+SMTP_SECURE=false
+CONTACT_EMAIL=info@seatflow.online
 
 # ZCredit WebCheckout
 ZCREDIT_BASE_URL=https://pci.zcredit.co.il/zCreditWS/
