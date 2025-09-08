@@ -2,7 +2,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { query } from '../db.js';
 
-export default function registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, ZCREDIT_KEY, SMTP_USER }) {
+export default function registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, PUBLIC_BASE_URL_API, ZCREDIT_KEY, SMTP_USER }) {
   app.post('/api/zcredit/create-checkout', async (req, res) => {
     try {
       const { amount, description, customerName, customerEmail, orderId, coupon, installments } = req.body || {};
@@ -20,11 +20,15 @@ export default function registerZCreditRoutes(app, { transporter, generatePasswo
       }
   
       const uniqueOrderId = orderId || `ORD-${Date.now()}`;
-  
+
+      // בסיסי כתובות ללא לוכסן סופי
+      const publicBase = (PUBLIC_BASE_URL || '').replace(/\/+$/, '');
+      const apiBase = (PUBLIC_BASE_URL_API || publicBase).replace(/\/+$/, '');
+
       // URLs לחזרה
-      const successUrl  = `${PUBLIC_BASE_URL}/#/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
-      const cancelUrl   = `${PUBLIC_BASE_URL}/#/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
-      const callbackUrl = `${PUBLIC_BASE_URL_API}/api/zcredit/callback`;
+      const successUrl  = `${publicBase}/#/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
+      const cancelUrl   = `${publicBase}/#/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
+      const callbackUrl = `${apiBase}/api/zcredit/callback`;
   
       // payload לפי ה־spec של WebCheckout (שמות/רישיות חשובים!)
       const payload = {

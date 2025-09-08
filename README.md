@@ -25,7 +25,10 @@ ZCREDIT_CREATE_SESSION_URL=https://pci.zcredit.co.il/WebCheckout/api/CreateSessi
 ZCREDIT_WEBCHECKOUT_KEY=<webcheckout key>
 ZCREDIT_KEY=<guid key>
 PUBLIC_BASE_URL=https://yourdomain.com
+PUBLIC_BASE_URL_API=https://api.yourdomain.com
 ```
+
+`PUBLIC_BASE_URL` is used for customer-facing redirects, while `PUBLIC_BASE_URL_API` (optional) builds server callback URLs. If `PUBLIC_BASE_URL_API` is not provided the server falls back to `PUBLIC_BASE_URL`.
 
 The server exposes two endpoints:
 

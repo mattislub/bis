@@ -16,3 +16,4 @@ ZCREDIT_TERMINAL=1234567
 ZCREDIT_PASSWORD=YOUR_TERMINAL_PASSWORD
 ZCREDIT_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 PUBLIC_BASE_URL=https://yourdomain.com
+PUBLIC_BASE_URL_API=https://api.yourdomain.com
