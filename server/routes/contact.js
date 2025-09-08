@@ -7,6 +7,13 @@ export default function registerContactRoutes(app, { transporter, SMTP_USER }) {
 
     try {
       console.log(`Sending contact email from ${name} <${email}>`);
+      try {
+        await transporter.verify();
+      } catch (err) {
+        console.error('SMTP verify failed', err);
+        return res.status(503).json({ error: 'Email service unavailable' });
+      }
+
       const info = await transporter.sendMail({
         from: SMTP_USER,
         to: '0121718aaa@gmail.com',
