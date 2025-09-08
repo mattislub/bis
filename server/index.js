@@ -38,6 +38,7 @@ const must = (name) => {
 
 const ZCREDIT_KEY = must('ZCREDIT_KEY');
 const PUBLIC_BASE_URL = must('PUBLIC_BASE_URL');
+const PUBLIC_BASE_URL_API = process.env.PUBLIC_BASE_URL_API || PUBLIC_BASE_URL;
 const SMTP_HOST = must('SMTP_HOST');
 const SMTP_PORT = must('SMTP_PORT');
 const SMTP_USER = must('SMTP_USER');
@@ -80,7 +81,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok' }));
 registerAuthRoutes(app, { transporter, generatePassword, SMTP_USER });
 registerUserRoutes(app);
 registerStorageRoutes(app);
-registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, ZCREDIT_KEY, SMTP_USER });
+registerZCreditRoutes(app, { transporter, generatePassword, PUBLIC_BASE_URL, PUBLIC_BASE_URL_API, ZCREDIT_KEY, SMTP_USER });
 registerContactRoutes(app, { transporter, SMTP_USER });
 registerCreditChargeRoutes(app);
 
