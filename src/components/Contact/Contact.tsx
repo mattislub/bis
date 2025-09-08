@@ -76,6 +76,7 @@ const Contact: React.FC = () => {
         body: JSON.stringify(formData)
       });
       if (!res.ok) throw new Error('Failed to send');
+      console.log('Contact form sent successfully');
       setIsSubmitted(true);
       // Reset form after 3 seconds
       setTimeout(() => {

@@ -6,6 +6,7 @@ export default function registerContactRoutes(app, { transporter, SMTP_USER }) {
     }
 
     try {
+      console.log(`Sending contact email from ${name} <${email}>`);
       const info = await transporter.sendMail({
         from: SMTP_USER,
         to: '0121718aaa@gmail.com',
@@ -17,6 +18,10 @@ export default function registerContactRoutes(app, { transporter, SMTP_USER }) {
         console.error('Contact email rejected', info.rejected);
         throw new Error('Email was rejected by SMTP server');
       }
+      console.log('Contact email sent successfully', {
+        messageId: info.messageId,
+        response: info.response
+      });
       res.sendStatus(204);
     } catch (err) {
       console.error('contact error:', err);
