@@ -218,7 +218,7 @@ function SeatsManagement(): JSX.Element {
   const handleBenchClick = useCallback((benchId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setCtxMenu(s=>({...s, show:false}));
-    if (activeTool==='multiSelect' || e.shiftKey) {
+    if (activeTool==='multiSelect' || e.ctrlKey) {
       setSelectedBenches(prev => prev.includes(benchId) ? prev.filter(id=>id!==benchId) : [...prev, benchId]);
     } else {
       setSelectedBenches([benchId]);
@@ -975,7 +975,7 @@ function SeatsManagement(): JSX.Element {
                               if (e.detail > 1 || activeTool !== 'select') return;
                               setSelectedSeats(prev=>{
                                 const set = new Set(prev);
-                                if (!e.shiftKey) set.clear();
+                                if (!e.ctrlKey) set.clear();
                                 if (set.has(seat.id)) set.delete(seat.id); else set.add(seat.id);
                                 return set;
                               });
