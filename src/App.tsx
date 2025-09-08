@@ -19,6 +19,7 @@ import PaymentCancelled from './components/Pricing/PaymentCancelled';
 import Home from './components/Home/Home';
 import UserManagement from './components/Admin/UserManagement';
 import DefaultMapView from './components/Admin/DefaultMapView';
+import CreditCharges from './components/Admin/CreditCharges';
 import RequireManager from './components/Auth/RequireManager';
 import CouponPopup from './components/common/CouponPopup';
 
@@ -74,6 +75,7 @@ function App() {
             <Route path="map-guide" element={<MapManagementGuide />} />
             <Route path="admin-users" element={<RequireManager><UserManagement /></RequireManager>} />
             <Route path="default-map" element={<RequireManager><DefaultMapView /></RequireManager>} />
+            <Route path="credit-charges" element={<RequireManager><CreditCharges /></RequireManager>} />
             <Route path="contact" element={<Contact />} />
             <Route path="pricing" element={<Pricing />} />
           </Route>
