@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
@@ -8,6 +9,7 @@ import WorshiperCard from './WorshiperCard';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers } = useAppContext();
+  const { user } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
@@ -50,7 +52,7 @@ const WorshiperManagement: React.FC = () => {
       const rows = text.trim().split(/\r?\n/);
       const headers =
         rows.shift()?.split(',').map(h => h.trim().replace(/^\ufeff/, '')) ?? [];
-      const imported = rows.map((row, index) => {
+      let imported = rows.map((row, index) => {
         const values = row.split(',');
         const obj: Record<string, string> = {};
         headers.forEach((h, i) => {
@@ -81,6 +83,17 @@ const WorshiperManagement: React.FC = () => {
           places,
         } as Worshiper;
       });
+      if (user?.role === 'demo') {
+        const remaining = 9 - worshipers.length;
+        if (remaining <= 0) {
+          alert('בחשבון דמו ניתן להוסיף עד 9 מתפללים בלבד.');
+          return;
+        }
+        if (imported.length > remaining) {
+          alert('בחשבון דמו ניתן להוסיף עד 9 מתפללים בלבד. נוספו רק המתפללים הראשונים.');
+          imported = imported.slice(0, remaining);
+        }
+      }
       setWorshipers(prev => [...prev, ...imported]);
     };
     reader.readAsText(file, 'UTF-8');
@@ -109,6 +122,10 @@ const WorshiperManagement: React.FC = () => {
       ));
       setEditingWorshiper(null);
     } else {
+      if (user?.role === 'demo' && worshipers.length >= 9) {
+        alert('בחשבון דמו ניתן להוסיף עד 9 מתפללים בלבד.');
+        return;
+      }
       const newWorshiper: Worshiper = {
         id: Date.now().toString(),
         title: formData.title || '',
@@ -173,6 +190,10 @@ const WorshiperManagement: React.FC = () => {
   };
 
   const handleAddNew = () => {
+    if (user?.role === 'demo' && worshipers.length >= 9) {
+      alert('בחשבון דמו ניתן להוסיף עד 9 מתפללים בלבד.');
+      return;
+    }
     setIsAdding(true);
     setEditingWorshiper(null);
     setFormData({
