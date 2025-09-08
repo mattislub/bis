@@ -2,12 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Worshiper } from '../../types';
 import { useAppContext } from '../../context/AppContext';
 import { Plus, Edit2, Trash2, Save, X, User as UserIcon, Upload, Download, MapPin, FileText, ArrowUp, CreditCard } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import WorshiperSeatsForm from './WorshiperSeatsForm';
 import WorshiperItemsForm from './WorshiperItemsForm';
 import WorshiperCard from './WorshiperCard';
 
 const WorshiperManagement: React.FC = () => {
   const { worshipers, setWorshipers } = useAppContext();
+  const { user } = useAuth();
   const [isAdding, setIsAdding] = useState(false);
   const [editingWorshiper, setEditingWorshiper] = useState<string | null>(null);
   const [seatWorshiper, setSeatWorshiper] = useState<Worshiper | null>(null);
@@ -30,6 +33,7 @@ const WorshiperManagement: React.FC = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   useEffect(() => {
     if (viewWorshiper) {
@@ -98,6 +102,14 @@ const WorshiperManagement: React.FC = () => {
     link.download = 'worshipers_template.csv';
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleUploadClick = () => {
+    if (user?.role === 'pro') {
+      fileInputRef.current?.click();
+    } else {
+      setShowUpgradePrompt(true);
+    }
   };
 
   const handleSaveWorshiper = () => {
@@ -211,7 +223,7 @@ const WorshiperManagement: React.FC = () => {
             הורד קובץ לדוגמה
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={handleUploadClick}
             className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
           >
             <Upload className="h-4 w-4 ml-2" />
@@ -491,6 +503,28 @@ const WorshiperManagement: React.FC = () => {
         title="מקומות"
         onClose={() => setPlacesWorshiper(null)}
       />
+    )}
+    {showUpgradePrompt && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="w-full max-w-sm rounded-lg bg-white p-6 space-y-4" dir="rtl">
+          <h2 className="text-xl font-semibold text-center">תכונה זו זמינה רק למשתמשי פרו</h2>
+          <p className="text-center">שדרגו עכשיו וקבלו 25% הנחה עם הקופון UPGRADE25</p>
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => setShowUpgradePrompt(false)}
+              className="px-4 py-2 border rounded-lg"
+            >
+              ביטול
+            </button>
+            <Link
+              to="/pro-payment?coupon=UPGRADE25"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+            >
+              שדרגו לפרו
+            </Link>
+          </div>
+        </div>
+      </div>
     )}
     {viewWorshiper && (
       <WorshiperCard
