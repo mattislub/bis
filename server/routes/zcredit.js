@@ -24,7 +24,7 @@ export default function registerZCreditRoutes(app, { transporter, generatePasswo
       // URLs לחזרה
       const successUrl  = `${PUBLIC_BASE_URL}/#/thank-you?orderId=${encodeURIComponent(uniqueOrderId)}`;
       const cancelUrl   = `${PUBLIC_BASE_URL}/#/payment-cancelled?orderId=${encodeURIComponent(uniqueOrderId)}`;
-      const callbackUrl = `${PUBLIC_BASE_URL}/api/zcredit/callback`;
+      const callbackUrl = `${PUBLIC_BASE_URL_api}/api/zcredit/callback`;
   
       // payload לפי ה־spec של WebCheckout (שמות/רישיות חשובים!)
       const payload = {
