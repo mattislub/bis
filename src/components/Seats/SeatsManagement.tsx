@@ -443,8 +443,11 @@ function SeatsManagement(): JSX.Element {
   const onContextMenuBench = (e: React.MouseEvent, benchId: string) => {
     e.preventDefault();
     e.stopPropagation();
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    const x = rect ? e.clientX - rect.left : e.clientX;
+    const y = rect ? e.clientY - rect.top : e.clientY;
     setSelectedBenches(prev => prev.includes(benchId) ? prev : [benchId]);
-    setCtxMenu({ show:true, x: e.clientX, y: e.clientY, targetId: benchId });
+    setCtxMenu({ show: true, x, y, targetId: benchId });
   };
 
   // Bench ops
@@ -915,13 +918,16 @@ function SeatsManagement(): JSX.Element {
             onMouseMove={onMouseMoveCanvas}
             onMouseUp={onMouseUpCanvas}
             onMouseLeave={onMouseUpCanvas}
-            onContextMenu={(e)=>{
+            onContextMenu={(e) => {
               e.preventDefault();
               const rect = mapLayerRef.current?.getBoundingClientRect();
               if (!rect) return;
               const mapX = snapToGrid((e.clientX - rect.left - mapOffset.x) / zoom - mapBounds.left);
               const mapY = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
-              setCtxMenu({ show:true, x: e.clientX, y: e.clientY, mapX, mapY });
+              const containerRect = wrapperRef.current?.getBoundingClientRect();
+              const x = containerRect ? e.clientX - containerRect.left : e.clientX;
+              const y = containerRect ? e.clientY - containerRect.top : e.clientY;
+              setCtxMenu({ show: true, x, y, mapX, mapY });
             }}
           >
             {/* Grid */}
