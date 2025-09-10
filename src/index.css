@@ -95,7 +95,12 @@ body {
     transition: left 0.5s;
   }
 
-  .btn-hover:hover::before {
-    left: 100%;
+    .btn-hover:hover::before {
+      left: 100%;
+    }
   }
+
+@media print {
+  .min-h-screen, .h-screen { min-height: auto !important; height: auto !important; }
+  .overflow-auto { overflow: visible !important; }
 }
