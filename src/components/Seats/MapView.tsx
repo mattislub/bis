@@ -126,6 +126,7 @@ const MapView: React.FC = () => {
   }, [benches, mapBounds, baseSize, zoom, setMapOffset]);
 
   const handleExportOnePage = () =>
+
     exportMapToPDF({
       wrapperEl: wrapperRef.current!,
       mapLayerEl: mapLayerRef.current!,
@@ -140,6 +141,7 @@ const MapView: React.FC = () => {
       mode: 'a4',
       colorMode: 'color',
     });
+
 
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100 print:h-auto print:min-h-full print:w-auto print:min-w-full print:overflow-visible">
@@ -163,6 +165,7 @@ const MapView: React.FC = () => {
           </button>
           <button
             onClick={handleExportA4}
+
             className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
             aria-label="הדפס מפה A4"
           >
@@ -246,7 +249,7 @@ const MapView: React.FC = () => {
             ))}
 
             {/* Boundaries */}
-            <svg className="absolute inset-0 pointer-events-none">
+            <svg className="absolute inset-0 pointer-events-none z-50">
               {boundaries.map(b => (
                 <rect
                   key={b.id}

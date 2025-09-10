@@ -13,8 +13,11 @@ export function useServerStorage<T>(
       ? initialRef.current()
       : initialRef.current;
   });
+  // Prevent server response from overwriting local updates made before the fetch completes
+  const skipInitialSet = useRef(false);
 
   useEffect(() => {
+    skipInitialSet.current = false;
     const fetchValue = async () => {
       try {
         const res = await fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
@@ -22,18 +25,24 @@ export function useServerStorage<T>(
         });
         if (res.ok) {
           const data = await res.json();
-          if (data !== null) {
+          if (data !== null && !skipInitialSet.current) {
             setStoredValue(data);
           }
         }
       } catch (error) {
         console.error(`Error loading ${storageKey} from server:`, error);
+      } finally {
+        // Mark that the initial fetch has completed
+        skipInitialSet.current = true;
       }
     };
     fetchValue();
   }, [storageKey]);
 
   const setValue = (value: T | ((val: T) => T)) => {
+    // If a local update happens before the initial fetch resolves,
+    // prevent the fetched value from overriding the new state
+    skipInitialSet.current = true;
     const valueToStore = value instanceof Function ? value(storedValue) : value;
     setStoredValue(valueToStore);
     fetch(`${API_BASE_URL}/api/storage/${storageKey}`, {
