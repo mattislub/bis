@@ -124,8 +124,9 @@ const MapView: React.FC = () => {
   }, [benches, mapBounds, baseSize, zoom, setMapOffset]);
 
   return (
-    <div className="min-h-screen w-full overflow-auto bg-gray-100 print:h-auto print:min-h-full print:overflow-visible">
-      <div ref={containerRef} className="relative h-screen w-full">
+    <div className="min-h-screen w-full overflow-auto bg-gray-100 print:h-auto print:min-h-full print:w-auto print:min-w-full print:overflow-visible">
+      <div ref={containerRef} className="relative h-screen w-full print:h-auto print:w-auto print:min-w-full">
+
         <div className="absolute top-4 right-4 z-10 flex flex-col items-center space-y-2">
           <MapZoomControls setZoom={setZoom} orientation="vertical" />
           <button
