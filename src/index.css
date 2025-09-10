@@ -103,5 +103,5 @@ body {
 @media print {
   .min-h-screen, .h-screen { min-height: auto !important; height: auto !important; }
   .w-screen, .w-full { width: auto !important; }
-  .overflow-auto { overflow: visible !important; }
+
 }

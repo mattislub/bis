@@ -100,7 +100,7 @@ function SeatsManagement(): JSX.Element {
   const [resizing, setResizing] = useState<{id:string; startX:number; startY:number; startW:number; startH:number} | null>(null);
 
   // Right‑click menu
-  const [ctxMenu, setCtxMenu] = useState<{show:boolean;x:number;y:number;targetId?:string}>({show:false,x:0,y:0});
+  const [ctxMenu, setCtxMenu] = useState<{show:boolean;x:number;y:number;targetId?:string;mapX?:number;mapY?:number}>({show:false,x:0,y:0});
 
   // Refs
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -236,35 +236,39 @@ function SeatsManagement(): JSX.Element {
     setShowWorshiperModal(true);
   }, [selectedSeats, setWorshiperSearch]);
 
+  const addBenchAt = useCallback((x:number, y:number) => {
+    const newBench: Bench = {
+      id: `bench-${Date.now()}`,
+      name: `ספסל ${benchCount + 1}`,
+      seatCount: 4,
+      position: { x, y },
+      orientation: 'horizontal',
+      color: benchColors[benchCount % benchColors.length],
+      locked: false,
+      temporary: false,
+    };
+    const updated = ensureBenchSpacing([...benches, newBench]);
+    setBenches(updated);
+    const maxSeatId = Math.max(0, ...seats.map(s=>s.id));
+    const newSeats: Seat[] = Array.from({length:newBench.seatCount}).map((_,i)=>({
+      id: maxSeatId + i + 1, benchId: newBench.id, position:{x:0,y:0}, isOccupied:false, area:1
+    }));
+    setSeats(prev=>[...prev, ...newSeats]);
+  }, [benchCount, benches, seats, setBenches, setSeats]);
+
   const handleMapClick = useCallback((e: React.MouseEvent) => {
     if (activeTool === 'add') {
       const rect = mapLayerRef.current?.getBoundingClientRect();
       if (!rect) return;
       const x = snapToGrid((e.clientX - rect.left - mapOffset.x) / zoom - mapBounds.left);
       const y = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
-      const newBench: Bench = {
-        id: `bench-${Date.now()}`,
-        name: `ספסל ${benchCount + 1}`,
-        seatCount: 4,
-        position: { x, y },
-        orientation: 'horizontal',
-        color: benchColors[benchCount % benchColors.length],
-        locked: false,
-        temporary: false,
-      };
-      const updated = ensureBenchSpacing([...benches, newBench]);
-      setBenches(updated);
-      const maxSeatId = Math.max(0, ...seats.map(s=>s.id));
-      const newSeats: Seat[] = Array.from({length:newBench.seatCount}).map((_,i)=>({
-        id: maxSeatId + i + 1, benchId: newBench.id, position:{x:0,y:0}, isOccupied:false, area:1
-      }));
-      setSeats(prev=>[...prev, ...newSeats]);
+      addBenchAt(x, y);
     } else {
       setSelectedBenches([]);
       setSelectedSeats(new Set());
     }
     setCtxMenu(s=>({...s, show:false}));
-  }, [activeTool, zoom, mapBounds, mapOffset, snapToGrid, benches, benchCount, seats, setBenches, setSeats]);
+  }, [activeTool, zoom, mapBounds, mapOffset, snapToGrid, addBenchAt]);
 
   // Drag & drop (multi)
   const onDragStartBench = (e: React.DragEvent<HTMLDivElement>, benchId: string) => {
@@ -438,8 +442,12 @@ function SeatsManagement(): JSX.Element {
   // Context menu
   const onContextMenuBench = (e: React.MouseEvent, benchId: string) => {
     e.preventDefault();
+    e.stopPropagation();
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    const x = rect ? e.clientX - rect.left : e.clientX;
+    const y = rect ? e.clientY - rect.top : e.clientY;
     setSelectedBenches(prev => prev.includes(benchId) ? prev : [benchId]);
-    setCtxMenu({ show:true, x: e.clientX, y: e.clientY, targetId: benchId });
+    setCtxMenu({ show: true, x, y, targetId: benchId });
   };
 
   // Bench ops
@@ -578,14 +586,14 @@ function SeatsManagement(): JSX.Element {
     setSeats(updated);
   }, [benches, seats, setSeats]);
 
-  const addMultipleBenches = useCallback(() => {
+  const addMultipleBenches = useCallback((startX = 100, startY = 100) => {
     const count = parseInt(prompt('כמה ספסלים להוסיף?') || '0', 10);
     if (!count || count < 1) return;
     const newBenches: Bench[] = [];
     const newSeats: Seat[] = [];
     let maxSeatId = Math.max(0, ...seats.map(s => s.id));
-    let x = 100;
-    const y = 100;
+    let x = startX;
+    const y = startY;
     for (let i = 0; i < count; i++) {
       const b: Bench = {
         id: `bench-${Date.now()}-${i}`,
@@ -608,14 +616,14 @@ function SeatsManagement(): JSX.Element {
     setSeats(prev => [...prev, ...newSeats]);
   }, [benchCount, benches, seats, setBenches, setSeats]);
 
-  const addCustomElement = useCallback(() => {
+  const addCustomElement = useCallback((x?: number, y?: number) => {
     const name = prompt('שם האלמנט?');
     if (!name) return;
     const el: Bench = {
       id: `element-${Date.now()}`,
       name,
       seatCount: 0,
-      position: { x: 400, y: 300 },
+      position: { x: x ?? 400, y: y ?? 300 },
       orientation: 'horizontal',
       color: '#9CA3AF',
       type: 'special',
@@ -726,7 +734,7 @@ function SeatsManagement(): JSX.Element {
             <span className="text-xs font-semibold text-gray-600 px-2">כלים:</span>
             <button onClick={()=>setActiveTool('select')} className={`p-2 rounded-lg transition-all ${activeTool==='select' ? 'bg-blue-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה"><MousePointer className="h-4 w-4" /></button>
               <button onClick={()=>setActiveTool('add')} className={`p-2 rounded-lg transition-all ${activeTool==='add' ? 'bg-green-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הוסף ספסל"><Plus className="h-4 w-4" /></button>
-              <button onClick={addMultipleBenches} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף ספסלים מרובים"><Layers className="h-4 w-4" /></button>
+              <button onClick={()=>addMultipleBenches()} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף ספסלים מרובים"><Layers className="h-4 w-4" /></button>
             <button onClick={()=>setActiveTool('multiSelect')} className={`p-2 rounded-lg transition-all ${activeTool==='multiSelect' ? 'bg-purple-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="בחירה מרובה"><BoxSelect className="h-4 w-4" /></button>
             <button onClick={()=>setActiveTool('pan')} className={`p-2 rounded-lg transition-all ${activeTool==='pan' ? 'bg-orange-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="הזזת מפה"><Hand className="h-4 w-4" /></button>
             <button onClick={()=>setActiveTool('boundary')} className={`p-2 rounded-lg transition-all ${activeTool==='boundary' ? 'bg-red-500 text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-50'}`} title="צייר גבול"><Scissors className="h-4 w-4" /></button>
@@ -792,7 +800,7 @@ function SeatsManagement(): JSX.Element {
                     {el.icon}
                   </button>
                 ))}
-              <button onClick={addCustomElement} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף אלמנט">
+              <button onClick={()=>addCustomElement()} className="p-2 rounded-lg bg-white text-gray-600 hover:bg-gray-50" title="הוסף אלמנט">
                 <Plus className="h-4 w-4" />
               </button>
             </div>
@@ -910,7 +918,17 @@ function SeatsManagement(): JSX.Element {
             onMouseMove={onMouseMoveCanvas}
             onMouseUp={onMouseUpCanvas}
             onMouseLeave={onMouseUpCanvas}
-            onContextMenu={(e)=>{ e.preventDefault(); setCtxMenu(s=>({...s,show:false})); }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              const rect = mapLayerRef.current?.getBoundingClientRect();
+              if (!rect) return;
+              const mapX = snapToGrid((e.clientX - rect.left - mapOffset.x) / zoom - mapBounds.left);
+              const mapY = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
+              const containerRect = wrapperRef.current?.getBoundingClientRect();
+              const x = containerRect ? e.clientX - containerRect.left : e.clientX;
+              const y = containerRect ? e.clientY - containerRect.top : e.clientY;
+              setCtxMenu({ show: true, x, y, mapX, mapY });
+            }}
           >
             {/* Grid */}
             {gridSettings.showGrid && (
@@ -1058,89 +1076,138 @@ function SeatsManagement(): JSX.Element {
                 style={{ left: ctxMenu.x, top: ctxMenu.y }}
                 onMouseLeave={() => setCtxMenu(s => ({ ...s, show: false }))}
               >
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50 text-red-600"
-                  disabled={!selectedBenches.length}
-                  onClick={() => {
-                    if (selectedBenches.length) deleteSelectedBenches();
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  מחק
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={selectedBenches.length !== 1}
-                  onClick={() => {
-                    if (selectedBenches.length === 1) {
-                      const current = benches.find(b => b.id === selectedBenches[0])?.name ?? '';
-                      const result = prompt('שם ספסל חדש', current);
-                      if (result) renameBench(selectedBenches[0], result);
-                    }
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  שנה שם
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={!selectedBenches.length}
-                  onClick={() => {
-                    if (selectedBenches.length) {
-                      const current = benches.find(b => b.id === selectedBenches[0])?.seatCount ?? 0;
-                      const result = prompt('מספר מקומות חדש', current.toString());
-                      const count = result ? parseInt(result, 10) : NaN;
-                      if (!Number.isNaN(count)) updateSeatCount(selectedBenches[0], count);
-                    }
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  שנה מספר מקומות
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={!selectedBenches.length}
-                  onClick={() => {
-                    if (selectedBenches.length) duplicateBench(selectedBenches[0], 'down');
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  העתקה למטה
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={!selectedBenches.length}
-                  onClick={() => {
-                    if (selectedBenches.length) duplicateBench(selectedBenches[0], 'right');
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  העתקה לצד
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={selectedBenches.length !== 1}
-                  onClick={() => {
-                    if (selectedBenches.length === 1) rotateBench(selectedBenches[0]);
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  סיבוב 90°
-                </button>
-                <button
-                  className="block w-full text-right px-4 py-2 hover:bg-gray-50"
-                  disabled={selectedSeats.size === 0}
-                  onClick={() => {
-                    if (selectedSeats.size) {
-                      setSelectedSeatsForWorshiper(Array.from(selectedSeats));
-                      setWorshiperSearch('');
-                      setShowWorshiperModal(true);
-                    }
-                    setCtxMenu(s => ({ ...s, show: false }));
-                  }}
-                >
-                  שיוך שם למקום
-                </button>
+                {ctxMenu.targetId ? (
+                  <>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50 text-red-600"
+                      disabled={!selectedBenches.length}
+                      onClick={() => {
+                        if (selectedBenches.length) deleteSelectedBenches();
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      מחק
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={selectedBenches.length !== 1}
+                      onClick={() => {
+                        if (selectedBenches.length === 1) {
+                          const current = benches.find(b => b.id === selectedBenches[0])?.name ?? '';
+                          const result = prompt('שם ספסל חדש', current);
+                          if (result) renameBench(selectedBenches[0], result);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      שנה שם
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={!selectedBenches.length}
+                      onClick={() => {
+                        if (selectedBenches.length) {
+                          const current = benches.find(b => b.id === selectedBenches[0])?.seatCount ?? 0;
+                          const result = prompt('מספר מקומות חדש', current.toString());
+                          const count = result ? parseInt(result, 10) : NaN;
+                          if (!Number.isNaN(count)) updateSeatCount(selectedBenches[0], count);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      שנה מספר מקומות
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={!selectedBenches.length}
+                      onClick={() => {
+                        if (selectedBenches.length) duplicateBench(selectedBenches[0], 'down');
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      העתקה למטה
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={!selectedBenches.length}
+                      onClick={() => {
+                        if (selectedBenches.length) duplicateBench(selectedBenches[0], 'right');
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      העתקה לצד
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={selectedBenches.length !== 1}
+                      onClick={() => {
+                        if (selectedBenches.length === 1) rotateBench(selectedBenches[0]);
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      סיבוב 90°
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      disabled={selectedSeats.size === 0}
+                      onClick={() => {
+                        if (selectedSeats.size) {
+                          setSelectedSeatsForWorshiper(Array.from(selectedSeats));
+                          setWorshiperSearch('');
+                          setShowWorshiperModal(true);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      שיוך שם למקום
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      onClick={() => {
+                        if (ctxMenu.mapX !== undefined && ctxMenu.mapY !== undefined) {
+                          addBenchAt(ctxMenu.mapX, ctxMenu.mapY);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      הוסף ספסל
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      onClick={() => {
+                        if (ctxMenu.mapX !== undefined && ctxMenu.mapY !== undefined) {
+                          addCustomElement(ctxMenu.mapX, ctxMenu.mapY);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      הוסף אלמנט
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      onClick={() => {
+                        if (ctxMenu.mapX !== undefined && ctxMenu.mapY !== undefined) {
+                          addMultipleBenches(ctxMenu.mapX, ctxMenu.mapY);
+                        }
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      הוספת ספסלים מרובים
+                    </button>
+                    <button
+                      className="block w-full text-right px-4 py-2 hover:bg-gray-50"
+                      onClick={() => {
+                        setActiveTool('boundary');
+                        setCtxMenu(s => ({ ...s, show: false }));
+                      }}
+                    >
+                      סמן גבול
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
