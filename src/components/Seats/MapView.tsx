@@ -6,6 +6,7 @@ import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
 import MapZoomControls from './MapZoomControls';
 import { Printer, Target, Tags } from 'lucide-react';
+import { exportMapToPDF } from '../../utils/pdfUtils';
 
 const MapView: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -23,7 +24,8 @@ const MapView: React.FC = () => {
   } = useAppContext();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const mapLayerRef = useRef<HTMLDivElement>(null);
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const [zoom, setZoom] = useState(1);
   const mapId = id || currentMapId;
@@ -40,7 +42,7 @@ const MapView: React.FC = () => {
   }, []);
 
   useLayoutEffect(() => {
-    const el = containerRef.current;
+    const el = wrapperRef.current;
     if (!el) return;
     const update = () => setBaseSize({ width: el.clientWidth, height: el.clientHeight });
     update();
@@ -123,11 +125,19 @@ const MapView: React.FC = () => {
     });
   }, [benches, mapBounds, baseSize, zoom, setMapOffset]);
 
+  const handleExport = () =>
+    exportMapToPDF({
+      wrapperEl: wrapperRef.current!,
+      mapLayerEl: mapLayerRef.current!,
+      mode: 'onePage',
+      colorMode: 'color',
+    });
+
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100 print:h-auto print:min-h-full print:w-auto print:min-w-full print:overflow-visible">
-      <div ref={containerRef} className="relative h-screen w-full print:h-auto print:w-auto print:min-w-full">
+      <div ref={wrapperRef} className="relative h-screen w-full print:h-auto print:w-auto print:min-w-full">
 
-        <div className="absolute top-4 right-4 z-10 flex flex-col items-center space-y-2">
+        <div className="absolute top-4 right-4 z-10 flex flex-col items-center space-y-2 pdf-hide">
           <MapZoomControls setZoom={setZoom} orientation="vertical" />
           <button
             onClick={centerMap}
@@ -137,7 +147,7 @@ const MapView: React.FC = () => {
             <Target className="h-4 w-4" />
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={handleExport}
             className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
             aria-label="הדפס מפה"
           >
@@ -156,6 +166,7 @@ const MapView: React.FC = () => {
           style={{ width: baseSize.width + mapBounds.left + mapBounds.right, height: baseSize.height + mapBounds.top + mapBounds.bottom }}
         >
           <div
+            ref={mapLayerRef}
             className="absolute inset-0"
             style={{ transform: `translate(${mapOffset.x}px, ${mapOffset.y}px) scale(${zoom})`, transformOrigin: 'top left' }}
           >
