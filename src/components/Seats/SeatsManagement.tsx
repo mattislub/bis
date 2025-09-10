@@ -1023,7 +1023,7 @@ function SeatsManagement(): JSX.Element {
               })}
 
               {/* Boundaries */}
-              <svg className="absolute inset-0 pointer-events-none">
+              <svg className="absolute inset-0 pointer-events-none z-50">
                 {boundaries.map(b => (
                   <rect
                     key={b.id}
