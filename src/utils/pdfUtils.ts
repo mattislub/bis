@@ -123,6 +123,16 @@ async function renderBBoxToCanvas(el: HTMLDivElement, bbox: {x:number;y:number;w
   return canvas;
 }
 
+// ---------- הקטנת קנבס לגודל מסוים ----------
+function scaleCanvas(canvas: HTMLCanvasElement, factor: number) {
+  const scaled = document.createElement('canvas');
+  scaled.width = Math.round(canvas.width * factor);
+  scaled.height = Math.round(canvas.height * factor);
+  const ctx = scaled.getContext('2d')!;
+  ctx.drawImage(canvas, 0, 0, scaled.width, scaled.height);
+  return scaled;
+}
+
 // ---------- עוזרים להמרות יחידות ----------
 const mmToPt = (mm: number) => (mm * 72) / 25.4; // jsPDF עובד ב-pt (72pt = 1in = 25.4mm)
 const pxToPt = (px: number, pxPerPt = 96 / 72) => px / pxPerPt; // הנחה של 96dpi בדפדפן
@@ -145,6 +155,7 @@ export async function exportMapToPDF(opts: ExportOpts) {
 
   // 2) מצלמים את כל המפה לקנבס
   let canvas = await renderBBoxToCanvas(mapLayerEl, bbox);
+  canvas = scaleCanvas(canvas, 0.5);
 
   // 3) עיבוד צבע אופציונלי
   if (colorMode === 'bw' && bwHard) {
