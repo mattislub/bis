@@ -105,6 +105,8 @@ function SeatsManagement(): JSX.Element {
   // Refs
   const wrapperRef = useRef<HTMLDivElement>(null);
   const mapLayerRef = useRef<HTMLDivElement>(null);
+  const wrapperWidth = wrapperRef.current?.clientWidth ?? 0;
+  const wrapperHeight = wrapperRef.current?.clientHeight ?? 0;
 
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
@@ -1023,7 +1025,12 @@ function SeatsManagement(): JSX.Element {
               })}
 
               {/* Boundaries */}
-              <svg className="absolute inset-0 pointer-events-none z-50">
+              <svg
+                className="absolute inset-0 pointer-events-none z-50"
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${wrapperWidth} ${wrapperHeight}`}
+              >
                 {boundaries.map(b => (
                   <rect
                     key={b.id}
