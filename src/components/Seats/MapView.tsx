@@ -20,7 +20,6 @@ const MapView: React.FC = () => {
     setMapOffset,
     worshipers,
     currentMapId,
-    boundaries,
   } = useAppContext();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -29,8 +28,6 @@ const MapView: React.FC = () => {
   const [baseSize, setBaseSize] = useState({ width: 1200, height: 800 });
   const [zoom, setZoom] = useState(1);
   const mapId = id || currentMapId;
-  const wrapperWidth = baseSize.width + mapBounds.left + mapBounds.right;
-  const wrapperHeight = baseSize.height + mapBounds.top + mapBounds.bottom;
 
   useEffect(() => {
     const originalPadding = document.body.style.padding;
@@ -250,27 +247,6 @@ const MapView: React.FC = () => {
             </div>
             ))}
 
-            {/* Boundaries */}
-            <svg
-              className="absolute inset-0 pointer-events-none z-50"
-              width="100%"
-              height="100%"
-              viewBox={`0 0 ${wrapperWidth} ${wrapperHeight}`}
-            >
-              {boundaries.map(b => (
-                <rect
-                  key={b.id}
-                  x={b.x + mapBounds.left}
-                  y={b.y + mapBounds.top}
-                  width={b.width}
-                  height={b.height}
-                  stroke="#ff0000"
-                  strokeWidth={2}
-                  fill="#ff0000"
-                  fillOpacity={0.2}
-                />
-              ))}
-            </svg>
           </div>
         </div>
       </div>
