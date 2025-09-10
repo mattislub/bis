@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Seat, Worshiper } from '../../types';
 import { API_BASE_URL } from '../../api';
 import MapZoomControls from './MapZoomControls';
-import { Printer, Target, Tags } from 'lucide-react';
+import { Printer, Target, Tags, FileDown } from 'lucide-react';
 import { exportMapToPDF } from '../../utils/pdfUtils';
 
 const MapView: React.FC = () => {
@@ -125,13 +125,23 @@ const MapView: React.FC = () => {
     });
   }, [benches, mapBounds, baseSize, zoom, setMapOffset]);
 
-  const handleExport = () =>
+  const handleExportOnePage = () =>
+
     exportMapToPDF({
       wrapperEl: wrapperRef.current!,
       mapLayerEl: mapLayerRef.current!,
       mode: 'onePage',
       colorMode: 'color',
     });
+
+  const handleExportA4 = () =>
+    exportMapToPDF({
+      wrapperEl: wrapperRef.current!,
+      mapLayerEl: mapLayerRef.current!,
+      mode: 'a4',
+      colorMode: 'color',
+    });
+
 
   return (
     <div className="min-h-screen w-full overflow-auto bg-gray-100 print:h-auto print:min-h-full print:w-auto print:min-w-full print:overflow-visible">
@@ -147,9 +157,17 @@ const MapView: React.FC = () => {
             <Target className="h-4 w-4" />
           </button>
           <button
-            onClick={handleExport}
+            onClick={handleExportOnePage}
             className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-            aria-label="הדפס מפה"
+            aria-label="ייצוא מפה (עמוד אחד)"
+          >
+            <FileDown className="h-4 w-4" />
+          </button>
+          <button
+            onClick={handleExportA4}
+
+            className="p-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+            aria-label="הדפס מפה A4"
           >
             <Printer className="h-4 w-4" />
           </button>
