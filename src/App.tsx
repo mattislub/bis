@@ -20,6 +20,8 @@ import Home from './components/Home/Home';
 import UserManagement from './components/Admin/UserManagement';
 import DefaultMapView from './components/Admin/DefaultMapView';
 import CreditCharges from './components/Admin/CreditCharges';
+import RoleManagement from './components/Admin/RoleManagement';
+import ZcreditCallbacks from './components/Admin/ZcreditCallbacks';
 import RequireManager from './components/Auth/RequireManager';
 import CouponPopup from './components/common/CouponPopup';
 
@@ -74,8 +76,10 @@ function App() {
             <Route path="seats-manage" element={<SeatsManagement />} />
             <Route path="map-guide" element={<MapManagementGuide />} />
             <Route path="admin-users" element={<RequireManager><UserManagement /></RequireManager>} />
+            <Route path="admin-roles" element={<RequireManager><RoleManagement /></RequireManager>} />
             <Route path="default-map" element={<RequireManager><DefaultMapView /></RequireManager>} />
             <Route path="credit-charges" element={<RequireManager><CreditCharges /></RequireManager>} />
+            <Route path="zcredit-callbacks" element={<RequireManager><ZcreditCallbacks /></RequireManager>} />
             <Route path="contact" element={<Contact />} />
             <Route path="pricing" element={<Pricing />} />
           </Route>
