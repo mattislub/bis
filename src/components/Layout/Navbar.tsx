@@ -11,7 +11,9 @@ import {
   X,
   UserMinus,
   Map,
-  Receipt
+  Receipt,
+  Shield,
+  Database
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -32,8 +34,10 @@ const Navbar: React.FC = () => {
     { path: '/app/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/app/map-guide', label: 'מדריך מפה', icon: HelpCircle },
     { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus, admin: true },
+    { path: '/app/admin-roles', label: 'תפקידי משתמשים', icon: Shield, admin: true },
     { path: '/app/default-map', label: 'מפת ברירת מחדל', icon: Map, admin: true },
     { path: '/app/credit-charges', label: 'חיובים', icon: Receipt, admin: true },
+    { path: '/app/zcredit-callbacks', label: 'ZCredit פרטי חיוב', icon: Database, admin: true },
     { path: '/app/contact', label: 'צור קשר', icon: Mail },
     { path: '/app/pricing', label: 'מחירון', icon: CreditCard },
   ];

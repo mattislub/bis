@@ -18,6 +18,21 @@ export default function registerUserRoutes(app) {
     }
   });
 
+  app.put('/api/users/:email/role', async (req, res) => {
+    const { email } = req.params;
+    const { role } = req.body || {};
+    if (!['demo', 'pro', 'manager'].includes(role)) {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+    try {
+      await query('UPDATE users SET role=$1 WHERE email=$2', [role, email]);
+      res.sendStatus(204);
+    } catch (err) {
+      console.error('update role error:', err);
+      res.status(500).json({ error: 'DB error' });
+    }
+  });
+
   app.get('/api/users/:email', async (req, res) => {
     try {
       const { rows } = await query(
