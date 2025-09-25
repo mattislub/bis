@@ -13,7 +13,8 @@ import {
   Map,
   Receipt,
   Shield,
-  Database
+  Database,
+  Home
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
@@ -30,7 +31,8 @@ const Navbar: React.FC = () => {
   }, [user]);
 
   const navItems = [
-    { path: '/app', label: 'ניהול מתפללים', icon: Users },
+    { path: '/app', label: 'דף הבית', icon: Home },
+    { path: '/app/worshipers', label: 'ניהול מתפללים', icon: Users },
     { path: '/app/seats-manage', label: 'ניהול מקומות', icon: Settings },
     { path: '/app/map-guide', label: 'מדריך מפה', icon: HelpCircle },
     { path: '/app/admin-users', label: 'מחיקת משתמשים', icon: UserMinus, admin: true },
