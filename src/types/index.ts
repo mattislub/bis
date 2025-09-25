@@ -9,6 +9,7 @@ export interface Worshiper {
   phone: string;
   secondaryPhone?: string;
   email: string;
+  fundNumber?: string;
   avatar?: string;
   promises?: WorshiperItem[];
   aliyot?: WorshiperItem[];
@@ -20,6 +21,7 @@ export interface WorshiperItem {
   description: string;
   amount: number;
   count?: number;
+  fundNumber?: string;
   paid: boolean;
   createdAtGregorian: string;
   createdAtHebrew: string;
