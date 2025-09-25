@@ -28,7 +28,6 @@ const WorshiperManagement: React.FC = () => {
     phone: '',
     secondaryPhone: '',
     email: '',
-    fundNumber: '',
     promises: [],
     aliyot: [],
     places: [],
@@ -84,7 +83,6 @@ const WorshiperManagement: React.FC = () => {
           phone: obj['טלפון'] || '',
           secondaryPhone: obj['טלפון נוסף'] || '',
           email: obj['אימייל'] || '',
-          fundNumber: obj['מס_קרן'] || '',
           places,
         } as Worshiper;
       });
@@ -106,8 +104,8 @@ const WorshiperManagement: React.FC = () => {
   };
 
   const downloadSampleCsv = () => {
-    const headers = ['תואר', 'שם פרטי', 'שם משפחה', 'כתובת', 'עיר', 'טלפון', 'טלפון נוסף', 'אימייל', 'מס_קרן', 'כמות מקומות'];
-    const sample = ['מר', 'דוד', 'כהן', 'רחוב הדוגמה 1', 'תל אביב', '050-0000000', '', 'david@example.com', '123', '1'];
+    const headers = ['תואר', 'שם פרטי', 'שם משפחה', 'כתובת', 'עיר', 'טלפון', 'טלפון נוסף', 'אימייל', 'כמות מקומות'];
+    const sample = ['מר', 'דוד', 'כהן', 'רחוב הדוגמה 1', 'תל אביב', '050-0000000', '', 'david@example.com', '1'];
     const csvContent = '\ufeff' + [headers.join(','), sample.join(',')].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -149,7 +147,6 @@ const WorshiperManagement: React.FC = () => {
         phone: formData.phone || '',
         secondaryPhone: formData.secondaryPhone || '',
         email: formData.email || '',
-        fundNumber: formData.fundNumber || '',
         promises: formData.promises || [],
         aliyot: formData.aliyot || [],
         places: formData.places || [],
@@ -167,7 +164,6 @@ const WorshiperManagement: React.FC = () => {
       phone: '',
       secondaryPhone: '',
       email: '',
-      fundNumber: '',
       promises: [],
       aliyot: [],
       places: [],
@@ -198,7 +194,6 @@ const WorshiperManagement: React.FC = () => {
       phone: '',
       secondaryPhone: '',
       email: '',
-      fundNumber: '',
       promises: [],
       aliyot: [],
       places: [],
@@ -221,7 +216,6 @@ const WorshiperManagement: React.FC = () => {
       phone: '',
       secondaryPhone: '',
       email: '',
-      fundNumber: '',
       promises: [],
       aliyot: [],
       places: [],
@@ -361,17 +355,6 @@ const WorshiperManagement: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">מס קרן</label>
-              <input
-                type="text"
-                value={formData.fundNumber || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, fundNumber: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="לדוגמה: 123"
-              />
-            </div>
-
           </div>
 
           <div className="flex space-x-3 space-x-reverse">
@@ -405,7 +388,6 @@ const WorshiperManagement: React.FC = () => {
                 <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">טלפון נוסף</th>
                 <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">כתובת</th>
                 <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">עיר</th>
-                <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">מס קרן</th>
                 <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">כמות מקומות</th>
                 <th className="px-4 py-2 text-right text-sm font-medium text-gray-700">פעולות</th>
               </tr>
@@ -428,7 +410,6 @@ const WorshiperManagement: React.FC = () => {
                   <td className="px-4 py-2">{w.secondaryPhone}</td>
                   <td className="px-4 py-2">{w.address}</td>
                   <td className="px-4 py-2">{w.city}</td>
-                  <td className="px-4 py-2">{w.fundNumber}</td>
                   <td className="px-4 py-2 text-center">{w.places?.reduce((sum, i) => sum + (i.count ?? 0), 0) ?? 0}</td>
                   <td className="px-4 py-2">
                     <div className="flex space-x-2 space-x-reverse">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Phone, Mail, MapPin, User as UserIcon, Users, Hash } from 'lucide-react';
+import { X, Phone, Mail, MapPin, User as UserIcon, Users } from 'lucide-react';
 import { Worshiper, WorshiperItem } from '../../types';
 import WorshiperItemsForm from './WorshiperItemsForm';
 
@@ -26,7 +26,6 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
           <thead>
             <tr className="text-right">
               <th className="px-2 py-1">תיאור</th>
-              {field === 'promises' && <th className="px-2 py-1">מס קרן</th>}
               {field === 'places' ? (
                 <>
                   <th className="px-2 py-1">סכום למקום</th>
@@ -45,9 +44,6 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             {items.map(i => (
               <tr key={i.id} className="border-t">
                 <td className="px-2 py-1">{i.description}</td>
-                {field === 'promises' && (
-                  <td className="px-2 py-1 text-center">{i.fundNumber || ''}</td>
-                )}
                 {field === 'places' ? (
                   <>
                     <td className="px-2 py-1 text-center">{i.amount}</td>
@@ -115,12 +111,6 @@ const WorshiperCard: React.FC<Props> = ({ worshiper, onClose }) => {
             <div className="flex items-center">
               <Mail className="h-4 w-4 ml-2 text-gray-500" />
               <span>{worshiper.email}</span>
-            </div>
-          )}
-          {worshiper.fundNumber && (
-            <div className="flex items-center">
-              <Hash className="h-4 w-4 ml-2 text-gray-500" />
-              <span>מס קרן: {worshiper.fundNumber}</span>
             </div>
           )}
           <div className="flex items-center">

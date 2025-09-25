@@ -35,7 +35,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
     description: field === 'places' ? 'מקומות בבית הכנסת' : '',
     amount: 0,
     count: field === 'places' ? 1 : undefined,
-    fundNumber: field === 'promises' ? worshiper.fundNumber || '' : undefined,
     paid: false,
     createdAtGregorian: '',
     createdAtHebrew: '',
@@ -49,7 +48,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
       description: newItem.description!,
       amount: Number(newItem.amount) || 0,
       count: field === 'places' ? Number(newItem.count) || 0 : undefined,
-      fundNumber: field === 'promises' ? (newItem.fundNumber || '') : undefined,
       paid: !!newItem.paid,
       createdAtGregorian: newItem.createdAtGregorian || '',
       createdAtHebrew: newItem.createdAtHebrew || '',
@@ -59,7 +57,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
       description: field === 'places' ? 'מקומות בבית הכנסת' : '',
       amount: 0,
       count: field === 'places' ? 1 : undefined,
-      fundNumber: field === 'promises' ? worshiper.fundNumber || '' : undefined,
       paid: false,
       createdAtGregorian: '',
       createdAtHebrew: '',
@@ -95,7 +92,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
             <thead>
               <tr className="text-right">
                 <th className="px-2 py-1">תיאור</th>
-                {field === 'promises' && <th className="px-2 py-1">מס קרן</th>}
                 {field === 'places' ? (
                   <>
                     <th className="px-2 py-1">סכום למקום</th>
@@ -115,9 +111,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
               {items.map(i => (
                 <tr key={i.id} className="border-t">
                   <td className="px-2 py-1">{i.description}</td>
-                  {field === 'promises' && (
-                    <td className="px-2 py-1 text-center">{i.fundNumber || ''}</td>
-                  )}
                   {field === 'places' ? (
                     <>
                       <td className="px-2 py-1 text-center">{i.amount}</td>
@@ -145,15 +138,7 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
           </table>
         )}
 
-        <div
-          className={`grid grid-cols-1 ${
-            field === 'places'
-              ? 'md:grid-cols-3'
-              : field === 'promises'
-                ? 'md:grid-cols-3'
-                : 'md:grid-cols-2'
-          } gap-4 mb-4 text-sm`}
-        >
+        <div className={`grid grid-cols-1 ${field === 'places' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4 mb-4 text-sm`}>
           <div>
             <label className="block mb-1">תיאור</label>
             {field === 'places' ? (
@@ -189,19 +174,6 @@ const WorshiperItemsForm: React.FC<Props> = ({ worshiper, field, title, onClose 
               />
             )}
           </div>
-          {field === 'promises' && (
-            <div>
-              <label className="block mb-1">מס קרן</label>
-              <input
-                type="text"
-                value={newItem.fundNumber || ''}
-                onChange={e =>
-                  setNewItem(prev => ({ ...prev, fundNumber: e.target.value }))
-                }
-                className="w-full px-2 py-1 border rounded"
-              />
-            </div>
-          )}
           <div>
             <label className="block mb-1">{field === 'places' ? 'סכום למקום' : 'סכום'}</label>
             <input
