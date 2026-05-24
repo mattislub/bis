@@ -102,6 +102,8 @@ function SeatsManagement(): JSX.Element {
   // Refs
   const wrapperRef = useRef<HTMLDivElement>(null);
   const mapLayerRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef(zoom);
+  useEffect(() => { zoomRef.current = zoom; }, [zoom]);
 
   // Colors
   const benchColors = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#06B6D4','#1F2937','#6366F1','#14B8A6','#D946EF','#F97316','#84CC16','#E879F9','#22D3EE','#F43F5E','#A855F7'];
@@ -208,7 +210,30 @@ function SeatsManagement(): JSX.Element {
     };
     window.addEventListener('keydown', onKeyDown);
     return ()=>window.removeEventListener('keydown', onKeyDown);
-  }, [selectedBenches, setBenches, gridSettings]);
+  }, [selectedBenches, setBenches, gridSettings, deleteSelectedBenches]);
+
+  // Scroll wheel zoom
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+      const prevZoom = zoomRef.current;
+      const nextZoom = clamp(prevZoom * factor, MIN_ZOOM, MAX_ZOOM);
+      zoomRef.current = nextZoom;
+      setZoom(nextZoom);
+      setMapOffset(o => ({
+        x: mouseX - (mouseX - o.x) * (nextZoom / prevZoom),
+        y: mouseY - (mouseY - o.y) * (nextZoom / prevZoom),
+      }));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [setMapOffset]);
 
   // Events
   const handleBenchClick = useCallback((benchId: string, e: React.MouseEvent) => {
@@ -254,7 +279,7 @@ function SeatsManagement(): JSX.Element {
 
   const handleMapClick = useCallback((e: React.MouseEvent) => {
     if (activeTool === 'add') {
-      const rect = mapLayerRef.current?.getBoundingClientRect();
+      const rect = wrapperRef.current?.getBoundingClientRect();
       if (!rect) return;
       const x = snapToGrid((e.clientX - rect.left - mapOffset.x) / zoom - mapBounds.left);
       const y = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
@@ -862,7 +887,7 @@ function SeatsManagement(): JSX.Element {
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={wrapperRef}
-            className="w-full h-full relative cursor-crosshair"
+            className={`w-full h-full relative ${activeTool === 'pan' ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : activeTool === 'add' ? 'cursor-crosshair' : 'cursor-default'}`}
             onClick={handleMapClick}
             onDrop={onDropMap}
             onDragOver={(e)=>{e.preventDefault(); e.dataTransfer.dropEffect='move';}}
@@ -872,13 +897,12 @@ function SeatsManagement(): JSX.Element {
             onMouseLeave={onMouseUpCanvas}
             onContextMenu={(e) => {
               e.preventDefault();
-              const rect = mapLayerRef.current?.getBoundingClientRect();
+              const rect = wrapperRef.current?.getBoundingClientRect();
               if (!rect) return;
               const mapX = snapToGrid((e.clientX - rect.left - mapOffset.x) / zoom - mapBounds.left);
               const mapY = snapToGrid((e.clientY - rect.top - mapOffset.y) / zoom - mapBounds.top);
-              const containerRect = wrapperRef.current?.getBoundingClientRect();
-              const x = containerRect ? e.clientX - containerRect.left : e.clientX;
-              const y = containerRect ? e.clientY - containerRect.top : e.clientY;
+              const x = e.clientX - rect.left;
+              const y = e.clientY - rect.top;
               setCtxMenu({ show: true, x, y, mapX, mapY });
             }}
           >
